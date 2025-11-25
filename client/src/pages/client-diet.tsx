@@ -169,6 +169,23 @@ export default function ClientDiet() {
     (typeof currentPlan.meals === 'object' && Object.keys(currentPlan.meals).length > 0)
   );
   
+  // Helper to calculate meal totals from dishes
+  const calculateMealTotals = (meal: any) => {
+    if (meal.calories && meal.protein && meal.carbs && meal.fats) {
+      return meal; // Already has totals
+    }
+    if (meal.dishes && Array.isArray(meal.dishes)) {
+      const totals = meal.dishes.reduce((acc: any, dish: any) => ({
+        calories: acc.calories + (dish.calories || 0),
+        protein: acc.protein + (dish.protein || 0),
+        carbs: acc.carbs + (dish.carbs || 0),
+        fats: acc.fats + (dish.fats || 0),
+      }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
+      return { ...meal, ...totals };
+    }
+    return meal;
+  };
+
   // Get meals - handle both array and object (day-based) formats
   let dayMeals: any[] = [];
   let currentDayLabel = currentDay;
@@ -182,7 +199,7 @@ export default function ClientDiet() {
         if (!mealsByWeek[weekNum]) {
           mealsByWeek[weekNum] = [];
         }
-        mealsByWeek[weekNum].push(meal);
+        mealsByWeek[weekNum].push(calculateMealTotals(meal));
       });
       const totalWeeks = Math.max(...Object.keys(mealsByWeek).map(Number), 1);
       dayMeals = mealsByWeek[currentWeek] || [];
@@ -192,10 +209,10 @@ export default function ClientDiet() {
       const mealObj = currentPlan.meals[currentDay];
       if (mealObj) {
         // Convert from { breakfast: {...}, lunch: {...} } to array of meals
-        dayMeals = Object.entries(mealObj).map(([type, data]: [string, any]) => ({
-          type,
-          ...data
-        }));
+        dayMeals = Object.entries(mealObj).map(([type, data]: [string, any]) => {
+          const meal = { type, ...data };
+          return calculateMealTotals(meal);
+        });
       }
       currentDayLabel = currentDay;
     }
