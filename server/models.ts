@@ -86,6 +86,12 @@ export interface IVideo extends Document {
   description?: string;
   url: string;
   thumbnail?: string;
+  videoData?: Buffer;
+  thumbnailData?: Buffer;
+  contentType?: string;
+  thumbnailContentType?: string;
+  fileSize?: number;
+  originalFileName?: string;
   category: string;
   duration?: number;
   intensity?: string;
@@ -403,8 +409,14 @@ const BodyMetricsSchema = new Schema({
 const VideoSchema = new Schema({
   title: { type: String, required: true },
   description: String,
-  url: { type: String, required: true },
+  url: String,
   thumbnail: String,
+  videoData: Buffer,
+  thumbnailData: Buffer,
+  contentType: String,
+  thumbnailContentType: String,
+  fileSize: Number,
+  originalFileName: String,
   category: { type: String, required: true },
   duration: Number,
   intensity: String,
