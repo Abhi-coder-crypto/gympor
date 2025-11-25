@@ -53,7 +53,7 @@ interface DietTemplateFormData {
   description: string;
   category: string;
   targetCalories: string;
-  meals: Meal[];
+  meals: Record<string, Meal[]>;
   selectedDay: string;
 }
 
@@ -78,7 +78,7 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
     description: "",
     category: "weight_loss",
     targetCalories: "",
-    meals: [],
+    meals: {},
     selectedDay: "Monday",
   });
   const [selectedMealTypes, setSelectedMealTypes] = useState<string[]>([]);
@@ -150,7 +150,7 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       description: "",
       category: "weight_loss",
       targetCalories: "",
-      meals: [],
+      meals: {},
       selectedDay: "Monday",
     });
     setSelectedMealTypes([]);
@@ -159,23 +159,30 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
   const handleEdit = (template: any) => {
     setEditingTemplate(template);
     
-    // Convert object-based meals back to array for editing
-    let mealsArray = [];
-    let day = "Monday";
-    if (template.meals) {
-      if (Array.isArray(template.meals)) {
-        mealsArray = template.meals;
-      } else if (typeof template.meals === 'object') {
-        // Extract from day-based structure (e.g., { Monday: { breakfast: {...} } })
-        const firstDay = Object.keys(template.meals)[0];
-        if (firstDay) {
-          day = firstDay;
-          const dayMeals = template.meals[firstDay];
-          mealsArray = Object.keys(dayMeals).map(type => ({
+    // Convert object-based meals back to editable format for multi-day support
+    const mealsObject: Record<string, Meal[]> = {};
+    let firstDay = "Monday";
+    let mealsForFirstDay: Meal[] = [];
+    
+    if (template.meals && typeof template.meals === 'object' && !Array.isArray(template.meals)) {
+      // Extract from day-based structure (e.g., { Monday: { breakfast: {...} } })
+      const days = Object.keys(template.meals);
+      if (days.length > 0) {
+        firstDay = days[0];
+        const dayMeals = template.meals[firstDay];
+        mealsForFirstDay = Object.keys(dayMeals).map(type => ({
+          type,
+          dishes: dayMeals[type].dishes || []
+        }));
+        
+        // Convert all days to record format
+        days.forEach(day => {
+          const dayData = template.meals[day];
+          mealsObject[day] = Object.keys(dayData).map(type => ({
             type,
-            dishes: dayMeals[type].dishes || []
+            dishes: dayData[type].dishes || []
           }));
-        }
+        });
       }
     }
     
@@ -184,26 +191,34 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       description: template.description ?? "",
       category: template.category ?? "weight_loss",
       targetCalories: String(template.targetCalories ?? ""),
-      meals: mealsArray,
-      selectedDay: day,
+      meals: mealsObject,
+      selectedDay: firstDay,
     });
-    const mealTypes = mealsArray.map((m: any) => m.type);
+    const mealTypes = mealsForFirstDay.map((m: any) => m.type);
     setSelectedMealTypes(mealTypes);
     setEditDialogOpen(true);
   };
 
   const toggleMealType = (mealType: string) => {
+    const dayMeals = formData.meals[formData.selectedDay] || [];
+    
     if (selectedMealTypes.includes(mealType)) {
       setSelectedMealTypes(selectedMealTypes.filter(t => t !== mealType));
       setFormData({
         ...formData,
-        meals: formData.meals.filter(m => m.type !== mealType)
+        meals: {
+          ...formData.meals,
+          [formData.selectedDay]: dayMeals.filter(m => m.type !== mealType)
+        }
       });
     } else {
       setSelectedMealTypes([...selectedMealTypes, mealType]);
       setFormData({
         ...formData,
-        meals: [...formData.meals, { type: mealType, dishes: [] }]
+        meals: {
+          ...formData.meals,
+          [formData.selectedDay]: [...dayMeals, { type: mealType, dishes: [] }]
+        }
       });
     }
   };
@@ -217,51 +232,63 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       carbs: 0,
       fats: 0,
     };
+    const dayMeals = formData.meals[formData.selectedDay] || [];
     setFormData({
       ...formData,
-      meals: formData.meals.map(meal =>
-        meal.type === mealType
-          ? { ...meal, dishes: [...meal.dishes, newDish] }
-          : meal
-      )
+      meals: {
+        ...formData.meals,
+        [formData.selectedDay]: dayMeals.map(meal =>
+          meal.type === mealType
+            ? { ...meal, dishes: [...meal.dishes, newDish] }
+            : meal
+        )
+      }
     });
   };
 
   const updateDish = (mealType: string, dishIndex: number, field: keyof Dish, value: any) => {
+    const dayMeals = formData.meals[formData.selectedDay] || [];
     setFormData({
       ...formData,
-      meals: formData.meals.map(meal =>
-        meal.type === mealType
-          ? {
-              ...meal,
-              dishes: meal.dishes.map((dish, idx) => {
-                if (idx === dishIndex) {
-                  const updatedDish = { ...dish, [field]: value };
-                  // Auto-calculate calories when macros change
-                  if (field === 'protein' || field === 'carbs' || field === 'fats') {
-                    const protein = field === 'protein' ? value : dish.protein;
-                    const carbs = field === 'carbs' ? value : dish.carbs;
-                    const fats = field === 'fats' ? value : dish.fats;
-                    updatedDish.calories = Math.round((protein * 4) + (carbs * 4) + (fats * 9));
+      meals: {
+        ...formData.meals,
+        [formData.selectedDay]: dayMeals.map(meal =>
+          meal.type === mealType
+            ? {
+                ...meal,
+                dishes: meal.dishes.map((dish, idx) => {
+                  if (idx === dishIndex) {
+                    const updatedDish = { ...dish, [field]: value };
+                    // Auto-calculate calories when macros change
+                    if (field === 'protein' || field === 'carbs' || field === 'fats') {
+                      const protein = field === 'protein' ? value : dish.protein;
+                      const carbs = field === 'carbs' ? value : dish.carbs;
+                      const fats = field === 'fats' ? value : dish.fats;
+                      updatedDish.calories = Math.round((protein * 4) + (carbs * 4) + (fats * 9));
+                    }
+                    return updatedDish;
                   }
-                  return updatedDish;
-                }
-                return dish;
-              })
-            }
-          : meal
-      )
+                  return dish;
+                })
+              }
+            : meal
+        )
+      }
     });
   };
 
   const removeDish = (mealType: string, dishIndex: number) => {
+    const dayMeals = formData.meals[formData.selectedDay] || [];
     setFormData({
       ...formData,
-      meals: formData.meals.map(meal =>
-        meal.type === mealType
-          ? { ...meal, dishes: meal.dishes.filter((_, idx) => idx !== dishIndex) }
-          : meal
-      )
+      meals: {
+        ...formData.meals,
+        [formData.selectedDay]: dayMeals.map(meal =>
+          meal.type === mealType
+            ? { ...meal, dishes: meal.dishes.filter((_, idx) => idx !== dishIndex) }
+            : meal
+        )
+      }
     });
   };
 
@@ -277,29 +304,27 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       return;
     }
 
-    // Preserve existing meals from other days and merge the current day
-    const mealsObject: any = editingTemplate?.meals && typeof editingTemplate.meals === 'object' 
-      ? { ...editingTemplate.meals } 
-      : {};
+    // Build meals object for all selected days
+    const mealsObject: any = {};
     
-    const selectedDay = formData.selectedDay || "Monday";
-    mealsObject[selectedDay] = {};
-    
-    formData.meals.forEach((meal) => {
-      // Aggregate calories and macros from dishes
-      const totalCalories = meal.dishes.reduce((sum, dish) => sum + (dish.calories || 0), 0);
-      const totalProtein = meal.dishes.reduce((sum, dish) => sum + (dish.protein || 0), 0);
-      const totalCarbs = meal.dishes.reduce((sum, dish) => sum + (dish.carbs || 0), 0);
-      const totalFats = meal.dishes.reduce((sum, dish) => sum + (dish.fats || 0), 0);
-      
-      mealsObject[selectedDay][meal.type] = {
-        name: meal.dishes.map(d => d.name).filter(Boolean).join(', ') || `${meal.type} meal`,
-        dishes: meal.dishes,
-        calories: totalCalories,
-        protein: totalProtein,
-        carbs: totalCarbs,
-        fats: totalFats,
-      };
+    Object.entries(formData.meals).forEach(([day, dayMeals]) => {
+      mealsObject[day] = {};
+      dayMeals.forEach((meal) => {
+        // Aggregate calories and macros from dishes
+        const totalCalories = meal.dishes.reduce((sum, dish) => sum + (dish.calories || 0), 0);
+        const totalProtein = meal.dishes.reduce((sum, dish) => sum + (dish.protein || 0), 0);
+        const totalCarbs = meal.dishes.reduce((sum, dish) => sum + (dish.carbs || 0), 0);
+        const totalFats = meal.dishes.reduce((sum, dish) => sum + (dish.fats || 0), 0);
+        
+        mealsObject[day][meal.type] = {
+          name: meal.dishes.map(d => d.name).filter(Boolean).join(', ') || `${meal.type} meal`,
+          dishes: meal.dishes,
+          calories: totalCalories,
+          protein: totalProtein,
+          carbs: totalCarbs,
+          fats: totalFats,
+        };
+      });
     });
 
     const submitData = {
@@ -307,7 +332,6 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       description: formData.description,
       category: formData.category,
       targetCalories,
-      selectedDay: formData.selectedDay,
       isTemplate: true,
       meals: mealsObject,
     };
@@ -545,7 +569,32 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
 
             <div className="space-y-4">
               <div>
-                <Label className="text-base font-semibold">Meal Planning</Label>
+                <Label className="text-base font-semibold">Day Selection</Label>
+                <p className="text-sm text-muted-foreground mt-1">Click to select a day and add meals for that day</p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {DAYS_OF_WEEK.map(day => (
+                    <Button
+                      key={day.value}
+                      variant={formData.selectedDay === day.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setFormData({ ...formData, selectedDay: day.value });
+                        // Update selected meal types based on current day
+                        const dayMeals = formData.meals[day.value] || [];
+                        setSelectedMealTypes(dayMeals.map(m => m.type));
+                      }}
+                      data-testid={`button-select-day-${day.value}`}
+                    >
+                      {day.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <Label className="text-base font-semibold">Meal Planning for {formData.selectedDay}</Label>
                 <p className="text-sm text-muted-foreground mt-1">Select meal types and add dishes with their nutritional information</p>
               </div>
 
