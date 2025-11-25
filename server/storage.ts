@@ -1195,6 +1195,9 @@ export class MongoStorage implements IStorage {
       clonedFrom: planId,
     });
     
+    // CRITICAL: Mark meals as modified since it's a Schema.Types.Mixed field
+    clonedPlan.markModified('meals');
+    
     if (originalPlan.isTemplate) {
       await DietPlan.findByIdAndUpdate(planId, { 
         $inc: { assignedCount: 1, timesCloned: 1 } 
