@@ -2202,6 +2202,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stream video from MongoDB
+  app.get("/api/videos/:id/stream", async (req, res) => {
+    try {
+      const video = await storage.getVideo(req.params.id);
+      if (!video || !video.videoData) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+
+      const range = req.headers.range;
+      const videoSize = video.videoData.length;
+
+      if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : videoSize - 1;
+        const chunkSize = (end - start) + 1;
+        const videoChunk = video.videoData.slice(start, end + 1);
+
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${videoSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunkSize,
+          'Content-Type': video.contentType || 'video/mp4',
+        });
+        res.end(videoChunk);
+      } else {
+        res.writeHead(200, {
+          'Content-Length': videoSize,
+          'Content-Type': video.contentType || 'video/mp4',
+        });
+        res.end(video.videoData);
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get thumbnail from MongoDB
+  app.get("/api/videos/:id/thumbnail", async (req, res) => {
+    try {
+      const video = await storage.getVideo(req.params.id);
+      if (!video || !video.thumbnailData) {
+        return res.status(404).json({ message: "Thumbnail not found" });
+      }
+
+      res.writeHead(200, {
+        'Content-Type': video.thumbnailContentType || 'image/jpeg',
+        'Content-Length': video.thumbnailData.length,
+      });
+      res.end(video.thumbnailData);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Client Video routes (owner or admin only)
   app.get("/api/clients/:clientId/videos", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
     try {
