@@ -3005,13 +3005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Diet plan ID and client ID are required" });
       }
       
-      // Check if client's package allows diet access
-      const hasAccess = await storage.checkClientPackageAccess(clientId, 'diet');
-      if (!hasAccess) {
-        return res.status(403).json({ 
-          message: "Client's package does not include diet plan access. Upgrade required." 
-        });
-      }
+      console.log(`[Assign Diet] Attempting to assign diet plan ${dietPlanId} to client ${clientId}`);
       
       const plan = await storage.assignDietPlanToClient(dietPlanId, clientId);
       if (!plan) {
@@ -3021,7 +3015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[Assign Diet] Successfully assigned diet plan ${dietPlanId} to client ${clientId}`);
       res.json({ message: "Diet plan assigned successfully", plan });
     } catch (error: any) {
-      console.error(`[Assign Diet] Error:`, error);
+      console.error(`[Assign Diet] Error assigning diet plan:`, error);
       res.status(500).json({ message: error.message });
     }
   });

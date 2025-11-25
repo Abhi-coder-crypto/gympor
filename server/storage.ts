@@ -1056,25 +1056,51 @@ export class MongoStorage implements IStorage {
   }
 
   async assignDietPlanToClient(dietPlanId: string, clientId: string): Promise<IDietPlan | null> {
-    // Check if assignment already exists to prevent duplicates
-    const convertedClientId = new mongoose.Types.ObjectId(clientId);
-    const convertedPlanId = new mongoose.Types.ObjectId(dietPlanId);
-    
-    const existingAssignment = await DietPlanAssignment.findOne({
-      dietPlanId: convertedPlanId,
-      clientId: convertedClientId
-    });
-    
-    if (!existingAssignment) {
-      // Save with converted ObjectIds to ensure type consistency
-      const assignment = new DietPlanAssignment({ 
+    try {
+      // Validate and convert IDs
+      let convertedClientId, convertedPlanId;
+      
+      try {
+        convertedClientId = new mongoose.Types.ObjectId(clientId);
+      } catch (err) {
+        console.error(`[Assign Diet] Invalid clientId format: ${clientId}`);
+        throw new Error(`Invalid client ID format: ${clientId}`);
+      }
+      
+      try {
+        convertedPlanId = new mongoose.Types.ObjectId(dietPlanId);
+      } catch (err) {
+        console.error(`[Assign Diet] Invalid dietPlanId format: ${dietPlanId}`);
+        throw new Error(`Invalid diet plan ID format: ${dietPlanId}`);
+      }
+      
+      console.log(`[Assign Diet] Converting assignment - Plan: ${convertedPlanId.toString()}, Client: ${convertedClientId.toString()}`);
+      
+      // Check if assignment already exists to prevent duplicates
+      const existingAssignment = await DietPlanAssignment.findOne({
         dietPlanId: convertedPlanId,
-        clientId: convertedClientId 
+        clientId: convertedClientId
       });
-      await assignment.save();
+      
+      if (existingAssignment) {
+        console.log(`[Assign Diet] Assignment already exists, skipping duplicate`);
+      } else {
+        // Save with converted ObjectIds to ensure type consistency
+        const assignment = new DietPlanAssignment({ 
+          dietPlanId: convertedPlanId,
+          clientId: convertedClientId 
+        });
+        const saved = await assignment.save();
+        console.log(`[Assign Diet] Saved new assignment: ${saved._id}`);
+      }
+      
+      const plan = await DietPlan.findById(dietPlanId);
+      console.log(`[Assign Diet] Retrieved plan: ${plan?.name || 'NOT FOUND'}`);
+      return plan;
+    } catch (error: any) {
+      console.error(`[Assign Diet] Error in assignDietPlanToClient:`, error.message);
+      throw error;
     }
-    
-    return await DietPlan.findById(dietPlanId);
   }
 
   async assignDietPlanToClients(dietPlanId: string, clientIds: string[]): Promise<IDietPlan | null> {
