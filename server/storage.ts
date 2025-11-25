@@ -994,17 +994,24 @@ export class MongoStorage implements IStorage {
       });
       
       // Convert back to array and sort by createdAt descending
-      const allPlans = Array.from(planMap.values());
+      let allPlans = Array.from(planMap.values());
       const result = allPlans.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
       if (result.length === 0) {
         console.log(`[Diet Plans] No plans found for client ${clientId}. Assignments: ${assignments.length}, Old format: ${oldFormatPlans.length}`);
       } else {
         console.log(`[Diet Plans] Found ${result.length} plans for client ${clientId}`);
+        
+        // Convert array-format meals to day-indexed object format for client compatibility
         result.forEach((plan: any, idx: number) => {
+          if (Array.isArray(plan.meals)) {
+            console.log(`[Diet Plans] Plan ${idx}: CONVERTING array format meals to day-indexed object format`);
+            plan.meals = this.convertArrayMealsToDayIndexed(plan.meals);
+          }
+          
           const mealsKeys = plan.meals && typeof plan.meals === 'object' ? Object.keys(plan.meals) : [];
           console.log(`[Diet Plans] Plan ${idx}: ${plan.name}, Meals days: [${mealsKeys.join(', ')}]`);
-          if (plan.meals && typeof plan.meals === 'object') {
+          if (plan.meals && typeof plan.meals === 'object' && !Array.isArray(plan.meals)) {
             Object.entries(plan.meals).forEach(([day, dayMeals]: [string, any]) => {
               if (typeof dayMeals === 'object') {
                 const mealTypes = Object.keys(dayMeals).join(', ');
@@ -1020,6 +1027,47 @@ export class MongoStorage implements IStorage {
       console.error('[Diet Plans] Error getting client diet plans:', error);
       return [];
     }
+  }
+
+  private convertArrayMealsToDayIndexed(mealArray: any[]): Record<string, any> {
+    const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayIndexed: Record<string, any> = {};
+    
+    // Initialize empty meals for all days
+    DAYS_OF_WEEK.forEach(day => {
+      dayIndexed[day] = {};
+    });
+    
+    // Try to map array meals to days based on available properties
+    mealArray.forEach((meal: any, index: number) => {
+      let dayKey = 'Monday'; // Default to Monday
+      
+      // Check for day property in meal
+      if (meal.day && DAYS_OF_WEEK.includes(meal.day)) {
+        dayKey = meal.day;
+      } else if (meal.dayIndex !== undefined && meal.dayIndex >= 0 && meal.dayIndex < 7) {
+        dayKey = DAYS_OF_WEEK[meal.dayIndex];
+      } else if (index < 7) {
+        // Distribute first 7 items across the week
+        dayKey = DAYS_OF_WEEK[index];
+      }
+      
+      const mealType = meal.type || meal.mealType || 'breakfast';
+      
+      // Store meal under the day and meal type
+      dayIndexed[dayKey][mealType] = {
+        time: meal.time || '9:00 AM',
+        calories: meal.calories || 0,
+        protein: meal.protein || 0,
+        carbs: meal.carbs || 0,
+        fats: meal.fats || 0,
+        dishes: meal.dishes || []
+      };
+      
+      console.log(`[Diet Convert] Mapped meal to ${dayKey}/${mealType}: cal=${dayIndexed[dayKey][mealType].calories}`);
+    });
+    
+    return dayIndexed;
   }
 
   async getDietPlan(id: string): Promise<IDietPlan | null> {
