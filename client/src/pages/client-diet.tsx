@@ -44,6 +44,8 @@ export default function ClientDiet() {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [clientId, setClientId] = useState<string | null>(null);
   const [contactTrainerOpen, setContactTrainerOpen] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState<any>(null);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
 
   useEffect(() => {
     const id = localStorage.getItem("clientId");
@@ -404,7 +406,15 @@ export default function ClientDiet() {
                           const config = getMealTypeIcon(idx);
                           const IconComponent = config.icon;
                           return (
-                            <Card key={idx} className="border-0 bg-white dark:bg-slate-800 hover-elevate">
+                            <Card 
+                              key={idx} 
+                              className="border-0 bg-white dark:bg-slate-800 hover-elevate cursor-pointer transition-all"
+                              onClick={() => {
+                                setSelectedMeal({ ...meal, mealType: config.type });
+                                setShowRecipeModal(true);
+                              }}
+                              data-testid={`card-meal-recipe-${idx}`}
+                            >
                               <CardContent className="p-4">
                                 <div className="flex items-start gap-4">
                                   {/* Colored Icon Circle */}
@@ -720,6 +730,89 @@ export default function ClientDiet() {
         </DialogContent>
       </Dialog>
       <ContactTrainerDialog open={contactTrainerOpen} onOpenChange={setContactTrainerOpen} />
+
+      {/* Recipe Details Modal */}
+      <Dialog open={showRecipeModal} onOpenChange={setShowRecipeModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Utensils className="h-5 w-5" />
+              {selectedMeal?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Macro Summary */}
+            <div className="grid grid-cols-4 gap-3">
+              <div className="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Calories</p>
+                <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{selectedMeal?.calories}</p>
+              </div>
+              <div className="bg-red-50 dark:bg-red-950/30 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Protein</p>
+                <p className="text-lg font-bold text-red-600 dark:text-red-400">{selectedMeal?.protein}g</p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Carbs</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{selectedMeal?.carbs}g</p>
+              </div>
+              <div className="bg-yellow-50 dark:bg-yellow-950/30 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground">Fats</p>
+                <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{selectedMeal?.fats}g</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Ingredients */}
+            {selectedMeal?.dishes && selectedMeal.dishes.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <Apple className="h-5 w-5" />
+                  Ingredients
+                </h3>
+                <div className="space-y-2">
+                  {selectedMeal.dishes.map((dish: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-muted/50 rounded-lg">
+                      <p className="font-medium">{dish.name}</p>
+                      {dish.description && (
+                        <p className="text-sm text-muted-foreground mt-1">{dish.description}</p>
+                      )}
+                      <div className="flex gap-4 mt-2 text-xs">
+                        {dish.calories && <span>Calories: {dish.calories}</span>}
+                        {dish.protein && <span>Protein: {dish.protein}g</span>}
+                        {dish.carbs && <span>Carbs: {dish.carbs}g</span>}
+                        {dish.fats && <span>Fats: {dish.fats}g</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Instructions */}
+            {selectedMeal?.instructions && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                  <ChefHat className="h-5 w-5" />
+                  Preparation Instructions
+                </h3>
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm whitespace-pre-wrap">{selectedMeal.instructions}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Meal Type Badge */}
+            <div className="flex items-center gap-2">
+              <Badge>{selectedMeal?.mealType || 'Meal'}</Badge>
+              {selectedMeal?.time && (
+                <Badge variant="outline">{selectedMeal.time}</Badge>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <MobileNavigation />
     </div>
   );
