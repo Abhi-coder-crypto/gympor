@@ -2813,6 +2813,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/diet-plans", authenticateToken, requireRole('admin', 'trainer'), async (req, res) => {
     try {
+      // Log incoming meals data to verify nutritional values
+      const meals = req.body.meals;
+      if (meals && typeof meals === 'object') {
+        Object.entries(meals).forEach(([day, dayMeals]: [string, any]) => {
+          Object.entries(dayMeals).forEach(([mealType, mealData]: [string, any]) => {
+            console.log(`[DIET CREATE] ${day} - ${mealType}: calories=${mealData.calories}, protein=${mealData.protein}, carbs=${mealData.carbs}, fats=${mealData.fats}`);
+          });
+        });
+      }
       const plan = await storage.createDietPlan(req.body);
       res.json(plan);
     } catch (error: any) {
