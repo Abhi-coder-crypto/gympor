@@ -189,26 +189,24 @@ export default function ClientDiet() {
         carbs: acc.carbs + (parseInt(dish.carbs) || 0),
         fats: acc.fats + (parseInt(dish.fats) || 0),
       }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
-      console.log(`[CALC TOTALS] Calculated from ${meal.dishes.length} dishes for "${meal.name}":`, totals);
+      console.log(`[CALC TOTALS] Calculated from ${meal.dishes.length} dishes for "${meal.type}": cal=${totals.calories}, prot=${totals.protein}, carbs=${totals.carbs}, fats=${totals.fats}`);
       return { ...meal, ...totals };
     }
     
-    // Check if meal already has totals at top level (even if 0)
-    const mealTotals = {
-      calories: parseInt(meal.calories) || 0,
-      protein: parseInt(meal.protein) || 0,
-      carbs: parseInt(meal.carbs) || 0,
-      fats: parseInt(meal.fats) || 0,
+    // Check if meal already has totals at top level (convert to numbers)
+    const calories = Number(meal.calories) || 0;
+    const protein = Number(meal.protein) || 0;
+    const carbs = Number(meal.carbs) || 0;
+    const fats = Number(meal.fats) || 0;
+    
+    console.log(`[CALC TOTALS] Using top-level totals for "${meal.type}": cal=${calories}, prot=${protein}, carbs=${carbs}, fats=${fats}`);
+    return { 
+      ...meal, 
+      calories,
+      protein,
+      carbs,
+      fats 
     };
-    
-    // If meal has any non-zero totals or all are present, use them
-    if (Object.values(mealTotals).some(v => v > 0) || (meal.calories !== undefined && meal.protein !== undefined)) {
-      console.log(`[CALC TOTALS] Using top-level totals for "${meal.name}":`, mealTotals);
-      return { ...meal, ...mealTotals };
-    }
-    
-    console.log(`[CALC TOTALS] No data for meal "${meal.name}"`);
-    return { ...meal, calories: 0, protein: 0, carbs: 0, fats: 0 };
   };
 
   // Get meals - handle both array and object (day-based) formats
