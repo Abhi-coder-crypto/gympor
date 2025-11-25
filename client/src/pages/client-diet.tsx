@@ -215,8 +215,24 @@ export default function ClientDiet() {
   
   if (hasDietPlan) {
     console.log(`[CLIENT DIET] Meals structure:`, typeof currentPlan.meals, Array.isArray(currentPlan.meals), currentPlan.meals);
-    if (Array.isArray(currentPlan.meals)) {
+    
+    // Check if meals is a day-indexed object (new format from recent saves)
+    if (typeof currentPlan.meals === 'object' && currentPlan.meals !== null && !Array.isArray(currentPlan.meals) && currentPlan.meals[currentDay]) {
+      // New format: object keyed by day name { Monday: {breakfast: {...}, lunch: {...}}, Tuesday: {...} }
+      const mealObj = currentPlan.meals[currentDay];
+      console.log(`[CLIENT DIET] Using day-indexed object format for ${currentDay}`);
+      if (mealObj) {
+        // Convert from { breakfast: {...}, lunch: {...} } to array of meals
+        dayMeals = Object.entries(mealObj).map(([type, data]: [string, any]) => {
+          const meal = { type, ...data };
+          console.log(`[CLIENT DIET] Created meal with type='${type}'`);
+          return calculateMealTotals(meal);
+        });
+      }
+      currentDayLabel = currentDay;
+    } else if (Array.isArray(currentPlan.meals)) {
       // Old format: array of meals, group by week
+      console.log(`[CLIENT DIET] Using array format (old style meals)`);
       const mealsByWeek: Record<number, any[]> = {};
       currentPlan.meals.forEach((meal: any) => {
         const weekNum = meal.weekNumber ?? 1;
@@ -228,21 +244,6 @@ export default function ClientDiet() {
       const totalWeeks = Math.max(...Object.keys(mealsByWeek).map(Number), 1);
       dayMeals = mealsByWeek[currentWeek] || [];
       currentDayLabel = `Week ${currentWeek}`;
-    } else if (typeof currentPlan.meals === 'object' && currentPlan.meals !== null) {
-      // New format: object keyed by day name { Monday: {...}, Tuesday: {...} }
-      console.log(`[CLIENT DIET] Using object format, keys:`, Object.keys(currentPlan.meals));
-      const mealObj = currentPlan.meals[currentDay];
-      console.log(`[CLIENT DIET] Getting meals for ${currentDay}:`, mealObj);
-      if (mealObj) {
-        console.log(`[CLIENT DIET] MealObj type:`, typeof mealObj, `is array:`, Array.isArray(mealObj), `entries:`, Object.entries(mealObj));
-        // Convert from { breakfast: {...}, lunch: {...} } to array of meals
-        dayMeals = Object.entries(mealObj).map(([type, data]: [string, any]) => {
-          const meal = { type, ...data };
-          console.log(`[CLIENT DIET] Created meal with type='${type}' and data:`, data);
-          return calculateMealTotals(meal);
-        });
-      }
-      currentDayLabel = currentDay;
     }
   }
 
