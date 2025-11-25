@@ -191,6 +191,23 @@ export default function ClientDiet() {
     }
   }
 
+  // Calculate week/day navigation variables
+  let hasPrevWeek = false;
+  let hasNextWeek = false;
+  let totalWeeks = 1;
+  
+  if (Array.isArray(currentPlan?.meals)) {
+    const mealsByWeek: Record<number, any[]> = {};
+    currentPlan.meals.forEach((meal: any) => {
+      const weekNum = meal.weekNumber ?? 1;
+      if (!mealsByWeek[weekNum]) mealsByWeek[weekNum] = [];
+      mealsByWeek[weekNum].push(meal);
+    });
+    totalWeeks = Math.max(...Object.keys(mealsByWeek).map(Number), 1);
+    hasPrevWeek = currentWeek > 1;
+    hasNextWeek = currentWeek < totalWeeks;
+  }
+
   // Macro calculations for the current day/week
   const totalCalories = dayMeals.reduce((sum: number, meal: any) => sum + (meal.calories || 0), 0);
   const totalProtein = dayMeals.reduce((sum: number, meal: any) => sum + (meal.protein || 0), 0);
@@ -349,7 +366,7 @@ export default function ClientDiet() {
                     <div className="bg-orange-100 dark:bg-orange-900/30 rounded-lg p-4 mb-6 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Flame className="h-6 w-6 text-orange-500" />
-                        <span className="font-medium text-gray-800 dark:text-gray-200">{currentWeekLabel} Total Calories</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-200">{currentDayLabel} Total Calories</span>
                       </div>
                       <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{totalCalories} Cal</span>
                     </div>
@@ -373,7 +390,7 @@ export default function ClientDiet() {
                     )}
 
                     {/* Meals List */}
-                    {weekMeals.length === 0 ? (
+                    {dayMeals.length === 0 ? (
                       <Card className="border-dashed">
                         <CardContent className="p-8 text-center">
                           <UtensilsCrossed className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
@@ -383,7 +400,7 @@ export default function ClientDiet() {
                       </Card>
                     ) : (
                       <div className="space-y-3">
-                        {weekMeals.map((meal: any, idx: number) => {
+                        {dayMeals.map((meal: any, idx: number) => {
                           const config = getMealTypeIcon(idx);
                           const IconComponent = config.icon;
                           return (
@@ -418,28 +435,58 @@ export default function ClientDiet() {
                   </CardContent>
                 </Card>
 
-                {/* Day Navigation Buttons */}
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={handlePrevWeek} 
-                    disabled={!hasPrevWeek}
-                    variant="outline"
-                    className="flex-1 h-12 text-lg font-semibold"
-                    data-testid="button-prev-week-bottom"
-                  >
-                    <ChevronLeft className="h-5 w-5 mr-2" />
-                    Previous Week
-                  </Button>
-                  <Button 
-                    onClick={handleNextWeek} 
-                    disabled={!hasNextWeek}
-                    className="flex-1 bg-green-500 hover:bg-green-600 h-12 text-lg font-semibold"
-                    data-testid="button-next-week-bottom"
-                  >
-                    Next Week
-                    <ChevronRight className="h-5 w-5 ml-2" />
-                  </Button>
-                </div>
+                {/* Day/Week Navigation Buttons */}
+                {Array.isArray(currentPlan?.meals) ? (
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={handlePrevWeek} 
+                      disabled={!hasPrevWeek}
+                      variant="outline"
+                      className="flex-1 h-12 text-lg font-semibold"
+                      data-testid="button-prev-week-bottom"
+                    >
+                      <ChevronLeft className="h-5 w-5 mr-2" />
+                      Previous Week
+                    </Button>
+                    <Button 
+                      onClick={handleNextWeek} 
+                      disabled={!hasNextWeek}
+                      className="flex-1 bg-green-500 hover:bg-green-600 h-12 text-lg font-semibold"
+                      data-testid="button-next-week-bottom"
+                    >
+                      Next Week
+                      <ChevronRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => {
+                        const currentIdx = DAYS_OF_WEEK.indexOf(currentDay);
+                        if (currentIdx > 0) setCurrentDay(DAYS_OF_WEEK[currentIdx - 1]);
+                      }}
+                      disabled={DAYS_OF_WEEK.indexOf(currentDay) === 0}
+                      variant="outline"
+                      className="flex-1 h-12 text-lg font-semibold"
+                      data-testid="button-prev-day-bottom"
+                    >
+                      <ChevronLeft className="h-5 w-5 mr-2" />
+                      Previous Day
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        const currentIdx = DAYS_OF_WEEK.indexOf(currentDay);
+                        if (currentIdx < DAYS_OF_WEEK.length - 1) setCurrentDay(DAYS_OF_WEEK[currentIdx + 1]);
+                      }}
+                      disabled={DAYS_OF_WEEK.indexOf(currentDay) === DAYS_OF_WEEK.length - 1}
+                      className="flex-1 bg-green-500 hover:bg-green-600 h-12 text-lg font-semibold"
+                      data-testid="button-next-day-bottom"
+                    >
+                      Next Day
+                      <ChevronRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </div>
+                )}
               </>
             )}
           </TabsContent>
@@ -450,7 +497,7 @@ export default function ClientDiet() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>{currentWeekLabel} Macros & Goals</CardTitle>
+                    <CardTitle>{currentDayLabel} Macros & Goals</CardTitle>
                     <Badge className="mt-2 bg-orange-500">Premium</Badge>
                   </div>
                   <Badge variant="outline" className="text-green-600 dark:text-green-400">
@@ -611,7 +658,7 @@ export default function ClientDiet() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {weekMeals.map((meal: any, idx: number) => (
+                  {dayMeals.map((meal: any, idx: number) => (
                     <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div>
                         <p className="font-medium">{meal.name}</p>
