@@ -58,19 +58,34 @@ export default function ClientVideoLibrary() {
 
   const bookmarkMutation = useMutation({
     mutationFn: async ({ videoId, isBookmarked }: { videoId: string; isBookmarked: boolean }) => {
-      console.log("📌 Bookmark mutation triggered:", { videoId, isBookmarked, clientId });
       if (isBookmarked) {
-        const result = await apiRequest('DELETE', `/api/clients/${clientId}/bookmarks/${videoId}`);
-        console.log("📌 Deleted bookmark:", result);
-        return result;
+        return apiRequest('DELETE', `/api/clients/${clientId}/bookmarks/${videoId}`);
       } else {
-        const result = await apiRequest('POST', `/api/clients/${clientId}/bookmarks/${videoId}`);
-        console.log("📌 Created bookmark:", result);
-        return result;
+        return apiRequest('POST', `/api/clients/${clientId}/bookmarks/${videoId}`);
       }
     },
+    onMutate: async ({ videoId, isBookmarked }) => {
+      // Immediately update the UI while the request is in flight
+      await queryClient.cancelQueries({ queryKey: [`/api/clients/${clientId}/bookmarks`] });
+      const previousBookmarks = queryClient.getQueryData<any[]>([`/api/clients/${clientId}/bookmarks`]);
+      
+      if (isBookmarked) {
+        // Remove from bookmarks
+        queryClient.setQueryData([`/api/clients/${clientId}/bookmarks`], 
+          (previousBookmarks || []).filter((b: any) => b.videoId !== videoId)
+        );
+      } else {
+        // Add to bookmarks (optimistic update)
+        const video = videos.find(v => v._id === videoId);
+        if (video) {
+          queryClient.setQueryData([`/api/clients/${clientId}/bookmarks`], 
+            [...(previousBookmarks || []), { videoId, video }]
+          );
+        }
+      }
+      return { previousBookmarks };
+    },
     onSuccess: () => {
-      console.log("📌 Mutation success, invalidating cache for:", [`/api/clients/${clientId}/bookmarks`]);
       queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}/bookmarks`] });
     },
   });
@@ -236,11 +251,7 @@ export default function ClientVideoLibrary() {
                     <div className="absolute top-2 right-2 z-20">
                       <Button
                         size="icon"
-                        className={`h-10 w-10 rounded-full border-0 transition-colors ${
-                          isBookmarked 
-                            ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
-                            : 'bg-black/60 hover:bg-black/80 text-white'
-                        }`}
+                        className="h-10 w-10 rounded-full bg-black/60 hover:bg-black/80 border-0 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleToggleBookmark(video._id);
@@ -248,9 +259,9 @@ export default function ClientVideoLibrary() {
                         data-testid={`button-bookmark-${video._id}`}
                       >
                         {isBookmarked ? (
-                          <BookmarkCheck className="h-5 w-5 fill-current" />
+                          <BookmarkCheck className="h-5 w-5 fill-white text-white" />
                         ) : (
-                          <Bookmark className="h-5 w-5" />
+                          <Bookmark className="h-5 w-5 text-white" />
                         )}
                       </Button>
                     </div>
