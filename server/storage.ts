@@ -1017,11 +1017,20 @@ export class MongoStorage implements IStorage {
   async createDietPlan(data: Partial<IDietPlan>): Promise<IDietPlan> {
     const planData = {
       ...data,
-      meals: data.meals || [],
+      meals: data.meals || {},
     };
     const plan = new DietPlan(planData);
     const saved = await plan.save();
-    console.log(`[Diet Create] Created diet plan with ${saved.meals?.length || 0} meals`);
+    // Log the actual meals that were saved
+    const mealsKeys = typeof saved.meals === 'object' ? Object.keys(saved.meals).length : 0;
+    console.log(`[Diet Create] Created diet plan with ${mealsKeys} days of meals`);
+    if (saved.meals && typeof saved.meals === 'object') {
+      Object.entries(saved.meals).forEach(([day, dayMeals]: [string, any]) => {
+        Object.entries(dayMeals).forEach(([mealType, mealData]: [string, any]) => {
+          console.log(`[Diet Create SAVED] ${day} - ${mealType}: calories=${mealData.calories}, protein=${mealData.protein}, carbs=${mealData.carbs}, fats=${mealData.fats}`);
+        });
+      });
+    }
     return saved;
   }
 
@@ -1032,12 +1041,20 @@ export class MongoStorage implements IStorage {
     const existingPlan = await DietPlan.findById(id);
     const updateData = {
       ...data,
-      meals: data.meals !== undefined ? data.meals : existingPlan?.meals || [],
+      meals: data.meals !== undefined ? data.meals : existingPlan?.meals || {},
     };
     
     const updated = await DietPlan.findByIdAndUpdate(id, updateData, { new: true });
     if (updated) {
-      console.log(`[Diet Update] Updated diet plan with ${updated.meals?.length || 0} meals`);
+      const mealsKeys = typeof updated.meals === 'object' ? Object.keys(updated.meals).length : 0;
+      console.log(`[Diet Update] Updated diet plan with ${mealsKeys} days of meals`);
+      if (updated.meals && typeof updated.meals === 'object') {
+        Object.entries(updated.meals).forEach(([day, dayMeals]: [string, any]) => {
+          Object.entries(dayMeals).forEach(([mealType, mealData]: [string, any]) => {
+            console.log(`[Diet Update SAVED] ${day} - ${mealType}: calories=${mealData.calories}, protein=${mealData.protein}, carbs=${mealData.carbs}, fats=${mealData.fats}`);
+          });
+        });
+      }
     }
     return updated;
   }
