@@ -22,6 +22,8 @@ interface Video {
   description?: string;
   url: string;
   thumbnail?: string;
+  hasVideoData?: boolean;
+  hasThumbnailData?: boolean;
   category: string;
   duration?: number;
   intensity?: string;
@@ -214,10 +216,10 @@ export default function AdminVideos() {
                         <Card key={video._id} className="hover-elevate overflow-hidden" data-testid={`card-video-${video._id}`}>
                           <CardContent className="p-0">
                             <div className="relative aspect-video bg-muted flex items-center justify-center rounded-t-md group overflow-hidden">
-                              {video.thumbnail || video.thumbnailData ? (
+                              {video.thumbnail || video.hasThumbnailData ? (
                                 <>
                                   <img 
-                                    src={video.thumbnailData !== undefined ? `/api/videos/${video._id}/thumbnail` : video.thumbnail} 
+                                    src={video.hasThumbnailData ? `/api/videos/${video._id}/thumbnail` : video.thumbnail} 
                                     alt={video.title}
                                     className="w-full h-full object-cover"
                                   />

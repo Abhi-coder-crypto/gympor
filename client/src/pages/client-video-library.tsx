@@ -16,6 +16,8 @@ interface Video {
   description?: string;
   url: string;
   thumbnail?: string;
+  hasVideoData?: boolean;
+  hasThumbnailData?: boolean;
   category: string;
   duration?: number;
   intensity?: string;
@@ -58,20 +60,6 @@ export default function ClientVideoLibrary() {
       return matchesSearch && matchesCategory && matchesDifficulty;
     });
 
-  const getVideoEmbedUrl = (url: string) => {
-    // Convert YouTube watch URLs to embed URLs
-    if (url.includes('youtube.com/watch')) {
-      const videoId = new URL(url).searchParams.get('v');
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-    // Convert Vimeo URLs to embed URLs
-    if (url.includes('vimeo.com')) {
-      const videoId = url.split('/').pop();
-      return `https://player.vimeo.com/video/${videoId}`;
-    }
-    // Return as-is for direct video files or already embed URLs
-    return url;
-  };
 
   return (
     <div className="w-full bg-background min-h-screen mb-20 md:mb-0">
@@ -169,9 +157,9 @@ export default function ClientVideoLibrary() {
                   data-testid={`video-card-${video._id}`}
                 >
                   <div className="relative aspect-video bg-muted overflow-hidden">
-                    {video.thumbnail || video.thumbnailData ? (
+                    {video.thumbnail || video.hasThumbnailData ? (
                       <img
-                        src={video.thumbnailData !== undefined ? `/api/videos/${video._id}/thumbnail` : video.thumbnail}
+                        src={video.hasThumbnailData ? `/api/videos/${video._id}/thumbnail` : video.thumbnail}
                         alt={video.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />

@@ -2090,11 +2090,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to ensure boolean flags are set for legacy documents
+  const ensureVideoFlags = (video: any) => {
+    return {
+      ...video.toObject ? video.toObject() : video,
+      hasVideoData: video.hasVideoData !== undefined ? video.hasVideoData : !!video.videoData,
+      hasThumbnailData: video.hasThumbnailData !== undefined ? video.hasThumbnailData : !!video.thumbnailData,
+    };
+  };
+
   // Video routes
   app.get("/api/videos", async (_req, res) => {
     try {
       const videos = await storage.getAllVideos();
-      res.json(videos);
+      const videosWithFlags = videos.map(ensureVideoFlags);
+      res.json(videosWithFlags);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2106,7 +2116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!video) {
         return res.status(404).json({ message: "Video not found" });
       }
-      res.json(video);
+      res.json(ensureVideoFlags(video));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2140,6 +2150,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: req.body.description,
         videoData: videoBuffer,
         thumbnailData: thumbnailBuffer,
+        hasVideoData: true,
+        hasThumbnailData: !!thumbnailBuffer,
         contentType: videoFile.mimetype,
         thumbnailContentType: thumbnailContentType,
         fileSize: videoFile.size,
@@ -2261,7 +2273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/clients/:clientId/videos", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
     try {
       const videos = await storage.getClientVideos(req.params.clientId);
-      res.json(videos);
+      res.json(videos.map(ensureVideoFlags));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2303,7 +2315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         search,
         isDraft,
       });
-      res.json(videos);
+      res.json(videos.map(ensureVideoFlags));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2462,7 +2474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/clients/:clientId/continue-watching", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
     try {
       const videos = await storage.getContinueWatching(req.params.clientId);
-      res.json(videos);
+      res.json(videos.map(ensureVideoFlags));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2472,7 +2484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/clients/:clientId/bookmarks", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
     try {
       const bookmarks = await storage.getVideoBookmarks(req.params.clientId);
-      res.json(bookmarks);
+      res.json(bookmarks.map(ensureVideoFlags));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

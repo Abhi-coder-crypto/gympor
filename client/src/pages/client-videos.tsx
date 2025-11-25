@@ -130,7 +130,8 @@ export default function ClientVideos() {
   };
 
   const getVideoThumbnail = (video: any) => {
-    if (video.thumbnailData !== undefined) {
+    // Use MongoDB streaming endpoint if video has binary thumbnail data
+    if (video.hasThumbnailData) {
       return `/api/videos/${video._id}/thumbnail`;
     }
     return video.thumbnail || placeholderImage;

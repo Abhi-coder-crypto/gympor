@@ -7,10 +7,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Video as VideoIcon, Clock, Eye, Play, Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import type { Video as VideoType } from "@shared/schema";
 import { useState } from "react";
 import { VideoPlayerModal } from "@/components/video-player-modal";
 import { UploadVideoModal } from "@/components/upload-video-modal";
+
+interface VideoType {
+  id: string;
+  _id?: string;
+  title: string;
+  description?: string;
+  url: string;
+  thumbnail?: string;
+  hasVideoData?: boolean;
+  hasThumbnailData?: boolean;
+  category: string;
+  duration?: number;
+  intensity?: string;
+  difficulty?: string;
+  trainer?: string;
+  equipment?: string[];
+  views?: number;
+  completions?: number;
+  isDraft?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export default function TrainerVideos() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -133,7 +154,7 @@ export default function TrainerVideos() {
                   ) : (
                     <div className="grid gap-4 md:grid-cols-3">
                       {filteredVideos.map((video: VideoType) => (
-                        <Card key={video.id} className="hover-elevate overflow-hidden">
+                        <Card key={video._id || video.id} className="hover-elevate overflow-hidden">
                           <CardContent className="p-0">
                             <div className="relative aspect-video bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center rounded-t-md group">
                               {video.url ? (
@@ -143,8 +164,8 @@ export default function TrainerVideos() {
                                     <Button 
                                       size="icon" 
                                       className="h-12 w-12 rounded-full"
-                                      onClick={() => setPlayingVideo({ url: `/api/videos/${video.id}/stream`, title: video.title })}
-                                      data-testid={`button-play-${video.id}`}
+                                      onClick={() => setPlayingVideo({ url: `/api/videos/${video._id || video.id}/stream`, title: video.title })}
+                                      data-testid={`button-play-${video._id || video.id}`}
                                     >
                                       <Play className="h-6 w-6" />
                                     </Button>
@@ -178,7 +199,7 @@ export default function TrainerVideos() {
                                 </div>
                               </div>
 
-                              <Button size="sm" className="w-full" variant="outline" data-testid={`button-edit-${video.id}`}>
+                              <Button size="sm" className="w-full" variant="outline" data-testid={`button-edit-${video._id || video.id}`}>
                                 Edit Video
                               </Button>
                             </div>

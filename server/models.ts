@@ -88,6 +88,8 @@ export interface IVideo extends Document {
   thumbnail?: string;
   videoData?: Buffer;
   thumbnailData?: Buffer;
+  hasVideoData?: boolean;
+  hasThumbnailData?: boolean;
   contentType?: string;
   thumbnailContentType?: string;
   fileSize?: number;
@@ -413,6 +415,8 @@ const VideoSchema = new Schema({
   thumbnail: String,
   videoData: Buffer,
   thumbnailData: Buffer,
+  hasVideoData: { type: Boolean, default: false },
+  hasThumbnailData: { type: Boolean, default: false },
   contentType: String,
   thumbnailContentType: String,
   fileSize: Number,
