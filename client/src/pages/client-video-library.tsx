@@ -1,0 +1,243 @@
+import { ClientHeader } from "@/components/client-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Clock, Play, Search, Filter, Loader2, X } from "lucide-react";
+import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { MobileNavigation } from "@/components/mobile-navigation";
+import { useQuery } from "@tanstack/react-query";
+import { VideoPlayerModal } from "@/components/video-player-modal";
+
+interface Video {
+  _id: string;
+  title: string;
+  description?: string;
+  url: string;
+  thumbnail?: string;
+  category: string;
+  duration?: number;
+  intensity?: string;
+  difficulty?: string;
+  trainer?: string;
+  equipment?: string[];
+  isDraft: boolean;
+}
+
+export default function ClientVideoLibrary() {
+  const [, setLocation] = useLocation();
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<{ url: string; title: string; id: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+
+  useEffect(() => {
+    const id = localStorage.getItem("clientId");
+    if (!id) {
+      setLocation("/client-access");
+    } else {
+      setClientId(id);
+    }
+  }, [setLocation]);
+
+  const { data: videos = [], isLoading } = useQuery<Video[]>({
+    queryKey: ['/api/videos'],
+    enabled: !!clientId,
+  });
+
+  // Filter videos (exclude drafts)
+  const filteredVideos = videos
+    .filter(video => !video.isDraft)
+    .filter(video => {
+      const matchesSearch = video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        video.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = categoryFilter === "all" || video.category === categoryFilter;
+      const matchesDifficulty = difficultyFilter === "all" || video.difficulty === difficultyFilter;
+      return matchesSearch && matchesCategory && matchesDifficulty;
+    });
+
+  const getVideoEmbedUrl = (url: string) => {
+    // Convert YouTube watch URLs to embed URLs
+    if (url.includes('youtube.com/watch')) {
+      const videoId = new URL(url).searchParams.get('v');
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Convert Vimeo URLs to embed URLs
+    if (url.includes('vimeo.com')) {
+      const videoId = url.split('/').pop();
+      return `https://player.vimeo.com/video/${videoId}`;
+    }
+    // Return as-is for direct video files or already embed URLs
+    return url;
+  };
+
+  return (
+    <div className="w-full bg-background min-h-screen mb-20 md:mb-0">
+      <ClientHeader currentPage="videos" />
+
+      <main className="px-4 py-8 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-4xl sm:text-5xl font-black text-black dark:text-white">
+                Video Library
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Browse and watch all available workout videos
+              </p>
+            </div>
+
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search videos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                  data-testid="input-search-videos"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => setSearchQuery("")}
+                    data-testid="button-clear-search"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="sm:w-48" data-testid="select-category-filter">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="Strength">Strength</SelectItem>
+                  <SelectItem value="Cardio">Cardio</SelectItem>
+                  <SelectItem value="Yoga">Yoga</SelectItem>
+                  <SelectItem value="HIIT">HIIT</SelectItem>
+                  <SelectItem value="Flexibility">Flexibility</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                <SelectTrigger className="sm:w-48" data-testid="select-difficulty-filter">
+                  <SelectValue placeholder="Difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && filteredVideos.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                {searchQuery || categoryFilter !== "all" || difficultyFilter !== "all"
+                  ? "No videos found matching your filters."
+                  : "No videos available yet."}
+              </p>
+            </div>
+          )}
+
+          {/* Videos Grid */}
+          {!isLoading && filteredVideos.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredVideos.map((video) => (
+                <Card
+                  key={video._id}
+                  className="hover-elevate overflow-hidden cursor-pointer transition-all group"
+                  onClick={() => setPlayingVideo({ url: video.url, title: video.title, id: video._id })}
+                  data-testid={`video-card-${video._id}`}
+                >
+                  <div className="relative aspect-video bg-muted overflow-hidden">
+                    {video.thumbnail ? (
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full bg-gradient-to-br from-primary/20 to-primary/5">
+                        <Play className="h-12 w-12 text-primary/40" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="bg-primary rounded-full p-3">
+                          <Play className="h-6 w-6 text-primary-foreground fill-primary-foreground" />
+                        </div>
+                      </div>
+                    </div>
+                    {video.duration && (
+                      <div className="absolute top-2 right-2 bg-black/80 rounded-md px-2 py-1 flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-white" />
+                        <span className="text-xs font-semibold text-white">
+                          {video.duration} min
+                        </span>
+                      </div>
+                    )}
+                    {video.difficulty && (
+                      <div className="absolute top-2 left-2 bg-black/80 rounded-md px-2 py-1">
+                        <span className="text-xs font-semibold text-white capitalize">
+                          {video.difficulty}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="pt-4 pb-3 space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground">
+                      {video.category}
+                    </div>
+                    <h3 className="font-semibold line-clamp-2">
+                      {video.title}
+                    </h3>
+                    {video.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {video.description}
+                      </p>
+                    )}
+                    {video.trainer && (
+                      <p className="text-xs text-muted-foreground">
+                        Trainer: {video.trainer}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Video Player Modal with Resume Feature */}
+      <VideoPlayerModal
+        isOpen={!!playingVideo}
+        onClose={() => setPlayingVideo(null)}
+        videoUrl={playingVideo?.url || ""}
+        videoTitle={playingVideo?.title || ""}
+        videoId={playingVideo?.id || ""}
+      />
+
+      <MobileNavigation />
+    </div>
+  );
+}

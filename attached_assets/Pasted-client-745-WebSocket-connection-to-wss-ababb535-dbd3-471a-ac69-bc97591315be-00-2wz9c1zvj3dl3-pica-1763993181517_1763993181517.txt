@@ -1,0 +1,98 @@
+client:745 WebSocket connection to 'wss://ababb535-dbd3-471a-ac69-bc97591315be-00-2wz9c1zvj3dl3.picard.replit.dev/?token=0OWzFyjOs3gC' failed: 
+createConnection @ client:745
+connect @ client:411
+connect @ client:751
+connect @ client:289
+connect @ client:373
+(anonymous) @ client:823
+client:755 WebSocket connection to 'wss://localhost:5173/?token=0OWzFyjOs3gC' failed: 
+createConnection @ client:755
+connect @ client:411
+connect @ client:759
+client:765 [vite] failed to connect to websocket.
+your current setup:
+  (browser) ababb535-dbd3-471a-ac69-bc97591315be-00-2wz9c1zvj3dl3.picard.replit.dev/ <--[HTTP]--> localhost:5173/ (server)
+  (browser) ababb535-dbd3-471a-ac69-bc97591315be-00-2wz9c1zvj3dl3.picard.replit.dev:/ <--[WebSocket (failing)]--> localhost:5173/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr .
+connect @ client:765
+await in connect
+connect @ client:289
+connect @ client:373
+(anonymous) @ client:823
+chunk-E22KYI7D.js?v=c51c7109:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-E22KYI7D.js?v=c51c7109:1271  GET https://i.ytimg.com/vi/3p8EBPVZ2Iw/maxresdefault.jpg 404 (Not Found)
+setValueForProperty @ chunk-E22KYI7D.js?v=c51c7109:1271
+setInitialDOMProperties @ chunk-E22KYI7D.js?v=c51c7109:7494
+setInitialProperties @ chunk-E22KYI7D.js?v=c51c7109:7627
+finalizeInitialChildren @ chunk-E22KYI7D.js?v=c51c7109:8392
+completeWork @ chunk-E22KYI7D.js?v=c51c7109:16341
+completeUnitOfWork @ chunk-E22KYI7D.js?v=c51c7109:19277
+performUnitOfWork @ chunk-E22KYI7D.js?v=c51c7109:19259
+workLoopSync @ chunk-E22KYI7D.js?v=c51c7109:19190
+renderRootSync @ chunk-E22KYI7D.js?v=c51c7109:19169
+performSyncWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18927
+flushSyncCallbacks @ chunk-E22KYI7D.js?v=c51c7109:9166
+(anonymous) @ chunk-E22KYI7D.js?v=c51c7109:18677
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=c51c7109:537
+flush @ @tanstack_react-query.js?v=c51c7109:551
+batch @ @tanstack_react-query.js?v=c51c7109:569
+#dispatch @ @tanstack_react-query.js?v=c51c7109:963
+setData @ @tanstack_react-query.js?v=c51c7109:672
+onSuccess @ @tanstack_react-query.js?v=c51c7109:865
+resolve @ @tanstack_react-query.js?v=c51c7109:442
+Promise.then
+run @ @tanstack_react-query.js?v=c51c7109:481
+start @ @tanstack_react-query.js?v=c51c7109:518
+fetch @ @tanstack_react-query.js?v=c51c7109:893
+#executeFetch @ @tanstack_react-query.js?v=c51c7109:1963
+setOptions @ @tanstack_react-query.js?v=c51c7109:1897
+(anonymous) @ @tanstack_react-query.js?v=c51c7109:2972
+commitHookEffectListMount @ chunk-E22KYI7D.js?v=c51c7109:16963
+commitPassiveMountOnFiber @ chunk-E22KYI7D.js?v=c51c7109:18206
+commitPassiveMountEffects_complete @ chunk-E22KYI7D.js?v=c51c7109:18179
+commitPassiveMountEffects_begin @ chunk-E22KYI7D.js?v=c51c7109:18169
+commitPassiveMountEffects @ chunk-E22KYI7D.js?v=c51c7109:18159
+flushPassiveEffectsImpl @ chunk-E22KYI7D.js?v=c51c7109:19543
+flushPassiveEffects @ chunk-E22KYI7D.js?v=c51c7109:19500
+performSyncWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18921
+flushSyncCallbacks @ chunk-E22KYI7D.js?v=c51c7109:9166
+commitRootImpl @ chunk-E22KYI7D.js?v=c51c7109:19485
+commitRoot @ chunk-E22KYI7D.js?v=c51c7109:19330
+finishConcurrentRender @ chunk-E22KYI7D.js?v=c51c7109:18858
+performConcurrentWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18768
+workLoop @ chunk-E22KYI7D.js?v=c51c7109:197
+flushWork @ chunk-E22KYI7D.js?v=c51c7109:176
+performWorkUntilDeadline @ chunk-E22KYI7D.js?v=c51c7109:384
+video-player-modal.tsx:27 Loading progress for videoId: 69245efdc96c8c99d7d88b54
+chunk-AYJH5U2J.js?v=c51c7109:335 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-AYJH5U2J.js?v=c51c7109:335
+commitHookEffectListMount @ chunk-E22KYI7D.js?v=c51c7109:16963
+commitPassiveMountOnFiber @ chunk-E22KYI7D.js?v=c51c7109:18206
+commitPassiveMountEffects_complete @ chunk-E22KYI7D.js?v=c51c7109:18179
+commitPassiveMountEffects_begin @ chunk-E22KYI7D.js?v=c51c7109:18169
+commitPassiveMountEffects @ chunk-E22KYI7D.js?v=c51c7109:18159
+flushPassiveEffectsImpl @ chunk-E22KYI7D.js?v=c51c7109:19543
+flushPassiveEffects @ chunk-E22KYI7D.js?v=c51c7109:19500
+commitRootImpl @ chunk-E22KYI7D.js?v=c51c7109:19469
+commitRoot @ chunk-E22KYI7D.js?v=c51c7109:19330
+performSyncWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18948
+flushSyncCallbacks @ chunk-E22KYI7D.js?v=c51c7109:9166
+(anonymous) @ chunk-E22KYI7D.js?v=c51c7109:18677
+video-player-modal.tsx:35 Fetched progress data: {watchedDuration: 0, totalDuration: 0}
+video-player-modal.tsx:27 Loading progress for videoId: 69245efdc96c8c99d7d88b54
+chunk-AYJH5U2J.js?v=c51c7109:335 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-AYJH5U2J.js?v=c51c7109:335
+commitHookEffectListMount @ chunk-E22KYI7D.js?v=c51c7109:16963
+commitPassiveMountOnFiber @ chunk-E22KYI7D.js?v=c51c7109:18206
+commitPassiveMountEffects_complete @ chunk-E22KYI7D.js?v=c51c7109:18179
+commitPassiveMountEffects_begin @ chunk-E22KYI7D.js?v=c51c7109:18169
+commitPassiveMountEffects @ chunk-E22KYI7D.js?v=c51c7109:18159
+flushPassiveEffectsImpl @ chunk-E22KYI7D.js?v=c51c7109:19543
+flushPassiveEffects @ chunk-E22KYI7D.js?v=c51c7109:19500
+commitRootImpl @ chunk-E22KYI7D.js?v=c51c7109:19469
+commitRoot @ chunk-E22KYI7D.js?v=c51c7109:19330
+performSyncWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18948
+flushSyncCallbacks @ chunk-E22KYI7D.js?v=c51c7109:9166
+(anonymous) @ chunk-E22KYI7D.js?v=c51c7109:18677
+video-player-modal.tsx:35 Fetched progress data: {watchedDuration: 0, totalDuration: 0}
