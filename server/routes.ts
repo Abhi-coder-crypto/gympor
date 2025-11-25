@@ -2751,14 +2751,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      console.log(`[Diet Plans API] User: ${user.email}, Role: ${user.role}, ClientId: ${user.clientId}, ClientId type: ${typeof user.clientId}`);
+      // Check for query parameter clientId - allows admins/trainers to view specific client's plans
+      const queryClientId = req.query.clientId as string;
+      console.log(`[Diet Plans API] User: ${user.email}, Role: ${user.role}, Query clientId: ${queryClientId}`);
       
       // Extract clientId from user - clientId might be populated as full object, so extract _id if needed
       let clientId = typeof user.clientId === 'object' && user.clientId?._id 
         ? user.clientId._id.toString()
         : user.clientId?.toString();
       
-      console.log(`[Diet Plans API] After extraction - clientId: ${clientId}, truthy: ${!!clientId}`);
+      // If admin/trainer specified a clientId in query, use that (allows admins to view client dashboards)
+      if (queryClientId && (user.role === 'admin' || user.role === 'trainer')) {
+        clientId = queryClientId;
+        console.log(`[Diet Plans] Admin/Trainer using query clientId: ${clientId}`);
+      }
       
       // If user doesn't have clientId but has email, try to find by email lookup
       if (!clientId && user.email) {
@@ -2772,9 +2778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Clients get their assigned plans, admins/trainers get all plans
-      console.log(`[Diet Plans] Final check - clientId: ${clientId}, will use: ${clientId ? 'CLIENT PATH' : 'ADMIN PATH'}`);
-      
+      // Clients get their assigned plans, admins/trainers get all plans (unless clientId specified)
       if (clientId) {
         console.log(`[Diet Plans] 🔵 GOING CLIENT PATH - fetching ASSIGNED plans for clientId: ${clientId}`);
         const plans = await storage.getClientDietPlans(clientId);

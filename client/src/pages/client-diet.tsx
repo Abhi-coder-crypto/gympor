@@ -56,7 +56,14 @@ export default function ClientDiet() {
   }, [setLocation]);
 
   const { data: dietPlans, isLoading: isLoadingDiet } = useQuery<any[]>({
-    queryKey: ['/api/diet-plans'],
+    queryKey: ['/api/diet-plans', clientId],
+    queryFn: async () => {
+      // If we have a clientId, pass it as a query parameter so admins viewing client dashboards work correctly
+      const url = clientId ? `/api/diet-plans?clientId=${clientId}` : '/api/diet-plans';
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch diet plans');
+      return response.json();
+    }
   });
 
   // The API already filters by clientId, so we just use the first plan
