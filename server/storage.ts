@@ -1001,6 +1001,18 @@ export class MongoStorage implements IStorage {
         console.log(`[Diet Plans] No plans found for client ${clientId}. Assignments: ${assignments.length}, Old format: ${oldFormatPlans.length}`);
       } else {
         console.log(`[Diet Plans] Found ${result.length} plans for client ${clientId}`);
+        result.forEach((plan: any, idx: number) => {
+          const mealsKeys = plan.meals && typeof plan.meals === 'object' ? Object.keys(plan.meals) : [];
+          console.log(`[Diet Plans] Plan ${idx}: ${plan.name}, Meals days: [${mealsKeys.join(', ')}]`);
+          if (plan.meals && typeof plan.meals === 'object') {
+            Object.entries(plan.meals).forEach(([day, dayMeals]: [string, any]) => {
+              if (typeof dayMeals === 'object') {
+                const mealTypes = Object.keys(dayMeals).join(', ');
+                console.log(`[Diet Plans]   ${day}: meal types [${mealTypes}]`);
+              }
+            });
+          }
+        });
       }
       
       return result;
