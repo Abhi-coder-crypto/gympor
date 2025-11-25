@@ -463,91 +463,88 @@ export default function ClientDiet() {
                   </CardContent>
                 </Card>
 
-                {/* Weekly Meal Plan - Complete Rewrite */}
+                {/* Weekly Meal Plan - Single Card */}
                 <div>
                   <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Weekly Meal Plan</h2>
-                  {currentPlan.meals && Object.keys(currentPlan.meals).length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {DAYS_OF_WEEK.map((day) => {
-                        const dayMeals = currentPlan.meals[day];
-                        let mealItems: any[] = [];
-                        let dayTotalCals = 0;
+                  <Card>
+                    <CardContent className="p-6">
+                      {currentPlan.meals && Object.keys(currentPlan.meals).length > 0 ? (
+                        <div className="space-y-6">
+                          {DAYS_OF_WEEK.map((day) => {
+                            const dayMeals = currentPlan.meals[day];
+                            let mealItems: any[] = [];
+                            let dayTotalCals = 0;
 
-                        if (dayMeals && typeof dayMeals === 'object') {
-                          // dayMeals is { breakfast: {...}, lunch: {...}, etc }
-                          mealItems = Object.entries(dayMeals)
-                            .map(([mealType, mealData]: [string, any]) => {
-                              if (mealData && typeof mealData === 'object') {
-                                const cals = Number(mealData.calories) || 0;
-                                dayTotalCals += cals;
-                                return {
-                                  type: mealType,
-                                  name: mealData.name || mealType,
-                                  time: mealData.time || '7:00 AM',
-                                  calories: cals,
-                                  protein: Number(mealData.protein) || 0,
-                                  carbs: Number(mealData.carbs) || 0,
-                                  fats: Number(mealData.fats) || 0,
-                                  dishes: mealData.dishes || []
-                                };
-                              }
-                              return null;
-                            })
-                            .filter(Boolean);
-                        }
+                            if (dayMeals && typeof dayMeals === 'object') {
+                              mealItems = Object.entries(dayMeals)
+                                .map(([mealType, mealData]: [string, any]) => {
+                                  if (mealData && typeof mealData === 'object') {
+                                    const cals = Number(mealData.calories) || 0;
+                                    dayTotalCals += cals;
+                                    return {
+                                      type: mealType,
+                                      name: mealData.name || mealType,
+                                      time: mealData.time || '7:00 AM',
+                                      calories: cals,
+                                      protein: Number(mealData.protein) || 0,
+                                      carbs: Number(mealData.carbs) || 0,
+                                      fats: Number(mealData.fats) || 0,
+                                      dishes: mealData.dishes || []
+                                    };
+                                  }
+                                  return null;
+                                })
+                                .filter(Boolean);
+                            }
 
-                        return (
-                          <Card key={day} className="hover-elevate overflow-hidden">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <h3 className="font-semibold text-sm text-gray-900 dark:text-white">{day}</h3>
-                                <Badge className="bg-blue-500 text-xs">{dayTotalCals} cal</Badge>
-                              </div>
-
-                              {mealItems.length === 0 ? (
-                                <p className="text-xs text-muted-foreground text-center py-3">No meals planned</p>
-                              ) : (
-                                <div className="space-y-2 max-h-96 overflow-y-auto">
-                                  {mealItems.map((meal: any, idx: number) => (
-                                    <div key={idx} className="border-l-4 border-l-blue-500 pl-2 py-2 pr-2 bg-gray-50 dark:bg-gray-900/20 rounded">
-                                      <div className="text-xs text-muted-foreground font-medium">{meal.time}</div>
-                                      <div className="text-xs font-semibold text-gray-900 dark:text-white mt-0.5">{meal.name}</div>
-                                      
-                                      {meal.dishes.length > 0 && (
-                                        <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                                          {meal.dishes.map((dish: any, di: number) => (
-                                            <div key={di} className="text-gray-600 dark:text-gray-400">
-                                              • {dish.name || 'Dish'}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-
-                                      <div className="text-xs text-muted-foreground mt-1.5 space-y-0 leading-tight">
-                                        <div>P: <span className="font-semibold">{meal.protein}g</span></div>
-                                        <div>C: <span className="font-semibold">{meal.carbs}g</span></div>
-                                        <div>F: <span className="font-semibold">{meal.fats}g</span></div>
-                                      </div>
-
-                                      <div className="text-xs font-bold text-orange-600 dark:text-orange-400 mt-1">
-                                        {meal.calories} cal
-                                      </div>
-                                    </div>
-                                  ))}
+                            return (
+                              <div key={day} className="border-b last:border-b-0 pb-4 last:pb-0">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h3 className="font-semibold text-gray-900 dark:text-white">{day}</h3>
+                                  <Badge className="bg-blue-500 text-xs">{dayTotalCals} cal</Badge>
                                 </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="p-6 text-center text-muted-foreground text-sm">
-                        No meal data available for this plan
-                      </CardContent>
-                    </Card>
-                  )}
+
+                                {mealItems.length === 0 ? (
+                                  <p className="text-sm text-muted-foreground">No meals planned</p>
+                                ) : (
+                                  <div className="space-y-3">
+                                    {mealItems.map((meal: any, idx: number) => (
+                                      <div key={idx} className="border-l-4 border-l-blue-500 pl-3 py-2">
+                                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{meal.name}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">{meal.time}</div>
+                                        
+                                        {meal.dishes.length > 0 && (
+                                          <div className="text-xs text-muted-foreground mt-1 space-y-0.5 ml-2">
+                                            {meal.dishes.map((dish: any, di: number) => (
+                                              <div key={di} className="text-gray-600 dark:text-gray-400">
+                                                • {dish.name || 'Dish'}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        <div className="text-xs text-muted-foreground mt-1.5 flex gap-3">
+                                          <span>P: <span className="font-semibold text-gray-900 dark:text-white">{meal.protein}g</span></span>
+                                          <span>C: <span className="font-semibold text-gray-900 dark:text-white">{meal.carbs}g</span></span>
+                                          <span>F: <span className="font-semibold text-gray-900 dark:text-white">{meal.fats}g</span></span>
+                                        </div>
+
+                                        <div className="text-sm font-bold text-orange-600 dark:text-orange-400 mt-1">
+                                          {meal.calories} cal
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-center text-muted-foreground text-sm">No meal data available for this plan</p>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             )}
