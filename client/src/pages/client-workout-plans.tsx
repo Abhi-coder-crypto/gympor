@@ -46,24 +46,32 @@ export default function ClientWorkoutPlans() {
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: [`/api/clients/${clientId}/workout-plans`],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 5000,
   });
 
   // Fetch bookmarked workout plans
   const { data: bookmarks = [], isLoading: bookmarksLoading } = useQuery({
     queryKey: [`/api/clients/${clientId}/workout-bookmarks`],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 5000,
   });
 
   // Fetch workout history
   const { data: history = [], isLoading: historyLoading } = useQuery({
     queryKey: [`/api/clients/${clientId}/workout-history`],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 10000,
   });
 
   // Fetch workout notes
   const { data: notesMap = {}, isLoading: notesLoading } = useQuery({
     queryKey: [`/api/clients/${clientId}/workout-notes`],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 10000,
   });
 
   // Bookmark mutation
