@@ -164,7 +164,7 @@ export default function ClientWorkoutPlans() {
   };
 
   const PlanCardView = ({ plan }: { plan: WorkoutPlan }) => (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary flex flex-col h-96">
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary flex flex-col aspect-square">
       <div className="p-4 flex-1 overflow-y-auto">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
