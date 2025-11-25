@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Bookmark, BookmarkCheck, CheckCircle2, Clock, Dumbbell, BarChart3, FileText, AlertCircle, Loader2, Grip3, Grid3x3, ChevronDown, ChevronUp, Target, Flame } from "lucide-react";
+import { Bookmark, BookmarkCheck, CheckCircle2, Clock, Dumbbell, BarChart3, FileText, AlertCircle, Loader2, GripVertical, Grid3x3, ChevronDown, ChevronUp, Target, Flame } from "lucide-react";
 import { useState } from "react";
 
 interface WorkoutPlan {
@@ -306,7 +306,7 @@ export default function ClientWorkoutPlans() {
   const PlanListView = ({ plan }: { plan: WorkoutPlan }) => (
     <div className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
       <div className="flex items-start gap-4 flex-1">
-        <Grip3 className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
+        <GripVertical className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-foreground mb-1">{plan.name}</h3>
           {plan.description && (
@@ -396,7 +396,7 @@ export default function ClientWorkoutPlans() {
                   onClick={() => setViewMode('list')}
                   className="px-3"
                 >
-                  <Grip3 className="h-4 w-4" />
+                  <GripVertical className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -445,7 +445,7 @@ export default function ClientWorkoutPlans() {
                   onClick={() => setViewMode('list')}
                   className="px-3"
                 >
-                  <Grip3 className="h-4 w-4" />
+                  <GripVertical className="h-4 w-4" />
                 </Button>
               </div>
             </div>
