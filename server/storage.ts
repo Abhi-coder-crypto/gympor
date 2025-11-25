@@ -1167,104 +1167,14 @@ export class MongoStorage implements IStorage {
       throw new Error('Diet plan not found');
     }
     
-    // Normalize meals to ALWAYS be an array format for client assignment
-    // The client diet page expects meals to be an array of meal objects
-    let transformedMeals: any = [];
-    
-    if (originalPlan.meals) {
-      // Case 1: meals is already a flat array with correct structure [{ name, calories, protein, carbs, fats, weekNumber }]
-      if (Array.isArray(originalPlan.meals)) {
-        const firstMeal = originalPlan.meals[0];
-        
-        // Check if it's an array of meal ID strings ["meal_id_1", "meal_id_2"]
-        if (typeof firstMeal === 'string') {
-          // Hydrate meal IDs to full meal objects with proper handling of missing meals
-          const mealDocs = await Meal.find({ _id: { $in: originalPlan.meals } });
-          
-          // Create a lookup map to preserve order and handle missing meals
-          const mealMap = new Map();
-          mealDocs.forEach((meal: any) => {
-            mealMap.set(meal._id.toString(), meal);
-          });
-          
-          // Iterate over original IDs to preserve order and handle missing meals
-          transformedMeals = originalPlan.meals.map((mealId: string, idx: number) => {
-            const meal = mealMap.get(mealId.toString());
-            
-            if (meal) {
-              // Meal found - convert to correct format
-              return {
-                name: meal.name,
-                calories: meal.calories || 0,
-                protein: meal.protein || 0,
-                carbs: meal.carbs || 0,
-                fats: meal.fats || 0,
-                weekNumber: 1, // Default to week 1 for ID-based meals
-                mealType: meal.mealType || 'lunch',
-                ingredients: meal.ingredients || [],
-                instructions: meal.instructions || '',
-                prepTime: meal.prepTime,
-                cookTime: meal.cookTime,
-              };
-            } else {
-              // Meal not found (deleted/stale ID) - create fallback meal object
-              return {
-                name: 'Meal (unavailable)',
-                calories: 0,
-                protein: 0,
-                carbs: 0,
-                fats: 0,
-                weekNumber: 1,
-                mealType: 'lunch',
-                ingredients: [],
-                instructions: 'This meal is no longer available',
-              };
-            }
-          });
-        }
-        // Check if it's the new format (has name, calories directly)
-        else if (firstMeal && typeof firstMeal === 'object' && 'name' in firstMeal && 'calories' in firstMeal) {
-          // Already in correct format, keep as is
-          transformedMeals = originalPlan.meals;
-        } 
-        // Check if it's the nested dish array format [{ type: "breakfast", dishes: [...] }]
-        else if (firstMeal && typeof firstMeal === 'object' && 'dishes' in firstMeal) {
-          // Convert nested dish arrays to flat meal array
-          transformedMeals = originalPlan.meals.flatMap((meal: any, idx: number) => {
-            if (meal.dishes && Array.isArray(meal.dishes) && meal.dishes.length > 0) {
-              // Aggregate all dishes in this meal into a single meal object
-              const totalCalories = meal.dishes.reduce((sum: number, dish: any) => sum + (dish.calories || 0), 0);
-              const totalProtein = meal.dishes.reduce((sum: number, dish: any) => sum + (dish.protein || 0), 0);
-              const totalCarbs = meal.dishes.reduce((sum: number, dish: any) => sum + (dish.carbs || 0), 0);
-              const totalFats = meal.dishes.reduce((sum: number, dish: any) => sum + (dish.fats || 0), 0);
-              const dishNames = meal.dishes.map((dish: any) => dish.name).join(', ');
-              
-              return [{
-                name: dishNames,
-                calories: totalCalories,
-                protein: totalProtein,
-                carbs: totalCarbs,
-                fats: totalFats,
-                weekNumber: meal.weekNumber || 1,
-                mealType: meal.type || 'lunch',
-              }];
-            }
-            return []; // Skip meals with no dishes
-          });
-        }
-      }
-      // Case 2: meals is a legacy object format { breakfast: {...}, lunch: {...} }
-      else if (typeof originalPlan.meals === 'object') {
-        transformedMeals = Object.entries(originalPlan.meals).map(([mealType, mealData]: [string, any], idx: number) => ({
-          name: mealData.name || `${mealType} meal`,
-          calories: mealData.calories || 0,
-          protein: mealData.protein || 0,
-          carbs: mealData.carbs || 0,
-          fats: mealData.fats || 0,
-          weekNumber: mealData.weekNumber || 1,
-          mealType: mealType,
-        }));
-      }
+    // Deep copy the meals structure as-is to preserve all details (day-indexed object with nested meals)
+    let mealsCopy = originalPlan.meals;
+    if (originalPlan.meals && typeof originalPlan.meals === 'object' && !Array.isArray(originalPlan.meals)) {
+      // Deep clone the day-indexed object structure { Monday: { breakfast: {...}, lunch: {...} }, ... }
+      mealsCopy = JSON.parse(JSON.stringify(originalPlan.meals));
+    } else if (Array.isArray(originalPlan.meals)) {
+      // Deep clone array structure if it's an array
+      mealsCopy = JSON.parse(JSON.stringify(originalPlan.meals));
     }
     
     const clonedPlan = new DietPlan({
@@ -1276,7 +1186,7 @@ export class MongoStorage implements IStorage {
       protein: originalPlan.protein,
       carbs: originalPlan.carbs,
       fats: originalPlan.fats,
-      meals: transformedMeals,
+      meals: mealsCopy,
       allergens: originalPlan.allergens,
       waterIntakeGoal: originalPlan.waterIntakeGoal,
       supplements: originalPlan.supplements,
