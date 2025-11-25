@@ -473,8 +473,8 @@ export default function ClientDiet() {
                 {/* Weekly Meal Plan */}
                 <div>
                   <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Weekly Meal Plan</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {DAYS_OF_WEEK.slice(0, 3).map((day) => {
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {DAYS_OF_WEEK.map((day) => {
                       const dayMealsData = currentPlan?.meals?.[day];
                       if (!dayMealsData) return null;
                       
@@ -483,20 +483,28 @@ export default function ClientDiet() {
                       
                       return (
                         <Card key={day} className="hover-elevate">
-                          <CardContent className="p-5">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{day}</h3>
-                              <Badge className="bg-blue-500">{dayTotal} cal</Badge>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{day}</h3>
+                              <Badge className="bg-blue-500 text-xs">{dayTotal} cal</Badge>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               {mealsList.map((meal: any, idx: number) => (
-                                <div key={idx} className="border-l-4 border-l-blue-500 pl-3 py-2">
-                                  <div className="text-xs text-muted-foreground">7:00 AM</div>
-                                  <div className="font-semibold text-gray-900 dark:text-white text-sm">{meal.type}</div>
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    P: {Number(meal.protein) || 0}g • C: {Number(meal.carbs) || 0}g • F: {Number(meal.fats) || 0}g
+                                <div key={idx} className="border-l-4 border-l-blue-500 pl-2 py-1.5">
+                                  <div className="text-xs text-muted-foreground">
+                                    {meal.time || '7:00 AM'}
                                   </div>
-                                  <div className="text-sm font-semibold text-orange-600 dark:text-orange-400 mt-1">
+                                  <div className="font-semibold text-gray-900 dark:text-white text-xs">{meal.type}</div>
+                                  <div className="text-xs text-muted-foreground mt-0.5">
+                                    P: {Number(meal.protein) || 0}g
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    C: {Number(meal.carbs) || 0}g
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    F: {Number(meal.fats) || 0}g
+                                  </div>
+                                  <div className="text-xs font-semibold text-orange-600 dark:text-orange-400 mt-1">
                                     {Number(meal.calories) || 0} cal
                                   </div>
                                 </div>
@@ -508,11 +516,6 @@ export default function ClientDiet() {
                     })}
                   </div>
                 </div>
-
-                {/* View All Days Button */}
-                <Button variant="outline" className="w-full">
-                  View All Days
-                </Button>
               </div>
             )}
           </TabsContent>
