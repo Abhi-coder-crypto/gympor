@@ -671,6 +671,233 @@ export default function ClientDiet() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Substitutions Tab */}
+          <TabsContent value="substitutions" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RefreshCw className="h-5 w-5" />
+                  Meal Substitutions
+                </CardTitle>
+                <CardDescription>Swap meals for alternatives that match your nutritional goals</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {dayMeals.length === 0 ? (
+                  <p className="text-muted-foreground">No meals to substitute. Load your meal plan first.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {dayMeals.map((meal: any, idx: number) => (
+                      <Card key={idx} className="p-4 border-dashed">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <p className="font-semibold">{meal.name}</p>
+                            <p className="text-sm text-muted-foreground">{meal.calories} Cal • {meal.protein}g Protein</p>
+                          </div>
+                          <Button variant="outline" size="sm" data-testid={`button-substitute-meal-${idx}`}>
+                            Suggest Alternatives
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Allergens Tab */}
+          <TabsContent value="allergens" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Food Allergies & Preferences
+                </CardTitle>
+                <CardDescription>Mark your allergens to filter safe meals</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-base font-semibold mb-3 block">Your Allergens</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {clientAllergens.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No allergens set yet</p>
+                      ) : (
+                        clientAllergens.map((allergen, idx) => (
+                          <Badge key={idx} variant="secondary" className="bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-300">
+                            {allergen}
+                            <button
+                              onClick={() => {
+                                const updated = clientAllergens.filter((_, i) => i !== idx);
+                                setClientAllergens(updated);
+                                localStorage.setItem('clientAllergens', JSON.stringify(updated));
+                              }}
+                              className="ml-2 hover:opacity-70"
+                              data-testid={`button-remove-allergen-${idx}`}
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="text-base font-semibold mb-3 block">Meals Status</Label>
+                    <div className="space-y-2">
+                      {dayMeals.map((meal: any, idx: number) => {
+                        const hasAllergen = mealHasAllergens(meal);
+                        return (
+                          <div
+                            key={idx}
+                            className={`p-3 rounded-lg flex items-center justify-between ${
+                              hasAllergen
+                                ? 'bg-red-50 dark:bg-red-950/30'
+                                : 'bg-green-50 dark:bg-green-950/30'
+                            }`}
+                            data-testid={`card-meal-allergen-${idx}`}
+                          >
+                            <div>
+                              <p className="font-semibold">{meal.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {hasAllergen ? 'Contains potential allergen' : 'Safe to eat'}
+                              </p>
+                            </div>
+                            {hasAllergen && (
+                              <AlertTriangle className="h-5 w-5 text-red-600" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Grocery List Tab */}
+          <TabsContent value="grocery" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Grocery List
+                </CardTitle>
+                <CardDescription>Auto-generated from {currentDayLabel} meals</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  onClick={() => setShowGroceryModal(true)}
+                  className="w-full"
+                  data-testid="button-generate-grocery-list"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Generate Shopping List
+                </Button>
+
+                {dayMeals.length > 0 && (
+                  <div className="space-y-3">
+                    {Object.entries(generateGroceryList()).map(([category, items]: [string, any]) => (
+                      <Card key={category} className="p-3">
+                        <p className="font-semibold text-sm mb-2">{category}</p>
+                        <ul className="space-y-1">
+                          {items.map((item: any, idx: number) => (
+                            <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                              <input type="checkbox" className="w-4 h-4" data-testid={`checkbox-grocery-item-${idx}`} />
+                              {item.name} ({item.quantity} {item.unit})
+                            </li>
+                          ))}
+                        </ul>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Supplements Tab */}
+          <TabsContent value="supplements" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Pill className="h-5 w-5" />
+                  Supplement Tracker
+                </CardTitle>
+                <CardDescription>Log your daily supplements, vitamins, and protein shakes</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+                  <div>
+                    <Label htmlFor="supp-name">Supplement Name</Label>
+                    <input
+                      id="supp-name"
+                      type="text"
+                      placeholder="e.g., Whey Protein, Vitamin D"
+                      value={newSupplement.name}
+                      onChange={(e) => setNewSupplement({ ...newSupplement, name: e.target.value })}
+                      className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+                      data-testid="input-supplement-name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="supp-dosage">Dosage</Label>
+                      <input
+                        id="supp-dosage"
+                        type="text"
+                        placeholder="e.g., 25g"
+                        value={newSupplement.dosage}
+                        onChange={(e) => setNewSupplement({ ...newSupplement, dosage: e.target.value })}
+                        className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+                        data-testid="input-supplement-dosage"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="supp-timing">Timing</Label>
+                      <input
+                        id="supp-timing"
+                        type="text"
+                        placeholder="e.g., Post-Workout"
+                        value={newSupplement.timing}
+                        onChange={(e) => setNewSupplement({ ...newSupplement, timing: e.target.value })}
+                        className="w-full mt-1 px-3 py-2 border rounded-lg bg-background"
+                        data-testid="input-supplement-timing"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={addSupplementLog} className="w-full" data-testid="button-log-supplement">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Log Supplement
+                  </Button>
+                </div>
+
+                {supplementLog.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Today's Log</p>
+                    {supplementLog.map((log, idx) => (
+                      <Card key={idx} className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-sm">{log.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {log.dosage} • {log.timing} • {log.timestamp}
+                            </p>
+                          </div>
+                          <Check className="h-5 w-5 text-green-600" />
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
 
