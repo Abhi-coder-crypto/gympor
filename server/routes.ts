@@ -2123,36 +2123,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const videoFile = files.video[0];
       const thumbnailFile = files.thumbnailFile?.[0];
       
-      const videoDir = path.join(process.cwd(), 'uploads', 'videos');
-      const thumbnailDir = path.join(process.cwd(), 'uploads', 'thumbnails');
+      // Read video file into memory as Buffer
+      const videoBuffer = fs.readFileSync(videoFile.path);
       
-      // Create directories if they don't exist
-      if (!fs.existsSync(videoDir)) {
-        fs.mkdirSync(videoDir, { recursive: true });
-      }
-      if (!fs.existsSync(thumbnailDir)) {
-        fs.mkdirSync(thumbnailDir, { recursive: true });
-      }
-
-      // Move video file from temp to permanent location
-      const permanentVideoPath = path.join(videoDir, videoFile.filename);
-      fs.renameSync(videoFile.path, permanentVideoPath);
-      const videoUrl = `/uploads/videos/${videoFile.filename}`;
-
-      // Handle thumbnail file if provided
-      let thumbnailUrl = req.body.thumbnail || '';
+      // Read thumbnail file into memory if provided
+      let thumbnailBuffer;
+      let thumbnailContentType;
       if (thumbnailFile) {
-        const permanentThumbnailPath = path.join(thumbnailDir, thumbnailFile.filename);
-        fs.renameSync(thumbnailFile.path, permanentThumbnailPath);
-        thumbnailUrl = `/uploads/thumbnails/${thumbnailFile.filename}`;
+        thumbnailBuffer = fs.readFileSync(thumbnailFile.path);
+        thumbnailContentType = thumbnailFile.mimetype;
       }
 
       // Parse additional fields from form data
       const videoData = {
         title: req.body.title,
         description: req.body.description,
-        url: videoUrl,
-        thumbnail: thumbnailUrl,
+        videoData: videoBuffer,
+        thumbnailData: thumbnailBuffer,
+        contentType: videoFile.mimetype,
+        thumbnailContentType: thumbnailContentType,
+        fileSize: videoFile.size,
+        originalFileName: videoFile.originalname,
         category: req.body.category,
         duration: req.body.duration ? parseInt(req.body.duration) : undefined,
         intensity: req.body.intensity,
@@ -2163,7 +2154,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const video = await storage.createVideo(videoData);
-      res.json(video);
+      
+      // Clean up temp files
+      fs.unlinkSync(videoFile.path);
+      if (thumbnailFile) {
+        fs.unlinkSync(thumbnailFile.path);
+      }
+      
+      // Return video data without the binary buffers
+      const { videoData: _, thumbnailData: __, ...videoResponse } = video.toObject();
+      res.json(videoResponse);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
