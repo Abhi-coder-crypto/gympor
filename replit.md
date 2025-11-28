@@ -139,6 +139,50 @@ Fixed four critical issues in the live session assignment system to ensure prope
 - **UI Enhancements**: Added visual indicators (badges, disabled states) to improve user experience and prevent errors
 - **Data Consistency**: All assignment operations maintain synchronization between SessionClient collection and LiveSession.clients array
 
+### November 28, 2025 - Complete Habit Tracking System Implementation
+Implemented full two-way habit tracking system for Pro and Elite package clients:
+
+**Features Added:**
+1. **Backend Models & API**:
+   - `Habit` schema: Stores trainer-assigned habits with client/trainer relationship
+   - `HabitLog` schema: Tracks daily habit completion logs with date and completion status
+   - 6 API endpoints for creating, fetching, logging, and deleting habits
+   - Full authentication and error handling
+
+2. **Trainer Habit Tracking Dashboard** (`/trainer/habits`):
+   - View all Pro/Elite clients assigned to trainer
+   - Assign multiple habits per client (name, description, frequency)
+   - See habit completion rates for each client
+   - View detailed completion logs showing which days habits were done
+   - Delete habits with cascading log deletion
+   - Clean dialog-based UI for habit assignment
+
+3. **Client Habits Page** (`/client/habits`):
+   - Simple "Mark Today Done" button for each assigned habit
+   - Shows daily progress (e.g., 2/3 habits completed)
+   - Shows completion percentage
+   - Visual indicators for completed habits (green styling)
+   - Upgrade prompt for Basic/Fit Plus clients
+
+4. **Access Control**:
+   - **Habit tracking automatically hidden for Basic and Fit Plus packages**
+   - Only visible to Pro and Elite package clients
+   - Trainer sidebar includes "Habit Tracking" menu item (CheckCircle icon)
+   - Client header shows "Habits" link only for Pro/Elite clients
+   - Automatic redirect with upgrade prompt for non-eligible packages
+
+5. **UI Integration**:
+   - Added "Habits" navigation link in client header (green CheckCircle icon)
+   - Added "Habit Tracking" to trainer sidebar menu
+   - Seamless integration with existing design system
+   - Responsive across all devices
+
+**Database Structure:**
+- Habits linked to specific trainer (one-to-many)
+- Each habit tracked to client for assignment
+- HabitLogs stored separately for scalability
+- Date-based tracking for daily completion
+
 ## External Dependencies
 - **MongoDB Atlas**: Cloud-hosted NoSQL database.
 - **Mongoose**: ODM for MongoDB.
