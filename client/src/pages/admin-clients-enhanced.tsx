@@ -387,6 +387,7 @@ export default function AdminClientsEnhanced() {
       height: "",
       weight: "",
       address: "",
+      allergies: "",
       status: "active",
       profilePhoto: null,
       governmentIdDocument: null,
@@ -466,6 +467,7 @@ export default function AdminClientsEnhanced() {
     if (formData.height) formDataObj.append('height', formData.height);
     if (formData.weight) formDataObj.append('weight', formData.weight);
     if (formData.address) formDataObj.append('address', formData.address);
+    if (formData.allergies) formDataObj.append('allergies', formData.allergies);
     if (formData.profilePhoto) formDataObj.append('profilePhoto', formData.profilePhoto);
     if (formData.governmentIdDocument) formDataObj.append('aadharDocument', formData.governmentIdDocument);
 
@@ -525,6 +527,7 @@ export default function AdminClientsEnhanced() {
       height: client.height?.toString() || "",
       weight: client.weight?.toString() || "",
       address: client.address || "",
+      allergies: client.allergies?.join(", ") || "",
       status: client.status || "active",
       profilePhoto: null,
       governmentIdDocument: null,
@@ -1225,6 +1228,18 @@ export default function AdminClientsEnhanced() {
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 rows={2}
                 data-testid="textarea-address"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="allergies">Allergies & Dietary Restrictions</Label>
+              <Textarea
+                id="allergies"
+                placeholder="e.g., Peanuts, Gluten, Dairy (comma-separated)"
+                value={formData.allergies}
+                onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+                rows={2}
+                data-testid="textarea-allergies"
               />
             </div>
 
