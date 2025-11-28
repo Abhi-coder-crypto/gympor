@@ -849,6 +849,14 @@ export class MongoStorage implements IStorage {
       workoutPlanId: { $ne: convertedPlanId }
     });
     
+    // Also remove old-format plans (those with clientId stored directly on the plan) for backward compatibility cleanup
+    // This ensures we transition from old to new format and don't accumulate old clones
+    const deletedOldFormat = await WorkoutPlan.deleteMany({
+      clientId: convertedClientId,
+      _id: { $ne: convertedPlanId } // Keep the plan we're assigning, delete all others
+    });
+    console.log(`[Assign Workout] Cleaned up ${deletedOldFormat.deletedCount} old-format workout plans for client`);
+    
     // Check if assignment to this specific plan already exists
     const existingAssignment = await WorkoutPlanAssignment.findOne({
       workoutPlanId: convertedPlanId,
@@ -878,6 +886,13 @@ export class MongoStorage implements IStorage {
         clientId: convertedClientId,
         workoutPlanId: { $ne: convertedPlanId }
       });
+      
+      // Also remove old-format plans (those with clientId stored directly on the plan)
+      const deletedOldFormat = await WorkoutPlan.deleteMany({
+        clientId: convertedClientId,
+        _id: { $ne: convertedPlanId }
+      });
+      console.log(`[Assign Workout Batch] Cleaned up ${deletedOldFormat.deletedCount} old-format plans for client ${clientId}`);
       
       // Check if assignment already exists to prevent duplicates
       const existingAssignment = await WorkoutPlanAssignment.findOne({
@@ -1176,6 +1191,13 @@ export class MongoStorage implements IStorage {
       });
       console.log(`[Assign Diet] Removed other diet assignments for client`);
       
+      // Also remove old-format plans (those with clientId stored directly on the plan) for backward compatibility cleanup
+      const deletedOldFormat = await DietPlan.deleteMany({
+        clientId: convertedClientId,
+        _id: { $ne: convertedPlanId }
+      });
+      console.log(`[Assign Diet] Cleaned up ${deletedOldFormat.deletedCount} old-format diet plans for client`);
+      
       // Check if assignment already exists to prevent duplicates
       const existingAssignment = await DietPlanAssignment.findOne({
         dietPlanId: convertedPlanId,
@@ -1214,6 +1236,13 @@ export class MongoStorage implements IStorage {
         clientId: convertedClientId,
         dietPlanId: { $ne: convertedPlanId }
       });
+      
+      // Also remove old-format plans (those with clientId stored directly on the plan)
+      const deletedOldFormat = await DietPlan.deleteMany({
+        clientId: convertedClientId,
+        _id: { $ne: convertedPlanId }
+      });
+      console.log(`[Assign Diet Batch] Cleaned up ${deletedOldFormat.deletedCount} old-format plans for client ${clientId}`);
       
       // Check if assignment already exists to prevent duplicates
       const existingAssignment = await DietPlanAssignment.findOne({
