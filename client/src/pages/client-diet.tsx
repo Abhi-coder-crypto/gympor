@@ -6,38 +6,36 @@ import { ClientHeader } from "@/components/client-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { MobileNavigation } from "@/components/mobile-navigation";
 import {
-  Flame,
-  Droplet,
-  Pill,
+  UtensilsCrossed,
   ShoppingCart,
-  ChefHat,
   AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
+  Download,
+  Clock,
+  ChefHat,
 } from "lucide-react";
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+interface Dish {
+  name: string;
+  quantity?: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+}
+
 interface Meal {
-  time: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  dishes: Array<{
-    name: string;
-    quantity: string;
-    calories?: number;
-    protein?: number;
-    carbs?: number;
-    fats?: number;
-  }>;
+  time?: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+  dishes?: Dish[];
+  name?: string;
 }
 
 interface DayMeals {
@@ -54,27 +52,17 @@ interface DietPlan {
   carbs?: number;
   fats?: number;
   meals: Record<string, DayMeals>;
-  allergens?: string[];
-  waterIntakeGoal?: number;
-  supplements?: Array<{
-    name: string;
-    dosage: string;
-    timing: string;
-  }>;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export default function ClientDiet() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [clientId, setClientId] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState("Monday");
-  const [selectedMeal, setSelectedMeal] = useState<any>(null);
-  const [showMealDetails, setShowMealDetails] = useState(false);
-  const [waterIntake, setWaterIntake] = useState(0);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [showGroceryList, setShowGroceryList] = useState(false);
 
-  // Get clientId from storage
   useEffect(() => {
     const id = localStorage.getItem("clientId");
     if (!id) {
@@ -84,7 +72,6 @@ export default function ClientDiet() {
     }
   }, [setLocation]);
 
-  // Fetch diet plans
   const { data: dietPlans = [], isLoading, error } = useQuery<DietPlan[]>({
     queryKey: ["/api/diet-plans", clientId],
     queryFn: async () => {
@@ -97,55 +84,79 @@ export default function ClientDiet() {
       return response.json();
     },
     enabled: !!clientId,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   const currentPlan = dietPlans?.[0];
 
-  // Calculate totals for a specific day
-  const calculateDayTotals = (day: string) => {
-    if (!currentPlan?.meals?.[day]) {
-      return { calories: 0, protein: 0, carbs: 0, fats: 0 };
-    }
-
-    const dayMeals = currentPlan.meals[day];
-    let totals = { calories: 0, protein: 0, carbs: 0, fats: 0 };
-
-    Object.values(dayMeals).forEach((meal: any) => {
-      if (meal && typeof meal === "object") {
-        totals.calories += meal.calories || 0;
-        totals.protein += meal.protein || 0;
-        totals.carbs += meal.carbs || 0;
-        totals.fats += meal.fats || 0;
-      }
-    });
-
-    return totals;
-  };
-
-  const dayTotals = calculateDayTotals(selectedDay);
-  const targetCalories = currentPlan?.targetCalories || 2000;
-  const caloriePercentage = (dayTotals.calories / targetCalories) * 100;
-
-  // Get all meals for the selected day
-  const getMealsForDay = (day: string) => {
+  const getMealsForDay = (day: string): DayMeals => {
     return currentPlan?.meals?.[day] || {};
   };
 
-  // Generate grocery list
-  const generateGroceryList = () => {
-    const groceries = new Set<string>();
-    if (currentPlan?.meals) {
-      Object.values(currentPlan.meals).forEach((dayMeals: any) => {
-        Object.values(dayMeals).forEach((meal: any) => {
-          if (meal?.dishes && Array.isArray(meal.dishes)) {
-            meal.dishes.forEach((dish: any) => {
-              if (dish.name) groceries.add(dish.name);
-            });
+  const getMealCount = (day: string): number => {
+    const dayMeals = getMealsForDay(day);
+    return Object.keys(dayMeals).length;
+  };
+
+  const getDayCalories = (day: string): number => {
+    const dayMeals = getMealsForDay(day);
+    let total = 0;
+    Object.values(dayMeals).forEach((meal: Meal) => {
+      total += meal?.calories || 0;
+    });
+    return total;
+  };
+
+  const generateGroceryListForDay = (day: string): string[] => {
+    const items: string[] = [];
+    const dayMeals = getMealsForDay(day);
+    
+    Object.values(dayMeals).forEach((meal: Meal) => {
+      if (meal?.dishes && Array.isArray(meal.dishes)) {
+        meal.dishes.forEach((dish: Dish) => {
+          if (dish.name) {
+            const itemText = dish.quantity ? `${dish.name} - ${dish.quantity}` : dish.name;
+            if (!items.includes(itemText)) {
+              items.push(itemText);
+            }
           }
         });
-      });
-    }
-    return Array.from(groceries);
+      }
+    });
+    
+    return items;
+  };
+
+  const downloadGroceryList = () => {
+    if (!selectedDay) return;
+    
+    const items = generateGroceryListForDay(selectedDay);
+    const content = `GROCERY LIST - ${selectedDay.toUpperCase()}
+${currentPlan?.name || "Diet Plan"}
+Generated: ${new Date().toLocaleDateString()}
+${"=".repeat(40)}
+
+${items.length > 0 ? items.map((item, idx) => `${idx + 1}. ${item}`).join("\n") : "No items for this day"}
+
+${"=".repeat(40)}
+Total Items: ${items.length}
+`;
+    
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `grocery-list-${selectedDay.toLowerCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Downloaded",
+      description: `Grocery list for ${selectedDay} downloaded successfully`,
+    });
   };
 
   if (isLoading) {
@@ -166,7 +177,7 @@ export default function ClientDiet() {
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">No Diet Plan Assigned</h2>
           <p className="text-muted-foreground">Contact your trainer to get a personalized diet plan</p>
-          <Button onClick={() => setLocation("/client-dashboard")} className="mt-4">
+          <Button onClick={() => setLocation("/client-dashboard")} className="mt-4" data-testid="button-back-dashboard">
             Back to Dashboard
           </Button>
         </div>
@@ -174,8 +185,8 @@ export default function ClientDiet() {
     );
   }
 
-  const dayMeals = getMealsForDay(selectedDay);
-  const mealTypes = Object.keys(dayMeals);
+  const selectedDayMeals = selectedDay ? getMealsForDay(selectedDay) : {};
+  const selectedDayItems = selectedDay ? generateGroceryListForDay(selectedDay) : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,361 +194,191 @@ export default function ClientDiet() {
       <MobileNavigation />
 
       <div className="max-w-6xl mx-auto p-4 md:p-6">
-        {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{currentPlan.name}</h1>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold mb-1 flex items-center gap-2" data-testid="text-plan-name">
+            <UtensilsCrossed className="h-6 w-6 text-primary" />
+            {currentPlan.name}
+          </h1>
           {currentPlan.description && (
-            <p className="text-muted-foreground">{currentPlan.description}</p>
+            <p className="text-muted-foreground text-sm">{currentPlan.description}</p>
           )}
         </div>
 
-        {/* Nutrition Goals */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Flame className="h-5 w-5" />
-              Daily Nutrition Goals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">
-                  {currentPlan.targetCalories?.toLocaleString() || 2000}
-                </div>
-                <p className="text-sm text-muted-foreground">Calories</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-red-600">
-                  {currentPlan.protein || 150}g
-                </div>
-                <p className="text-sm text-muted-foreground">Protein</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-yellow-600">
-                  {currentPlan.carbs || 200}g
-                </div>
-                <p className="text-sm text-muted-foreground">Carbs</p>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600">
-                  {currentPlan.fats || 65}g
-                </div>
-                <p className="text-sm text-muted-foreground">Fats</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Weekly Meal Plan */}
-        <Tabs defaultValue="Monday" onValueChange={setSelectedDay} className="mb-8">
-          <TabsList className="grid grid-cols-7 w-full">
-            {DAYS_OF_WEEK.map((day) => (
-              <TabsTrigger key={day} value={day} className="text-xs sm:text-sm">
-                {day.slice(0, 3)}
-              </TabsTrigger>
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-4">Weekly Diet Plan</h2>
+          <p className="text-sm text-muted-foreground mb-4">Click on a day to view meals and grocery list</p>
+          
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            {DAYS_OF_WEEK.slice(0, 3).map((day) => (
+              <DayCard
+                key={day}
+                day={day}
+                mealCount={getMealCount(day)}
+                calories={getDayCalories(day)}
+                isSelected={selectedDay === day}
+                onClick={() => setSelectedDay(selectedDay === day ? null : day)}
+              />
             ))}
-          </TabsList>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            {DAYS_OF_WEEK.slice(3, 6).map((day) => (
+              <DayCard
+                key={day}
+                day={day}
+                mealCount={getMealCount(day)}
+                calories={getDayCalories(day)}
+                isSelected={selectedDay === day}
+                onClick={() => setSelectedDay(selectedDay === day ? null : day)}
+              />
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-3 gap-3">
+            <DayCard
+              day="Sunday"
+              mealCount={getMealCount("Sunday")}
+              calories={getDayCalories("Sunday")}
+              isSelected={selectedDay === "Sunday"}
+              onClick={() => setSelectedDay(selectedDay === "Sunday" ? null : "Sunday")}
+            />
+            <div></div>
+            <div></div>
+          </div>
+        </div>
 
-          {DAYS_OF_WEEK.map((day) => (
-            <TabsContent key={day} value={day} className="space-y-4 mt-6">
-              {/* Day Totals */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>{day}'s Nutrition Summary</CardTitle>
-                    <Badge variant="outline">{dayTotals.calories.toLocaleString()} kcal</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Calorie Progress */}
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">Calories</span>
-                      <span className="text-sm text-muted-foreground">
-                        {dayTotals.calories.toLocaleString()} / {targetCalories.toLocaleString()}
-                      </span>
-                    </div>
-                    <Progress value={Math.min(caloriePercentage, 100)} className="h-2" />
-                  </div>
+        {selectedDay && (
+          <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{selectedDay}'s Meals</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowGroceryList(true)}
+                data-testid="button-view-grocery"
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Grocery List ({selectedDayItems.length})
+              </Button>
+            </div>
 
-                  {/* Macro breakdown */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Protein</p>
-                      <p className="text-lg font-semibold">{dayTotals.protein}g</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Carbs</p>
-                      <p className="text-lg font-semibold">{dayTotals.carbs}g</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Fats</p>
-                      <p className="text-lg font-semibold">{dayTotals.fats}g</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Meals for Day */}
-              <div className="space-y-4">
-                {mealTypes.length > 0 ? (
-                  mealTypes.map((mealType) => {
-                    const meal = dayMeals[mealType];
-                    return (
-                      <Card key={mealType} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => {
-                        setSelectedMeal({ ...meal, type: mealType, day });
-                        setShowMealDetails(true);
-                      }}>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="capitalize text-lg">{mealType}</CardTitle>
-                              <p className="text-sm text-muted-foreground mt-1">{meal?.time || "No time set"}</p>
-                            </div>
-                            <Badge variant="secondary">{meal?.calories || 0} kcal</Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          {meal?.dishes && meal.dishes.length > 0 ? (
-                            <div className="space-y-2">
-                              {meal.dishes.map((dish: any, idx: number) => (
-                                <div key={idx} className="flex justify-between items-center text-sm">
-                                  <span className="text-foreground">{dish.name}</span>
-                                  <span className="text-muted-foreground">{dish.quantity || "1 serving"}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-muted-foreground text-sm">No dishes planned</p>
+            {Object.keys(selectedDayMeals).length > 0 ? (
+              <div className="space-y-3">
+                {Object.entries(selectedDayMeals).map(([mealType, meal]) => (
+                  <Card key={mealType} data-testid={`card-meal-${mealType}`}>
+                    <CardHeader className="py-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <CardTitle className="capitalize text-base flex items-center gap-2">
+                          <ChefHat className="h-4 w-4" />
+                          {mealType}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          {meal?.time && (
+                            <Badge variant="outline" className="text-xs">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {meal.time}
+                            </Badge>
                           )}
+                          <Badge variant="secondary">{meal?.calories || 0} cal</Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {meal?.dishes && meal.dishes.length > 0 ? (
+                        <ul className="space-y-2">
+                          {meal.dishes.map((dish: Dish, idx: number) => (
+                            <li key={idx} className="flex items-start justify-between text-sm py-1 border-b last:border-0">
+                              <span className="font-medium">{dish.name}</span>
+                              <span className="text-muted-foreground">{dish.quantity || "1 serving"}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No dishes specified</p>
+                      )}
 
-                          {/* Macro nutrients */}
-                          <Separator className="my-3" />
-                          <div className="grid grid-cols-3 gap-2 text-xs">
-                            <div className="text-center">
-                              <p className="text-muted-foreground">Protein</p>
-                              <p className="font-semibold">{meal?.protein || 0}g</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-muted-foreground">Carbs</p>
-                              <p className="font-semibold">{meal?.carbs || 0}g</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-muted-foreground">Fats</p>
-                              <p className="font-semibold">{meal?.fats || 0}g</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })
-                ) : (
-                  <Card>
-                    <CardContent className="pt-6">
-                      <p className="text-center text-muted-foreground">No meals planned for {day}</p>
+                      {(meal?.protein || meal?.carbs || meal?.fats) && (
+                        <div className="flex gap-4 mt-3 pt-3 border-t text-xs">
+                          <span><strong>P:</strong> {meal?.protein || 0}g</span>
+                          <span><strong>C:</strong> {meal?.carbs || 0}g</span>
+                          <span><strong>F:</strong> {meal?.fats || 0}g</span>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
-                )}
+                ))}
               </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        {/* Hydration & Supplements */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Water Intake */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Droplet className="h-5 w-5" />
-                Hydration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center mb-4">
-                <div className="text-3xl font-bold">{waterIntake}L</div>
-                <p className="text-sm text-muted-foreground">
-                  Daily Goal: {currentPlan.waterIntakeGoal || 3}L
-                </p>
-              </div>
-              <Progress 
-                value={(waterIntake / (currentPlan.waterIntakeGoal || 3)) * 100} 
-                className="mb-4"
-              />
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setWaterIntake(Math.max(0, waterIntake - 0.5))}
-                >
-                  -
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setWaterIntake(0)}
-                >
-                  Reset
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setWaterIntake(waterIntake + 0.5)}
-                >
-                  +
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Supplements */}
-          {currentPlan.supplements && currentPlan.supplements.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Pill className="h-5 w-5" />
-                  Supplements
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {currentPlan.supplements.map((supplement: any, idx: number) => (
-                    <div key={idx} className="border-l-2 border-primary pl-3 py-2">
-                      <p className="font-medium text-sm">{supplement.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {supplement.dosage} • {supplement.timing}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Allergens & Grocery List */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {currentPlan.allergens && currentPlan.allergens.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Allergen Restrictions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {currentPlan.allergens.map((allergen: string) => (
-                    <Badge key={allergen} variant="destructive">
-                      {allergen}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Grocery List */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5" />
-                  Grocery List
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowGroceryList(true)}
-                >
-                  View
-                </Button>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
+            ) : (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No meals planned for {selectedDay}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Meal Details Modal */}
-      <Dialog open={showMealDetails} onOpenChange={setShowMealDetails}>
-        <DialogContent>
+      <Dialog open={showGroceryList} onOpenChange={setShowGroceryList}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="capitalize">
-              {selectedMeal?.type} - {selectedMeal?.day}
+            <DialogTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Grocery List - {selectedDay}
             </DialogTitle>
           </DialogHeader>
-          {selectedMeal && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Time</p>
-                <p className="font-semibold">{selectedMeal.time}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Dishes</p>
-                {selectedMeal.dishes?.length > 0 ? (
-                  <ul className="space-y-2">
-                    {selectedMeal.dishes.map((dish: any, idx: number) => (
-                      <li key={idx} className="text-sm border-l-2 border-primary pl-3">
-                        <p className="font-medium">{dish.name}</p>
-                        <p className="text-muted-foreground text-xs">{dish.quantity}</p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground text-sm">No dishes</p>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="grid grid-cols-4 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Calories</p>
-                  <p className="font-semibold">{selectedMeal.calories || 0}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Protein</p>
-                  <p className="font-semibold">{selectedMeal.protein || 0}g</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Carbs</p>
-                  <p className="font-semibold">{selectedMeal.carbs || 0}g</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Fats</p>
-                  <p className="font-semibold">{selectedMeal.fats || 0}g</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Grocery List Modal */}
-      <Dialog open={showGroceryList} onOpenChange={setShowGroceryList}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Weekly Grocery List</DialogTitle>
-          </DialogHeader>
-          <div className="max-h-96 overflow-y-auto">
-            {generateGroceryList().length > 0 ? (
+          <div className="max-h-80 overflow-y-auto">
+            {selectedDayItems.length > 0 ? (
               <ul className="space-y-2">
-                {generateGroceryList().map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-2 text-sm py-2 border-b last:border-b-0">
-                    <div className="w-4 h-4 rounded border border-muted-foreground"></div>
-                    <span>{item}</span>
+                {selectedDayItems.map((item, idx) => (
+                  <li key={idx} className="flex items-center gap-3 py-2 border-b last:border-0">
+                    <div className="w-5 h-5 rounded border border-muted-foreground flex-shrink-0"></div>
+                    <span className="text-sm">{item}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground text-center py-8">No items in grocery list</p>
+              <p className="text-center text-muted-foreground py-8">No grocery items for {selectedDay}</p>
             )}
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button 
+              onClick={downloadGroceryList} 
+              disabled={selectedDayItems.length === 0}
+              data-testid="button-download-grocery"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download List
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+interface DayCardProps {
+  day: string;
+  mealCount: number;
+  calories: number;
+  isSelected: boolean;
+  onClick: () => void;
+}
+
+function DayCard({ day, mealCount, calories, isSelected, onClick }: DayCardProps) {
+  return (
+    <Card 
+      className={`cursor-pointer transition-all hover-elevate ${isSelected ? "ring-2 ring-primary bg-primary/5" : ""}`}
+      onClick={onClick}
+      data-testid={`card-day-${day.toLowerCase()}`}
+    >
+      <CardContent className="p-4 text-center">
+        <p className="font-semibold text-sm mb-1">{day.slice(0, 3)}</p>
+        <p className="text-xs text-muted-foreground">{mealCount} meals</p>
+        {calories > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">{calories} cal</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
