@@ -61,6 +61,7 @@ export default function ClientDiet() {
   const { toast } = useToast();
   const [clientId, setClientId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [showMealDetails, setShowMealDetails] = useState<string | null>(null);
   const [showGroceryList, setShowGroceryList] = useState(false);
 
   useEffect(() => {
@@ -209,8 +210,8 @@ Total Items: ${items.length}
           <h2 className="text-lg font-semibold mb-4">Weekly Diet Plan</h2>
           <p className="text-sm text-muted-foreground mb-4">Click on a day to view meals and grocery list</p>
           
-          <div className="grid grid-cols-3 gap-3 mb-3">
-            {DAYS_OF_WEEK.slice(0, 3).map((day) => (
+          <div className="grid grid-cols-3 gap-4">
+            {DAYS_OF_WEEK.map((day) => (
               <DayCard
                 key={day}
                 day={day}
@@ -220,31 +221,6 @@ Total Items: ${items.length}
                 onClick={() => setSelectedDay(selectedDay === day ? null : day)}
               />
             ))}
-          </div>
-          
-          <div className="grid grid-cols-3 gap-3 mb-3">
-            {DAYS_OF_WEEK.slice(3, 6).map((day) => (
-              <DayCard
-                key={day}
-                day={day}
-                mealCount={getMealCount(day)}
-                calories={getDayCalories(day)}
-                isSelected={selectedDay === day}
-                onClick={() => setSelectedDay(selectedDay === day ? null : day)}
-              />
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-3 gap-3">
-            <DayCard
-              day="Sunday"
-              mealCount={getMealCount("Sunday")}
-              calories={getDayCalories("Sunday")}
-              isSelected={selectedDay === "Sunday"}
-              onClick={() => setSelectedDay(selectedDay === "Sunday" ? null : "Sunday")}
-            />
-            <div></div>
-            <div></div>
           </div>
         </div>
 
@@ -264,42 +240,46 @@ Total Items: ${items.length}
             </div>
 
             {Object.keys(selectedDayMeals).length > 0 ? (
-              <div className="space-y-3">
+              <div className="flex gap-3 overflow-x-auto pb-4">
                 {Object.entries(selectedDayMeals).map(([mealType, meal]) => (
-                  <Card key={mealType} data-testid={`card-meal-${mealType}`}>
-                    <CardHeader className="py-3">
+                  <Card 
+                    key={mealType} 
+                    className="flex-shrink-0 w-80 cursor-pointer hover-elevate transition-all"
+                    onClick={() => setShowMealDetails(showMealDetails === mealType ? null : mealType)}
+                    data-testid={`card-meal-${mealType}`}
+                  >
+                    <CardHeader className="py-3 pb-2">
                       <div className="flex items-center justify-between gap-2">
                         <CardTitle className="capitalize text-base flex items-center gap-2">
                           <ChefHat className="h-4 w-4" />
                           {mealType}
                         </CardTitle>
-                        <div className="flex items-center gap-2">
-                          {meal?.time && (
-                            <Badge variant="outline" className="text-xs">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {meal.time}
-                            </Badge>
-                          )}
-                          <Badge variant="secondary">{meal?.calories || 0} cal</Badge>
-                        </div>
+                        <Badge variant="secondary" className="text-xs">{meal?.calories || 0} cal</Badge>
                       </div>
+                      {meal?.time && (
+                        <Badge variant="outline" className="text-xs w-fit mt-1">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {meal.time}
+                        </Badge>
+                      )}
                     </CardHeader>
-                    <CardContent className="pt-0">
+                    <CardContent className="pt-2">
                       {meal?.dishes && meal.dishes.length > 0 ? (
-                        <ul className="space-y-2">
-                          {meal.dishes.map((dish: Dish, idx: number) => (
-                            <li key={idx} className="flex items-start justify-between text-sm py-1 border-b last:border-0">
-                              <span className="font-medium">{dish.name}</span>
-                              <span className="text-muted-foreground">{dish.quantity || "1 serving"}</span>
+                        <ul className="space-y-1">
+                          {meal.dishes.slice(0, 2).map((dish: Dish, idx: number) => (
+                            <li key={idx} className="text-sm text-muted-foreground truncate">
+                              • {dish.name}
                             </li>
                           ))}
+                          {meal.dishes.length > 2 && (
+                            <li className="text-xs text-primary font-medium">+{meal.dishes.length - 2} more</li>
+                          )}
                         </ul>
                       ) : (
                         <p className="text-sm text-muted-foreground">No dishes specified</p>
                       )}
-
                       {(meal?.protein || meal?.carbs || meal?.fats) && (
-                        <div className="flex gap-4 mt-3 pt-3 border-t text-xs">
+                        <div className="flex gap-3 mt-3 pt-2 border-t text-xs">
                           <span><strong>P:</strong> {meal?.protein || 0}g</span>
                           <span><strong>C:</strong> {meal?.carbs || 0}g</span>
                           <span><strong>F:</strong> {meal?.fats || 0}g</span>
@@ -313,6 +293,48 @@ Total Items: ${items.length}
               <Card>
                 <CardContent className="py-8 text-center text-muted-foreground">
                   No meals planned for {selectedDay}
+                </CardContent>
+              </Card>
+            )}
+
+            {showMealDetails && selectedDayMeals[showMealDetails] && (
+              <Card className="border-primary/50 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="capitalize flex items-center gap-2">
+                    <ChefHat className="h-5 w-5" />
+                    {showMealDetails} Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedDayMeals[showMealDetails]?.dishes && selectedDayMeals[showMealDetails].dishes.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-2 text-sm">Dishes</h4>
+                      <ul className="space-y-2">
+                        {selectedDayMeals[showMealDetails].dishes.map((dish: Dish, idx: number) => (
+                          <li key={idx} className="flex items-start justify-between text-sm py-1 border-b last:border-0">
+                            <span className="font-medium">{dish.name}</span>
+                            <span className="text-muted-foreground">{dish.quantity || "1 serving"}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {(selectedDayMeals[showMealDetails]?.protein || selectedDayMeals[showMealDetails]?.carbs || selectedDayMeals[showMealDetails]?.fats) && (
+                    <div className="grid grid-cols-3 gap-3 pt-3 border-t">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Protein</p>
+                        <p className="font-semibold text-lg">{selectedDayMeals[showMealDetails]?.protein || 0}g</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Carbs</p>
+                        <p className="font-semibold text-lg">{selectedDayMeals[showMealDetails]?.carbs || 0}g</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Fats</p>
+                        <p className="font-semibold text-lg">{selectedDayMeals[showMealDetails]?.fats || 0}g</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

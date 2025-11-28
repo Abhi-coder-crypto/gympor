@@ -3079,6 +3079,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cleanup old assignments for a specific client (keeps only latest)
+  app.post("/api/admin/cleanup/client-assignments/:clientId", authenticateToken, requireRole('admin', 'trainer'), async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const convertedClientId = new mongoose.Types.ObjectId(clientId);
+      
+      // Get all workout assignments for this client, sorted by creation date (newest first)
+      const workoutAssignments = await WorkoutPlanAssignment.find({ clientId: convertedClientId }).sort({ createdAt: -1 });
+      
+      // Delete all but the first (most recent)
+      let deletedWorkoutCount = 0;
+      if (workoutAssignments.length > 1) {
+        const idsToDelete = workoutAssignments.slice(1).map(a => a._id);
+        const result = await WorkoutPlanAssignment.deleteMany({ _id: { $in: idsToDelete } });
+        deletedWorkoutCount = result.deletedCount || 0;
+      }
+      
+      // Do the same for diet assignments
+      const dietAssignments = await DietPlanAssignment.find({ clientId: convertedClientId }).sort({ createdAt: -1 });
+      let deletedDietCount = 0;
+      if (dietAssignments.length > 1) {
+        const idsToDelete = dietAssignments.slice(1).map(a => a._id);
+        const result = await DietPlanAssignment.deleteMany({ _id: { $in: idsToDelete } });
+        deletedDietCount = result.deletedCount || 0;
+      }
+      
+      // Also clean up old-format plans (stored with clientId directly)
+      const deletedWorkoutPlans = await WorkoutPlan.deleteMany({
+        clientId: convertedClientId,
+        isTemplate: false
+      });
+      
+      const deletedDietPlans = await DietPlan.deleteMany({
+        clientId: convertedClientId,
+        isTemplate: false
+      });
+      
+      console.log(`[Cleanup] Client ${clientId}: Removed ${deletedWorkoutCount} old workout assignments, ${deletedDietCount} old diet assignments, ${deletedWorkoutPlans.deletedCount} old workout plans, ${deletedDietPlans.deletedCount} old diet plans`);
+      
+      res.json({
+        message: "Client assignments cleaned up successfully",
+        deletedWorkoutAssignments: deletedWorkoutCount,
+        deletedDietAssignments: deletedDietCount,
+        deletedWorkoutPlans: deletedWorkoutPlans.deletedCount,
+        deletedDietPlans: deletedDietPlans.deletedCount
+      });
+    } catch (error: any) {
+      console.error(`[Cleanup] Error:`, error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Diet Plan Template routes
   app.get("/api/diet-plan-templates", authenticateToken, async (req, res) => {
     try {

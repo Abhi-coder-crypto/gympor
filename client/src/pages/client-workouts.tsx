@@ -45,6 +45,7 @@ interface ClientData {
 
 export default function ClientWorkouts() {
   const [currentWeekDay, setCurrentWeekDay] = useState<string>("");
+  const [showExerciseDetails, setShowExerciseDetails] = useState<string | null>(null);
   const [contactTrainerOpen, setContactTrainerOpen] = useState(false);
 
   const { data: assignedWorkouts = [], isLoading: isLoadingWorkouts, isError, error } = useQuery<WorkoutPlan[]>({
@@ -328,7 +329,7 @@ export default function ClientWorkouts() {
                 </div>
               </div>
 
-              {/* Exercises Section */}
+              {/* Exercises Section - Horizontal Cards */}
               <div>
                 <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Dumbbell className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -342,31 +343,86 @@ export default function ClientWorkouts() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="flex gap-3 overflow-x-auto pb-4">
                     {currentDayExercises.map((exercise, idx) => (
-                      <Card key={idx} className="border-0 bg-white dark:bg-slate-800 hover-elevate">
+                      <Card 
+                        key={idx} 
+                        className="flex-shrink-0 w-80 border-0 bg-white dark:bg-slate-800 hover-elevate cursor-pointer transition-all"
+                        onClick={() => setShowExerciseDetails(showExerciseDetails === exercise.name ? null : exercise.name)}
+                        data-testid={`card-exercise-${idx}`}
+                      >
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{exercise.name}</h4>
-                              <div className="flex flex-wrap gap-2 text-xs">
-                                {exercise.sets && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">{exercise.sets} sets</span>}
-                                {exercise.reps && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">× {exercise.reps} reps</span>}
-                                {exercise.weight && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">{exercise.weight} kg</span>}
-                                {exercise.restTime && <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">Rest: {exercise.restTime}s</span>}
-                              </div>
-                              {exercise.notes && <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{exercise.notes}</p>}
-                            </div>
-                            {exercise.difficulty && (
-                              <Badge variant="outline" className="capitalize whitespace-nowrap">
-                                {exercise.difficulty}
-                              </Badge>
-                            )}
+                          <h4 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">{exercise.name}</h4>
+                          <div className="flex flex-wrap gap-2 text-xs mb-3">
+                            {exercise.sets && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">{exercise.sets} sets</span>}
+                            {exercise.reps && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">× {exercise.reps}</span>}
+                            {exercise.weight && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">{exercise.weight} kg</span>}
                           </div>
+                          {exercise.difficulty && (
+                            <Badge variant="outline" className="capitalize text-xs">
+                              {exercise.difficulty}
+                            </Badge>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
                   </div>
+                )}
+
+                {showExerciseDetails && (
+                  <Card className="border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 mt-4">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Dumbbell className="h-5 w-5" />
+                        {showExerciseDetails} Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {currentDayExercises.find(ex => ex.name === showExerciseDetails) && (() => {
+                        const ex = currentDayExercises.find(e => e.name === showExerciseDetails)!;
+                        return (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              {ex.sets && (
+                                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
+                                  <p className="text-xs text-muted-foreground">Sets</p>
+                                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{ex.sets}</p>
+                                </div>
+                              )}
+                              {ex.reps && (
+                                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
+                                  <p className="text-xs text-muted-foreground">Reps</p>
+                                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{ex.reps}</p>
+                                </div>
+                              )}
+                              {ex.weight && (
+                                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
+                                  <p className="text-xs text-muted-foreground">Weight</p>
+                                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{ex.weight} kg</p>
+                                </div>
+                              )}
+                              {ex.restTime && (
+                                <div className="bg-white dark:bg-slate-800 rounded-lg p-3 text-center">
+                                  <p className="text-xs text-muted-foreground">Rest</p>
+                                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{ex.restTime}s</p>
+                                </div>
+                              )}
+                            </div>
+                            {ex.notes && (
+                              <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border-l-4 border-purple-600">
+                                <p className="text-sm"><strong>Notes:</strong> {ex.notes}</p>
+                              </div>
+                            )}
+                            {ex.difficulty && (
+                              <div className="bg-white dark:bg-slate-800 rounded-lg p-3">
+                                <p className="text-sm"><strong>Difficulty:</strong> <Badge className="capitalize">{ex.difficulty}</Badge></p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
                 )}
               </div>
             </CardContent>
