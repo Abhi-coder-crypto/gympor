@@ -97,19 +97,23 @@ export function WorkoutPlanGenerator() {
 
     const selectedTemplate = workoutTemplates[template as keyof typeof workoutTemplates];
     const weeks = Math.ceil(parseInt(duration) / 7);
+    const caloriesBurned = calculateCaloriesBurned(parseInt(durationMinutes), intensity);
 
     setGeneratedPlan({
       clientName,
       template: selectedTemplate.name,
       duration: parseInt(duration),
       weeks,
+      durationMinutes: parseInt(durationMinutes),
+      intensity,
+      caloriesBurned,
       workouts: selectedTemplate.workouts,
       createdDate: new Date().toLocaleDateString(),
     });
 
     toast({
       title: "Workout plan generated!",
-      description: `Created ${duration}-day plan for ${clientName}`,
+      description: `Created ${duration}-day plan for ${clientName} • ${caloriesBurned} cal/session`,
     });
   };
 
@@ -193,6 +197,37 @@ Stay hydrated and rest adequately between sessions
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="duration-minutes">Workout Duration (minutes)</Label>
+              <Input
+                id="duration-minutes"
+                type="number"
+                min="15"
+                max="300"
+                step="5"
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                placeholder="60"
+                data-testid="input-duration-minutes"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="intensity">Intensity Level</Label>
+              <Select value={intensity} onValueChange={(val: IntensityLevel) => setIntensity(val)}>
+                <SelectTrigger id="intensity" data-testid="select-intensity">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">Light (3.5 MET)</SelectItem>
+                  <SelectItem value="moderate">Moderate (5.5 MET)</SelectItem>
+                  <SelectItem value="intense">Intense (8.0 MET)</SelectItem>
+                  <SelectItem value="advanced">Advanced (10.5 MET)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Estimated: {calculateCaloriesBurned(parseInt(durationMinutes), intensity)} cal/session
+              </p>
+            </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="template">Workout Template</Label>
               <Select value={template} onValueChange={(val: WorkoutTemplate) => setTemplate(val)}>
@@ -229,8 +264,13 @@ Stay hydrated and rest adequately between sessions
                 Export
               </Button>
             </div>
-            <CardDescription>
-              {generatedPlan.template} • {generatedPlan.duration} days • Created {generatedPlan.createdDate}
+            <CardDescription className="flex items-center gap-4 flex-wrap">
+              <span>{generatedPlan.template} • {generatedPlan.duration} days</span>
+              <div className="flex items-center gap-1 bg-orange-100/50 dark:bg-orange-950/30 px-3 py-1 rounded-full">
+                <Flame className="h-4 w-4 text-orange-500" />
+                <span className="font-semibold text-orange-600 dark:text-orange-400">{generatedPlan.caloriesBurned} cal/session</span>
+              </div>
+              <span className="text-xs">Intensity: {generatedPlan.intensity} ({generatedPlan.durationMinutes}min)</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
