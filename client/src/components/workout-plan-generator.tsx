@@ -5,17 +5,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Download, Plus, X } from "lucide-react";
+import { Dumbbell, Download, Plus, Flame } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type WorkoutTemplate = "beginner" | "intermediate" | "advanced" | "strength" | "cardio";
+type IntensityLevel = "light" | "moderate" | "intense" | "advanced";
 
 export function WorkoutPlanGenerator() {
   const [template, setTemplate] = useState<WorkoutTemplate>("beginner");
   const [duration, setDuration] = useState("7");
+  const [durationMinutes, setDurationMinutes] = useState("60");
+  const [intensity, setIntensity] = useState<IntensityLevel>("moderate");
   const [clientName, setClientName] = useState("");
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
   const { toast } = useToast();
+
+  const calculateCaloriesBurned = (durationMins: number, intensityLevel: IntensityLevel, weight: number = 70): number => {
+    const metValues: Record<IntensityLevel, number> = {
+      'light': 3.5,
+      'moderate': 5.5,
+      'intense': 8.0,
+      'advanced': 10.5,
+    };
+    const weightKg = weight > 100 ? weight / 2.2 : weight;
+    const durationHours = durationMins / 60;
+    const met = metValues[intensityLevel];
+    const calories = Math.round(weightKg * met * durationHours);
+    return Math.max(calories, 100);
+  };
 
   const workoutTemplates = {
     beginner: {
