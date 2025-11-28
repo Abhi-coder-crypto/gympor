@@ -164,7 +164,6 @@ export default function TrainerHabits() {
     }
 
     createHabitMutation.mutate({
-      trainerId: trainerId,
       clientId: selectedClient,
       name: habitName,
       description: habitDescription,
