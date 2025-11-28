@@ -702,14 +702,11 @@ export default function AdminDietPlans() {
                                     <Button 
                                       variant="outline" 
                                       size="sm"
-                                      onClick={() => {
-                                        setSelectedPlan(plan);
-                                        setCreatePlanOpen(true);
-                                      }}
+                                      onClick={() => handleAssign(plan)}
                                       data-testid="button-edit-assignment"
                                     >
                                       <Edit className="h-3 w-3 mr-1" />
-                                      Edit
+                                      {assignMode === 'assign' ? 'Edit Assignment' : 'Edit'}
                                     </Button>
                                     {assignMode === 'reassign' && (
                                       <Button 
