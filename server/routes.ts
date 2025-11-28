@@ -566,6 +566,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message });
     }
   });
+
+  // Get client's assigned trainer contact info
+  app.get("/api/client/trainer-contact", authenticateToken, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'client') {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      if (!req.user.clientId) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+
+      const client = await storage.getClient(req.user.clientId.toString());
+      if (!client || !client.trainerId) {
+        return res.status(404).json({ message: "No trainer assigned" });
+      }
+
+      const trainer = await storage.getTrainer(client.trainerId.toString());
+      if (!trainer) {
+        return res.status(404).json({ message: "Trainer not found" });
+      }
+
+      res.json({
+        name: trainer.name,
+        phone: trainer.phone || "",
+        email: trainer.email || "",
+        availability: trainer.availability || {},
+        specialty: trainer.specialty || "",
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
   
   // Admin route to create user account for existing client
   app.post("/api/admin/create-client-user", authenticateToken, requireAdmin, async (req, res) => {
