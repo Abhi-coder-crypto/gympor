@@ -1,0 +1,23 @@
+client:745 WebSocket connection to 'wss://3a3c2272-1037-4c8c-b98d-1639b0f80184-00-3jgt5nz9zfyo2.picard.replit.dev/?token=HZ2wzC8bLwkI' failed: 
+createConnection @ client:745
+client:755 WebSocket connection to 'wss://localhost:5173/?token=HZ2wzC8bLwkI' failed: 
+createConnection @ client:755
+client:765 [vite] failed to connect to websocket.
+your current setup:
+  (browser) 3a3c2272-1037-4c8c-b98d-1639b0f80184-00-3jgt5nz9zfyo2.picard.replit.dev/ <--[HTTP]--> localhost:5173/ (server)
+  (browser) 3a3c2272-1037-4c8c-b98d-1639b0f80184-00-3jgt5nz9zfyo2.picard.replit.dev:/ <--[WebSocket (failing)]--> localhost:5173/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr .
+connect @ client:765
+chunk-E22KYI7D.js?v=c51c7109:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+chunk-2OHXCMEP.js?v=c51c7109:335 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-2OHXCMEP.js?v=c51c7109:335
+/api/admin/trainers:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/admin/trainers:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/videos:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/payments/stats:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+chunk-2OHXCMEP.js?v=c51c7109:335 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ chunk-2OHXCMEP.js?v=c51c7109:335
+/api/diet-plans/69202b504ab4a0b2fb0e5e75/clone:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/diet-plans/69202b504ab4a0b2fb0e5e75/clone:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+/api/diet-plans/69202b504ab4a0b2fb0e5e75/clone:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+/api/diet-plans/69202b504ab4a0b2fb0e5e75/clone:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)

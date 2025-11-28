@@ -40,8 +40,11 @@ export function AssignDietPlanDialog({ open, onOpenChange, dietPlan }: AssignDie
     queryKey: ['/api/diet-plans/plan', planId],
     queryFn: async () => {
       if (!planId) return null;
-      const res = await fetch(`/api/diet-plans/plan/${planId}`);
-      if (!res.ok) throw new Error("Failed to fetch diet plan");
+      const res = await fetch(`/api/diet-plans/plan/${planId}`, { credentials: 'include' });
+      if (!res.ok) {
+        console.error(`Failed to fetch diet plan: ${res.status} ${res.statusText}`);
+        throw new Error(`Failed to fetch diet plan: ${res.status}`);
+      }
       return res.json();
     },
     enabled: !!planId && open,
