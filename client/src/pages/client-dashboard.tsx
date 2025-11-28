@@ -147,16 +147,25 @@ export default function ClientDashboard() {
   const { data: packageAccess } = useQuery<any>({
     queryKey: ["/api/client-access", clientId],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: "stale",
   });
 
   const { data: dashboardData, isLoading } = useQuery<DashboardData>({
     queryKey: ["/api/dashboard", clientId],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: "stale",
   });
 
   const { data: sessionsData = [] } = useQuery<any[]>({
     queryKey: [`/api/sessions/client/${clientId}`],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: "stale",
   });
 
   if (isLoading || !dashboardData) {

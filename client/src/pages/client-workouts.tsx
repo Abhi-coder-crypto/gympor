@@ -49,10 +49,16 @@ export default function ClientWorkouts() {
 
   const { data: assignedWorkouts = [], isLoading: isLoadingWorkouts, isError, error } = useQuery<WorkoutPlan[]>({
     queryKey: ['/api/workout-plans'],
+    staleTime: 0,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: "stale",
   });
 
   const { data: dietPlans = [] } = useQuery<DietPlan[]>({
     queryKey: ['/api/diet-plans'],
+    staleTime: 0,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: "stale",
   });
 
   const { data: clientData } = useQuery<ClientData>({
@@ -63,6 +69,9 @@ export default function ClientWorkouts() {
       gender: data.user?.gender,
       goal: data.user?.goal,
     }),
+    staleTime: 0,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: "stale",
   });
 
   const firstWorkout = assignedWorkouts && assignedWorkouts.length > 0 ? assignedWorkouts[0] : null;
