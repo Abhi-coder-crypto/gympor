@@ -7,7 +7,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 interface AssignDietPlanDialogProps {
   open: boolean;
@@ -199,28 +199,47 @@ export function AssignDietPlanDialog({ open, onOpenChange, dietPlan }: AssignDie
                   return (
                     <div
                       key={client._id}
-                      className={`flex items-center gap-3 p-3 rounded-md ${isAlreadyAssigned ? 'opacity-50 bg-muted/30' : !isDisabled ? 'hover-elevate cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                      className={`flex flex-col gap-2 p-3 rounded-md border ${isAlreadyAssigned ? 'opacity-50 bg-muted/30 border-muted' : !isDisabled ? 'hover-elevate cursor-pointer border-border' : 'opacity-50 cursor-not-allowed border-border'}`}
                       onClick={() => !isDisabled && toggleClient(client._id)}
                       data-testid={`client-${client._id}`}
                     >
-                      <Checkbox
-                        checked={selectedClients.has(client._id)}
-                        disabled={isDisabled}
-                        onCheckedChange={() => !isDisabled && toggleClient(client._id)}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold">{client.name}</p>
-                        <p className="text-sm text-muted-foreground">{client.phone}</p>
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={selectedClients.has(client._id)}
+                          disabled={isDisabled}
+                          onCheckedChange={() => !isDisabled && toggleClient(client._id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold">{client.name}</p>
+                          <p className="text-sm text-muted-foreground">{client.phone}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">{packageName}</Badge>
+                          {isAlreadyAssigned && (
+                            <Badge variant="secondary" className="bg-green-600/20 text-green-700 dark:text-green-400">Assigned</Badge>
+                          )}
+                          {!isAlreadyAssigned && !hasPackageAccess && (
+                            <Badge variant="outline" className="bg-muted">No Access</Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{packageName}</Badge>
-                        {isAlreadyAssigned && (
-                          <Badge variant="secondary" className="bg-green-600/20 text-green-700 dark:text-green-400">Already Assigned</Badge>
-                        )}
-                        {!isAlreadyAssigned && !hasPackageAccess && (
-                          <Badge variant="outline" className="bg-muted">No Diet Access</Badge>
-                        )}
-                      </div>
+                      {client.allergies && client.allergies.length > 0 && (
+                        <div className="pl-8 pt-1 border-t">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="h-3.5 w-3.5 text-orange-500 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">Allergies:</p>
+                              <div className="flex flex-wrap gap-1">
+                                {client.allergies.map((allergy, idx) => (
+                                  <Badge key={idx} variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-950/50 text-orange-900 dark:text-orange-200">
+                                    {allergy}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })

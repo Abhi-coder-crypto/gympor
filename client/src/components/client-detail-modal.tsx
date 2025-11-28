@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Mail, Phone, Calendar, TrendingUp, Activity, Dumbbell } from "lucide-react";
+import { Mail, Phone, Calendar, TrendingUp, Activity, Dumbbell, AlertCircle } from "lucide-react";
 
 interface ClientDetailModalProps {
   open: boolean;
@@ -16,6 +16,7 @@ interface ClientDetailModalProps {
     package: string;
     status: string;
     joinDate: string;
+    allergies?: string[];
   };
 }
 
@@ -77,6 +78,25 @@ export function ClientDetailModal({ open, onOpenChange, client }: ClientDetailMo
                 </div>
               </CardContent>
             </Card>
+            {client.allergies && client.allergies.length > 0 && (
+              <Card className="border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                    <AlertCircle className="h-5 w-5" />
+                    Allergies & Restrictions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {client.allergies.map((allergy, idx) => (
+                      <Badge key={idx} variant="outline" className="bg-orange-100 dark:bg-orange-900 border-orange-300 dark:border-orange-700 text-orange-900 dark:text-orange-100">
+                        {allergy}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             <div className="flex gap-3">
               <Button className="flex-1" data-testid="button-send-message">Send Message</Button>
               <Button variant="outline" className="flex-1" data-testid="button-change-package">Change Package</Button>

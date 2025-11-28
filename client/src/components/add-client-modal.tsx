@@ -18,13 +18,14 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
     phone: "",
     password: "",
     package: "",
+    allergies: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Adding new client:", formData);
     // Reset form
-    setFormData({ firstName: "", lastName: "", email: "", phone: "", password: "", package: "" });
+    setFormData({ firstName: "", lastName: "", email: "", phone: "", password: "", package: "", allergies: "" });
     onOpenChange(false);
   };
 
@@ -106,6 +107,16 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
                 <SelectItem value="Elite">Elite - $99/month</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="allergies">Allergies & Dietary Restrictions</Label>
+            <Input
+              id="allergies"
+              placeholder="e.g., Peanuts, Gluten, Dairy (comma-separated)"
+              value={formData.allergies}
+              onChange={(e) => setFormData({ ...formData, allergies: e.target.value })}
+              data-testid="input-allergies"
+            />
           </div>
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)} data-testid="button-cancel-add-client">
