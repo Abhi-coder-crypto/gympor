@@ -84,8 +84,9 @@ export default function ClientDiet() {
       return response.json();
     },
     enabled: !!clientId,
-    refetchInterval: 30000,
-    refetchOnWindowFocus: true,
+    staleTime: 0,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: "stale",
   });
 
   const currentPlan = dietPlans?.[0];
