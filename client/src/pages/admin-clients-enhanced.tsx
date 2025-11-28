@@ -94,6 +94,7 @@ export default function AdminClientsEnhanced() {
     height: "",
     weight: "",
     address: "",
+    allergies: "",
     status: "active",
     profilePhoto: null as File | null,
     governmentIdDocument: null as File | null,
