@@ -420,5 +420,6 @@ export default function TrainerHabits() {
           </DialogContent>
         </Dialog>
       </SidebarProvider>
+    </div>
   );
 }
