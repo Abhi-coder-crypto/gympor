@@ -63,6 +63,7 @@ interface DashboardData {
   achievements: any[];
   hasWorkoutPlan: boolean;
   hasDietPlan: boolean;
+  calendarData?: Array<{ hasWorkout: boolean }>;
 }
 
 const DUMMY_VIDEOS = [
