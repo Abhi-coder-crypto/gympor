@@ -60,8 +60,8 @@ interface DietTemplateFormData {
 const MEAL_TYPES = [
   { value: 'breakfast', label: 'Breakfast' },
   { value: 'lunch', label: 'Lunch' },
-  { value: 'preworkout', label: 'Pre-Workout' },
-  { value: 'postworkout', label: 'Post-Workout' },
+  { value: 'pre-workout', label: 'Pre-Workout' },
+  { value: 'post-workout', label: 'Post-Workout' },
   { value: 'dinner', label: 'Dinner' },
 ];
 
@@ -160,52 +160,27 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
     setEditingTemplate(template);
     
     // Handle 5-meal structure: breakfast, lunch, pre-workout, post-workout, dinner
-    const mealsObject: Record<string, Meal[]> = {};
     const mealsForFirstDay: Meal[] = [];
+    const mealTypeKeys = ['breakfast', 'lunch', 'pre-workout', 'post-workout', 'dinner'];
     
     if (template.meals && typeof template.meals === 'object' && !Array.isArray(template.meals)) {
-      // Check if it's a 5-meal structure (direct meal types as keys)
-      const mealKeys = Object.keys(template.meals);
-      const mealTypeKeys = ['breakfast', 'lunch', 'pre-workout', 'post-workout', 'dinner'];
-      const isFiveMealStructure = mealKeys.some(key => mealTypeKeys.includes(key));
-      
-      if (isFiveMealStructure) {
-        // Direct 5-meal structure
-        mealsForFirstDay.push(...mealTypeKeys.map(type => {
-          const meal = template.meals[type];
-          return {
+      // Load meals in correct order with proper type names
+      mealTypeKeys.forEach(type => {
+        const meal = template.meals[type];
+        if (meal) {
+          mealsForFirstDay.push({
             type,
-            dishes: meal?.dishes ? meal.dishes.map((d: any) => ({
+            dishes: meal.dishes ? meal.dishes.map((d: any) => ({
               name: d.name || "",
               description: d.description || "",
-              calories: d.calories || 0,
-              protein: d.protein || 0,
-              carbs: d.carbs || 0,
-              fats: d.fats || 0,
+              calories: parseInt(d.calories) || 0,
+              protein: parseInt(d.protein) || 0,
+              carbs: parseInt(d.carbs) || 0,
+              fats: parseInt(d.fats) || 0,
             })) : []
-          };
-        }));
-        mealsObject['Monday'] = mealsForFirstDay;
-      } else {
-        // Day-based structure: { Monday: { breakfast: {...} }, ... }
-        const days = Object.keys(template.meals);
-        if (days.length > 0) {
-          const firstDay = days[0];
-          const dayMeals = template.meals[firstDay];
-          mealsForFirstDay.push(...Object.keys(dayMeals).map(type => ({
-            type,
-            dishes: dayMeals[type].dishes || []
-          })));
-          
-          days.forEach(day => {
-            const dayData = template.meals[day];
-            mealsObject[day] = Object.keys(dayData).map(type => ({
-              type,
-              dishes: dayData[type].dishes || []
-            }));
           });
         }
-      }
+      });
     }
     
     setFormData({
@@ -213,7 +188,7 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       description: template.description ?? "",
       category: template.category ?? "weight_loss",
       targetCalories: String(template.targetCalories ?? ""),
-      meals: mealsObject.length > 0 ? mealsObject : { Monday: mealsForFirstDay },
+      meals: { Monday: mealsForFirstDay },
       selectedDay: "Monday",
     });
     const mealTypes = mealsForFirstDay.map((m: any) => m.type);
