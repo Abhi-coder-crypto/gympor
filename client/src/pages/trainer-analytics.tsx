@@ -29,13 +29,10 @@ export default function TrainerAnalytics() {
     enabled: !!trainerId
   });
 
-  const { data: videos = [] } = useQuery<VideoType[]>({
-    queryKey: ['/api/videos'],
+  const { data: trainerVideos = [] } = useQuery<VideoType[]>({
+    queryKey: ['/api/trainers', trainerId, 'videos'],
     enabled: !!trainerId
   });
-
-  // Filter videos created by this trainer
-  const trainerVideos = videos.filter((v: any) => v.createdBy === trainerId);
 
   const clientsByGoal = [
     { name: 'Weight Loss', value: clients.filter(c => c.goal?.includes('weight')).length, color: '#3b82f6' },
@@ -84,9 +81,9 @@ export default function TrainerAnalytics() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                      {clients.filter(c => c.status === 'active').length}
+                      {clients.length}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">+{Math.floor(clients.length * 0.15)} this month</p>
+                    <p className="text-xs text-muted-foreground mt-1">Assigned to this trainer</p>
                   </CardContent>
                 </Card>
 
