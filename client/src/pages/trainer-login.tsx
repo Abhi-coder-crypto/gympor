@@ -163,5 +163,6 @@ export default function TrainerLogin() {
           </Card>
         </div>
       </main>
+    </div>
   );
 }

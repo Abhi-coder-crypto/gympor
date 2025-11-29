@@ -172,7 +172,5 @@ export default function AdminForgotPassword() {
         </CardContent>
       </Card>
     </div>
-
-    </div>
   );
 }
