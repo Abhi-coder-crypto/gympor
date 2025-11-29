@@ -159,30 +159,52 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
   const handleEdit = (template: any) => {
     setEditingTemplate(template);
     
-    // Convert object-based meals back to editable format for multi-day support
+    // Handle 5-meal structure: breakfast, lunch, pre-workout, post-workout, dinner
     const mealsObject: Record<string, Meal[]> = {};
-    let firstDay = "Monday";
-    let mealsForFirstDay: Meal[] = [];
+    const mealsForFirstDay: Meal[] = [];
     
     if (template.meals && typeof template.meals === 'object' && !Array.isArray(template.meals)) {
-      // Extract from day-based structure (e.g., { Monday: { breakfast: {...} } })
-      const days = Object.keys(template.meals);
-      if (days.length > 0) {
-        firstDay = days[0];
-        const dayMeals = template.meals[firstDay];
-        mealsForFirstDay = Object.keys(dayMeals).map(type => ({
-          type,
-          dishes: dayMeals[type].dishes || []
-        }));
-        
-        // Convert all days to record format
-        days.forEach(day => {
-          const dayData = template.meals[day];
-          mealsObject[day] = Object.keys(dayData).map(type => ({
+      // Check if it's a 5-meal structure (direct meal types as keys)
+      const mealKeys = Object.keys(template.meals);
+      const mealTypeKeys = ['breakfast', 'lunch', 'pre-workout', 'post-workout', 'dinner'];
+      const isFiveMealStructure = mealKeys.some(key => mealTypeKeys.includes(key));
+      
+      if (isFiveMealStructure) {
+        // Direct 5-meal structure
+        mealsForFirstDay.push(...mealTypeKeys.map(type => {
+          const meal = template.meals[type];
+          return {
             type,
-            dishes: dayData[type].dishes || []
-          }));
-        });
+            dishes: meal?.dishes ? meal.dishes.map((d: any) => ({
+              name: d.name || "",
+              description: d.description || "",
+              calories: d.calories || 0,
+              protein: d.protein || 0,
+              carbs: d.carbs || 0,
+              fats: d.fats || 0,
+            })) : []
+          };
+        }));
+        mealsObject['Monday'] = mealsForFirstDay;
+      } else {
+        // Day-based structure: { Monday: { breakfast: {...} }, ... }
+        const days = Object.keys(template.meals);
+        if (days.length > 0) {
+          const firstDay = days[0];
+          const dayMeals = template.meals[firstDay];
+          mealsForFirstDay.push(...Object.keys(dayMeals).map(type => ({
+            type,
+            dishes: dayMeals[type].dishes || []
+          })));
+          
+          days.forEach(day => {
+            const dayData = template.meals[day];
+            mealsObject[day] = Object.keys(dayData).map(type => ({
+              type,
+              dishes: dayData[type].dishes || []
+            }));
+          });
+        }
       }
     }
     
@@ -191,8 +213,8 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       description: template.description ?? "",
       category: template.category ?? "weight_loss",
       targetCalories: String(template.targetCalories ?? ""),
-      meals: mealsObject,
-      selectedDay: firstDay,
+      meals: mealsObject.length > 0 ? mealsObject : { Monday: mealsForFirstDay },
+      selectedDay: "Monday",
     });
     const mealTypes = mealsForFirstDay.map((m: any) => m.type);
     setSelectedMealTypes(mealTypes);
