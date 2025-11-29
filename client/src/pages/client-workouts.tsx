@@ -1,7 +1,6 @@
 import { ClientHeader } from "@/components/client-header";
 import { MobileNavigation } from "@/components/mobile-navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MobileNavigation } from "@/components/mobile-navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -511,10 +510,8 @@ export default function ClientWorkouts() {
       </Dialog>
 
       <ContactTrainerDialog open={contactTrainerOpen} onOpenChange={setContactTrainerOpen} />
-    </div>
-  );
       <MobileNavigation />
-    </>
+    </div>
   );
 }
 
