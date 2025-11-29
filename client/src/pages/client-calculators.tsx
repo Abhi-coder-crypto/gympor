@@ -33,4 +33,5 @@ export default function ClientCalculators() {
       </main>
       <MobileNavigation />
     </div>
+  );
 }

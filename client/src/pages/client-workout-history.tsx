@@ -309,4 +309,5 @@ export default function ClientWorkoutHistory() {
         </div>
       </main>
     </div>
+  );
 }
