@@ -350,18 +350,26 @@ export function WorkoutPlanTemplates({ isTrainer = false, trainerId = '' }: { is
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Daily Exercises</Label>
-                <Select value={selectedDay} onValueChange={setSelectedDay}>
-                  <SelectTrigger data-testid="select-day">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base font-semibold">Day Selection</Label>
+                  <p className="text-sm text-muted-foreground mt-1">Click to select a day and add exercises for that day</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
                     {DAYS_OF_WEEK.map(day => (
-                      <SelectItem key={day} value={day}>{day}</SelectItem>
+                      <Button
+                        key={day}
+                        variant={selectedDay === day ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedDay(day)}
+                        data-testid={`button-select-day-${day}`}
+                      >
+                        {day}
+                      </Button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                </div>
+
+                <Separator />
               </div>
 
               <div className="space-y-2 border rounded-md p-4">
