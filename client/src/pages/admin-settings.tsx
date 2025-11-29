@@ -311,9 +311,8 @@ export default function AdminSettings() {
           </main>
         </div>
       </div>
-
     </div>
-  </div>
+
   </SidebarProvider>
   );
 }

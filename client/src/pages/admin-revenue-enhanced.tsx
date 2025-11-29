@@ -72,7 +72,6 @@ interface Invoice {
   total: number;
 }
 
-
 export default function AdminRevenueEnhanced() {
   const style = { "--sidebar-width": "16rem" };
   const { toast } = useToast();
@@ -364,7 +363,6 @@ export default function AdminRevenueEnhanced() {
                   </div>
                 </TabsContent>
 
-
                 <TabsContent value="invoices" className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">All Invoices</h3>
@@ -491,8 +489,6 @@ export default function AdminRevenueEnhanced() {
         </DialogContent>
       </Dialog>
 
-    </div>
-  </div>
   </SidebarProvider>
   );
 }

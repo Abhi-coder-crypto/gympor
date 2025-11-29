@@ -338,7 +338,7 @@ export default function TrainerHabits() {
           </div>
         </div>
     </div>
-  </div>
+
       </SidebarProvider>
 
       {/* Add Habit Dialog */}

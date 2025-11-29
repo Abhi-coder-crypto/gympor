@@ -183,9 +183,8 @@ export default function AdminRevenue() {
           </main>
         </div>
       </div>
-
     </div>
-  </div>
+
   </SidebarProvider>
   );
 }
