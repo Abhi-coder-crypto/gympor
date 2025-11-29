@@ -39,7 +39,7 @@ export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
   return (
     <header className="border-b-4 border-b-amber-500 dark:border-b-amber-600">
       <div className="container mx-auto px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           {/* Logo and Back Button */}
           <div className="flex items-center gap-0.5 flex-shrink-0">
             {showBackButton() && (
@@ -165,18 +165,8 @@ export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
             </DropdownMenu>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-md hover-elevate active-elevate-2"
-            data-testid="button-mobile-menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
+          {/* Spacer to push icons to right */}
+          <div className="flex-1" />
 
           {/* Icon Buttons - Desktop */}
           <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">
@@ -205,7 +195,7 @@ export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
             </Button>
           </div>
 
-          {/* Icon Buttons - Mobile */}
+          {/* Icon Buttons + Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-0.5 flex-shrink-0">
             <ThemeToggle />
             <SessionReminders />
@@ -230,6 +220,17 @@ export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
             >
               <LogOut className="h-5 w-5" />
             </Button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex items-center justify-center w-10 h-10 rounded-md hover-elevate active-elevate-2"
+              data-testid="button-mobile-menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
           </div>
         </div>
 
