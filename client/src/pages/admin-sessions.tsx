@@ -267,9 +267,9 @@ export default function AdminSessions() {
                     ) : (
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {sessions.filter((s: any) => isSameDay(new Date(s.scheduledAt), selectedDate)).map((session: any) => {
-                    const packageName = session.packageId?.name || session.packageName || '';
-                    return (
-                    <Card key={session._id} className="hover-elevate" data-testid={`card-session-${session._id}`}>
+                          const packageName = session.packageId?.name || session.packageName || '';
+                          return (
+                            <Card key={session._id} className="hover-elevate" data-testid={`card-session-${session._id}`}>
                       <CardHeader className="gap-2">
                         {packageName && (
                           <Badge className="w-fit text-xs" variant="outline">
@@ -392,8 +392,146 @@ export default function AdminSessions() {
                         </div>
                       </CardContent>
                     </Card>
-                    );
-                  })}
+                          );
+                        })}
+                      </div>
+                    )
+                  ) : sessions.length === 0 ? (
+                    <Card>
+                      <CardContent className="pt-6 text-center py-12 text-muted-foreground">
+                        No sessions found. Create your first session to get started.
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sessions.map((session: any) => {
+                        const packageName = session.packageId?.name || session.packageName || '';
+                        return (
+                          <Card key={session._id} className="hover-elevate" data-testid={`card-session-${session._id}`}>
+                            <CardHeader className="gap-2">
+                              {packageName && (
+                                <Badge className="w-fit text-xs" variant="outline">
+                                  {packageName}
+                                </Badge>
+                              )}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <CardTitle className="line-clamp-1">{session.title}</CardTitle>
+                                </div>
+                                <Badge className={getStatusColor(session.status)}>
+                                  {session.status}
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="space-y-2 text-sm">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <CalendarIcon className="h-4 w-4" />
+                                  {format(new Date(session.scheduledAt), "MMM dd, yyyy 'at' h:mm a")}
+                                </div>
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <Clock className="h-4 w-4" />
+                                  {session.duration} minutes
+                                </div>
+                                {session.trainerName && (
+                                  <div className="flex items-center gap-2 text-muted-foreground">
+                                    <UserPlus className="h-4 w-4" />
+                                    {session.trainerName}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                  <Users className="h-4 w-4" />
+                                  {session.currentCapacity}/{session.maxCapacity} participants
+                                  {session.currentCapacity >= 10 && (
+                                    <Badge variant="default" className="ml-2 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                                      Batch Complete
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2 flex-wrap">
+                                {!session.joinUrl && session.status === "upcoming" && (
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={() => createZoomMeetingMutation.mutate(session._id)}
+                                    data-testid={`button-create-zoom-${session._id}`}
+                                    disabled={createZoomMeetingMutation.isPending}
+                                  >
+                                    <Video className="h-4 w-4 mr-1" />
+                                    Create Zoom
+                                  </Button>
+                                )}
+                                {session.joinUrl && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => window.open(session.joinUrl, '_blank')}
+                                      data-testid={`button-join-zoom-${session._id}`}
+                                    >
+                                      <Video className="h-4 w-4 mr-1" />
+                                      Join Now
+                                    </Button>
+                                    <Badge variant="outline" className="flex items-center gap-1">
+                                      <Video className="h-3 w-3" />
+                                      Zoom Ready
+                                    </Badge>
+                                  </>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setAssignSessionId(session._id);
+                                    setAssignSessionTitle(session.title);
+                                    setShowAssignDialog(true);
+                                  }}
+                                  data-testid={`button-assign-${session._id}`}
+                                >
+                                  <UserPlus className="h-4 w-4 mr-1" />
+                                  Assign ({session.currentCapacity}/10)
+                                </Button>
+                                {session.status !== "cancelled" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => cancelSessionMutation.mutate(session._id)}
+                                    data-testid={`button-cancel-${session._id}`}
+                                  >
+                                    Cancel
+                                  </Button>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setCloneSessionData(session);
+                                    setCloneForm({ scheduledAt: "" });
+                                    setIsCloneDialogOpen(true);
+                                  }}
+                                  data-testid={`button-clone-${session._id}`}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    if (confirm("Are you sure you want to permanently delete this session?")) {
+                                      deleteSessionMutation.mutate(session._id);
+                                    }
+                                  }}
+                                  data-testid={`button-delete-${session._id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </>
