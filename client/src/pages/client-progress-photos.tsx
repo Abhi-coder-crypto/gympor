@@ -341,7 +341,5 @@ export default function ClientProgressPhotos() {
         </div>
       </main>
     </div>
-
-    </div>
   );
 }
