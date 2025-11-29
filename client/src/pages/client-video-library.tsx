@@ -299,7 +299,6 @@ export default function ClientVideoLibrary() {
                       </p>
                     )}
                   </CardContent>
-        </Card>
                 </Card>
               );
               })}
@@ -307,12 +306,15 @@ export default function ClientVideoLibrary() {
           )}
         </div>
 
-      {/* Video Player Modal with Resume Feature */}
-      <VideoPlayerModal
-        isOpen={!!playingVideo}
-        onClose={() => setPlayingVideo(null)}
-        videoUrl={playingVideo?.url || ""}
+        {/* Video Player Modal with Resume Feature */}
+        <VideoPlayerModal
+          isOpen={!!playingVideo}
+          onClose={() => setPlayingVideo(null)}
+          videoUrl={playingVideo?.url || ""}
+        />
       </main>
+
+      <MobileNavigation />
     </div>
   );
 }
