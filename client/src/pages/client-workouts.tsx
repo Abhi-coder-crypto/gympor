@@ -500,5 +500,6 @@ export default function ClientWorkouts() {
       <ContactTrainerDialog open={contactTrainerOpen} onOpenChange={setContactTrainerOpen} />
       <MobileNavigation />
     </div>
+  );
 }
 

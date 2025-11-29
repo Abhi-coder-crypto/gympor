@@ -403,4 +403,5 @@ export default function ClientDashboard() {
 
       <MobileNavigation />
     </div>
+  );
 }
