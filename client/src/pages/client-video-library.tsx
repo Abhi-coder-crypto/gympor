@@ -299,6 +299,7 @@ export default function ClientVideoLibrary() {
                       </p>
                     )}
                   </CardContent>
+        </Card>
                 </Card>
       </main>
               );
@@ -315,9 +316,7 @@ export default function ClientVideoLibrary() {
         videoUrl={playingVideo?.url || ""}
         videoTitle={playingVideo?.title || ""}
         videoId={playingVideo?.id || ""}
-      />
-
-      </div>
+      </main>
     </div>
   );
 }

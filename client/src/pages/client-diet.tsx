@@ -318,6 +318,7 @@ Total Items: ${items.length}
                     </Button>
                   </div>
                 </CardContent>
+        </Card>
               </Card>
       </main>
             );
@@ -432,9 +433,7 @@ Total Items: ${items.length}
                   </Button>
                 </div>
               );
-            })()}
-          </DialogContent>
-        </Dialog>
-      </div>
+      </main>
+    </div>
   );
 }

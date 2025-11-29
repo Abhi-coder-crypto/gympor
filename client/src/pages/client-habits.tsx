@@ -50,6 +50,7 @@ export default function ClientHabits() {
                 </div>
               </div>
             </CardContent>
+        </Card>
           </Card>
       </main>
         </div>
@@ -170,6 +171,7 @@ export default function ClientHabits() {
                 </div>
               </div>
             </CardContent>
+        </Card>
           </Card>
       </main>
         )}
@@ -182,6 +184,7 @@ export default function ClientHabits() {
                 No habits assigned yet. Contact your trainer to get started.
               </p>
             </CardContent>
+        </Card>
           </Card>
       </main>
         ) : (
@@ -213,12 +216,11 @@ export default function ClientHabits() {
                       </Button>
                     </div>
                   </CardContent>
+        </Card>
                 </Card>
       </main>
               );
-            })}
-          </div>
-        )}
-      </div>
+      </main>
+    </div>
   );
 }

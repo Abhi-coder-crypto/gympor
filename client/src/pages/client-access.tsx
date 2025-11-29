@@ -193,7 +193,6 @@ export default function ClientAccess() {
           </CardContent>
         </Card>
       </main>
-      </div>
     </div>
   );
 }

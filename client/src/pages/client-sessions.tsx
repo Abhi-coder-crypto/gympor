@@ -153,9 +153,7 @@ export default function ClientSessions() {
                 )}
               </div>
             </>
-          )}
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
