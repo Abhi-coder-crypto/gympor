@@ -26,12 +26,16 @@ export default function TrainerAnalytics() {
 
   const { data: sessions = [] } = useQuery<LiveSession[]>({
     queryKey: ['/api/trainers', trainerId, 'sessions'],
-    enabled: !!trainerId
+    enabled: !!trainerId,
+    staleTime: 10000,
+    refetchInterval: 30000,
   });
 
   const { data: trainerVideos = [] } = useQuery<VideoType[]>({
     queryKey: ['/api/trainers', trainerId, 'videos'],
-    enabled: !!trainerId
+    enabled: !!trainerId,
+    staleTime: 30000,
+    refetchInterval: 60000,
   });
 
   const clientsByGoal = [

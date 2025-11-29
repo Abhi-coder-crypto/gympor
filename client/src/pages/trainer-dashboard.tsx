@@ -60,7 +60,9 @@ export default function TrainerDashboard() {
       if (!response.ok) throw new Error('Failed to fetch sessions');
       return response.json();
     },
-    enabled: !!trainerId
+    enabled: !!trainerId,
+    staleTime: 10000,
+    refetchInterval: 30000,
   });
 
   const { data: videos = [] } = useQuery<VideoType[]>({
@@ -74,7 +76,9 @@ export default function TrainerDashboard() {
       if (!response.ok) throw new Error('Failed to fetch videos');
       return response.json();
     },
-    enabled: !!trainerId
+    enabled: !!trainerId,
+    staleTime: 30000,
+    refetchInterval: 60000,
   });
 
   const upcomingSessions = sessions.filter((s: LiveSession) => 

@@ -3777,6 +3777,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (req.user?.role === 'trainer') {
         sessionData.trainerId = req.user.userId;
       }
+      // If admin is creating and passes trainerId in body, use it (allows trainer selection)
+      else if (req.user?.role === 'admin' && req.body.trainerId) {
+        sessionData.trainerId = req.body.trainerId;
+      }
       const session = await storage.createSession(sessionData);
       res.json(session);
     } catch (error: any) {
