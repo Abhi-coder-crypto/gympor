@@ -149,7 +149,7 @@ export default function ClientDashboard() {
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 10000,
-    refetchOnWindowFocus: "stale",
+    refetchOnWindowFocus: true,
   });
 
   const { data: dashboardData, isLoading } = useQuery<DashboardData>({
@@ -157,7 +157,7 @@ export default function ClientDashboard() {
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 10000,
-    refetchOnWindowFocus: "stale",
+    refetchOnWindowFocus: true,
   });
 
   const { data: sessionsData = [] } = useQuery<any[]>({
@@ -165,7 +165,7 @@ export default function ClientDashboard() {
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 10000,
-    refetchOnWindowFocus: "stale",
+    refetchOnWindowFocus: true,
   });
 
   if (isLoading || !dashboardData) {
@@ -187,13 +187,13 @@ export default function ClientDashboard() {
   }
 
   const { client, stats, progress, nextSession, upcomingSessions: dashboardUpcomingSessions, videos: apiVideos } =
-    dashboardData;
+    dashboardData || { client: { name: '', packageName: '', goal: '' }, stats: { totalSessions: 0, weekSessions: 0, weekCalories: 0, currentStreak: 0, maxStreak: 0, monthSessions: 0, totalCalories: 0, waterIntakeToday: 0 }, progress: { initialWeight: 0, currentWeight: 0, targetWeight: 0, weightProgress: 0, weeklyWorkoutCompletion: 0 }, nextSession: null, upcomingSessions: [], videos: [] };
   
   // Use dummy videos if no API videos available
   const videos = apiVideos && apiVideos.length > 0 ? apiVideos : DUMMY_VIDEOS;
 
   // Format sessions from the sessions endpoint
-  const formattedSessions = (sessionsData || [])
+  const formattedSessions = ((sessionsData || []) as any[])
     .filter((s: any) => s.status === 'upcoming' || s.status === 'live')
     .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
     .slice(0, 2)
@@ -261,7 +261,7 @@ export default function ClientDashboard() {
               <div className="absolute -top-20 -right-20 w-40 h-40 bg-orange-500 rounded-full opacity-80" />
               <div className="relative z-10">
                 <p className="text-xs font-medium text-white">Workouts</p>
-                <div className="text-6xl font-bold text-white my-4">{sessionsData?.length || 0}</div>
+                <div className="text-6xl font-bold text-white my-4">{(sessionsData as any[])?.length || 0}</div>
                 <p className="text-sm text-white">Assigned</p>
               </div>
               <div className="flex items-center justify-between relative z-10 pt-4 border-t border-slate-700">

@@ -178,11 +178,11 @@ export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
             )}
           </button>
 
-          {/* Icon Buttons */}
-          <div className="flex items-center gap-0.5 flex-shrink-0">
+          {/* Icon Buttons - Desktop */}
+          <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">
             <SessionReminders />
             <ThemeToggle />
-            <TrainerContactDropdown isProOrElite={isProOrElite} />
+            <TrainerContactDropdown isProOrElite={isProOrElite} packageName={packageName} />
             <Button 
               variant="ghost" 
               size="icon" 
@@ -199,6 +199,33 @@ export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
                 setLocation("/");
               }} 
               data-testid="button-logout"
+              title="Logout"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Icon Buttons - Mobile */}
+          <div className="md:hidden flex items-center gap-0.5 flex-shrink-0">
+            <ThemeToggle />
+            <SessionReminders />
+            <TrainerContactDropdown isProOrElite={isProOrElite} packageName={packageName} />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setLocation("/client/profile")} 
+              data-testid="button-profile-mobile"
+            >
+              <User className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => {
+                localStorage.clear();
+                setLocation("/");
+              }} 
+              data-testid="button-logout-mobile"
               title="Logout"
             >
               <LogOut className="h-5 w-5" />

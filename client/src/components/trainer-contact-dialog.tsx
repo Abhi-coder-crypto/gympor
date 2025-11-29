@@ -14,10 +14,13 @@ interface TrainerInfo {
 
 interface TrainerContactDropdownProps {
   isProOrElite: boolean;
+  packageName?: string;
 }
 
-export function TrainerContactDropdown({ isProOrElite }: TrainerContactDropdownProps) {
+export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerContactDropdownProps) {
   const [open, setOpen] = useState(false);
+
+  const isBasicPlan = packageName && (packageName.toLowerCase().includes('fit plus') || packageName.toLowerCase().includes('basics'));
 
   const { data: trainerInfo, isLoading } = useQuery<TrainerInfo>({
     queryKey: ["/api/client/trainer-contact"],
@@ -67,7 +70,7 @@ export function TrainerContactDropdown({ isProOrElite }: TrainerContactDropdownP
         size="icon"
         onClick={() => setOpen(true)}
         data-testid="button-trainer-contact"
-        title={isProOrElite ? "Contact your trainer" : "Upgrade to contact trainer"}
+        title={isProOrElite ? "Contact your trainer" : isBasicPlan ? "Upgrade to contact trainer" : "Contact your trainer"}
       >
         <Phone className="h-5 w-5" />
       </Button>
@@ -77,11 +80,11 @@ export function TrainerContactDropdown({ isProOrElite }: TrainerContactDropdownP
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Phone className="h-5 w-5 text-blue-600" />
-              {isProOrElite ? "Contact Your Trainer" : "Trainer Access"}
+              {isProOrElite && !isBasicPlan ? "Contact Your Trainer" : "Trainer Access"}
             </DialogTitle>
           </DialogHeader>
 
-          {isProOrElite ? (
+          {isProOrElite && !isBasicPlan ? (
             <>
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -156,11 +159,14 @@ export function TrainerContactDropdown({ isProOrElite }: TrainerContactDropdownP
             <div className="space-y-4 py-6">
               <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/40 rounded-lg p-6 text-center">
                 <Phone className="h-10 w-10 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
-                <h3 className="font-semibold text-base mb-2">Upgrade Required</h3>
+                <h3 className="font-semibold text-base mb-2">Upgrade Your Plan</h3>
                 <p className="text-xs text-muted-foreground">
-                  Trainer contact is available for Pro and Elite packages only.
+                  {isBasicPlan ? "Trainer contact is available for Pro and Elite packages. Upgrade now to get direct access to your trainer." : "Trainer contact is available for Pro and Elite packages only."}
                 </p>
               </div>
+              <Button variant="default" className="w-full" onClick={() => setOpen(false)}>
+                View Plans
+              </Button>
             </div>
           )}
 
