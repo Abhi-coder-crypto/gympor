@@ -242,11 +242,13 @@ export default function ClientDashboard() {
     ? format(new Date(nextSession.scheduledAt), "MMM d, yyyy")
     : "scheduled";
 
-  // Determine package access
+  // Determine package access based on actual package tiers
   const packageName = packageAccess?.packageName || client.packageName || '';
-  // Live sessions available for: FitPro, Elite, Fit Plus (all non-Basic packages)
-  const hasLiveSessionAccess = ['FitPro', 'Elite', 'Fit Plus', 'Standard', 'Premium'].includes(packageName);
-  const hasVideoAccess = ['Standard', 'Premium', 'FitPro', 'Elite', 'Fit Plus'].includes(packageName);
+  // Live sessions & Habit tracking available ONLY for: Pro Transformation and Elite Athlete
+  const hasPremiumFeatures = ['Pro Transformation', 'Elite Athlete / Fast Result'].includes(packageName);
+  const hasLiveSessionAccess = hasPremiumFeatures;
+  const hasHabitTrackingAccess = hasPremiumFeatures;
+  const hasVideoAccess = true; // All packages have video access
   
   // Weekly workout data from calendar - match actual workout dates
   const weeklyWorkouts = {
