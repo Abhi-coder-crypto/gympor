@@ -1,17 +1,16 @@
 import { ClientHeader } from "@/components/client-header";
 import { MobileNavigation } from "@/components/mobile-navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ContactTrainerDialog } from "@/components/contact-trainer-dialog";
 import {
   Dumbbell,
-  AlertCircle,
+  AlertTriangle,
   Flame,
   TrendingUp,
   TrendingDown,
-  Calendar,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -29,7 +28,6 @@ interface Exercise {
   intensity?: string;
 }
 
-
 interface WorkoutPlan {
   _id: string;
   name: string;
@@ -40,13 +38,11 @@ interface WorkoutPlan {
   goal?: string;
 }
 
-
 interface DietPlan {
   _id: string;
   meals: Array<{ calories?: number; weekNumber?: number }>;
   targetCalories?: number;
 }
-
 
 interface ClientData {
   weight?: number;
@@ -55,9 +51,9 @@ interface ClientData {
   goal?: string;
 }
 
+const DAYS_OF_WEEK = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7"];
 
 export default function ClientWorkouts() {
-  const [currentWeekDay, setCurrentWeekDay] = useState<string>("");
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [contactTrainerOpen, setContactTrainerOpen] = useState(false);
 
@@ -101,25 +97,17 @@ export default function ClientWorkouts() {
 
   const availableDays = getAllUniqueDays();
 
-  useEffect(() => {
-    if (availableDays.length > 0 && !currentWeekDay) {
-      setCurrentWeekDay(availableDays[0]);
-    }
-  }, [availableDays, currentWeekDay]);
-
-  const getCurrentDayExercises = (): Exercise[] => {
-    if (!firstWorkout?.exercises || !currentWeekDay) return [];
+  const getExercisesForDay = (day: string): Exercise[] => {
+    if (!firstWorkout?.exercises) return [];
     
     for (const [key, exercises] of Object.entries(firstWorkout.exercises)) {
       const days = key.split(/[/,\s]+/).map(d => d.trim());
-      if (days.includes(currentWeekDay) && Array.isArray(exercises)) {
+      if (days.includes(day) && Array.isArray(exercises)) {
         return exercises;
       }
     }
     return [];
   };
-
-  const currentDayExercises = getCurrentDayExercises();
 
   const calculateCaloriesBurned = (exercises: Exercise[], weight: number = 70, durationHours: number = 1): number => {
     if (!exercises || !Array.isArray(exercises) || exercises.length === 0) return 0;
@@ -201,281 +189,260 @@ export default function ClientWorkouts() {
 
   if (isLoadingWorkouts) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <ClientHeader currentPage="workouts" />
-        <main className="flex-1 container mx-auto px-6 py-8">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">Loading your workout plans...</p>
-            </CardContent>
-          </Card>
-        </main>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your workout plan...</p>
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <ClientHeader currentPage="workouts" />
-        <main className="flex-1 container mx-auto px-6 py-8">
-          <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
-            <CardContent className="p-8 text-center space-y-4">
-              <AlertCircle className="h-16 w-16 mx-auto text-red-500" />
-              <h2 className="text-2xl font-bold text-red-900 dark:text-red-100">Error Loading Workouts</h2>
-              <p className="text-red-700 dark:text-red-200 max-w-md mx-auto">
-                {error instanceof Error ? error.message : "Failed to load your workout plans. Please refresh the page or try again later."}
-              </p>
-              <Button variant="outline" className="mt-4" onClick={() => window.location.reload()} data-testid="button-retry-workout">
-                Retry
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Error Loading Workouts</h2>
+          <p className="text-muted-foreground">{error instanceof Error ? error.message : "Failed to load your workout plan"}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4" data-testid="button-retry-workout">
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!firstWorkout || availableDays.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <ClientHeader currentPage="workouts" />
-        <main className="flex-1 container mx-auto px-6 py-8 max-w-4xl">
-          <Card className="bg-gradient-to-br from-primary/5 to-orange-100/20 border-primary/20">
-            <CardContent className="p-8 text-center space-y-4">
-              <Dumbbell className="h-16 w-16 mx-auto text-primary" />
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">No Workout Plan Assigned</h2>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Your trainer hasn't assigned a workout plan yet. Please contact your trainer to get a personalized training program tailored to your fitness goals.
-              </p>
-              <Button onClick={() => setContactTrainerOpen(true)} data-testid="button-contact-trainer">
-                Contact Trainer
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
+      <div className="min-h-screen bg-background">
+        <ClientHeader />
+        <div className="flex flex-col items-center justify-center h-screen gap-4">
+          <Dumbbell className="h-12 w-12 text-primary" />
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">No Workout Plan Assigned</h2>
+            <p className="text-muted-foreground">Contact your trainer to get a personalized workout plan</p>
+            <Button onClick={() => setContactTrainerOpen(true)} className="mt-4" data-testid="button-contact-trainer">
+              Contact Trainer
+            </Button>
+          </div>
+        </div>
+        <ContactTrainerDialog open={contactTrainerOpen} onOpenChange={setContactTrainerOpen} />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <ClientHeader currentPage="workouts" />
+      <ClientHeader />
 
-      <main className="p-4 md:p-6 max-w-7xl mx-auto">
-        <div className="space-y-8">
-          {/* Header */}
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Dumbbell className="h-8 w-8 text-primary" />
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Dumbbell className="h-8 w-8 text-primary" />
+            <div>
               <h1 className="text-3xl font-bold">{firstWorkout.name}</h1>
-            </div>
-            <p className="text-muted-foreground">{firstWorkout.description}</p>
-          </div>
-
-          {/* Plan Details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5">
-              <CardContent className="p-6 text-center">
-                <p className="text-sm text-muted-foreground mb-1">Duration</p>
-                <p className="text-3xl font-bold text-primary">{firstWorkout.durationWeeks} weeks</p>
-              </CardContent>
-            </Card>
-            <Card className="border-0 bg-gradient-to-br from-orange-100/30 to-orange-50/30 dark:from-orange-950/30 dark:to-orange-900/20">
-              <CardContent className="p-6 text-center">
-                <p className="text-sm text-muted-foreground mb-1">Difficulty</p>
-                <Badge className="justify-center w-full capitalize text-base py-1">{firstWorkout.difficulty}</Badge>
-              </CardContent>
-            </Card>
-            <Card className="border-0 bg-gradient-to-br from-blue-100/30 to-blue-50/30 dark:from-blue-950/30 dark:to-blue-900/20">
-              <CardContent className="p-6 text-center">
-                <p className="text-sm text-muted-foreground mb-1">Daily Calorie Burn</p>
-                <div className="flex items-center justify-center gap-2">
-                  <Flame className="h-5 w-5 text-orange-500" />
-                  <p className="text-3xl font-bold">{caloriesBurned}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Day Selector */}
-          <div className="space-y-4">
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              Select Training Day
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
-              {availableDays.map((day) => (
-                <Button
-                  key={day}
-                  variant={currentWeekDay === day ? "default" : "outline"}
-                  onClick={() => setCurrentWeekDay(day)}
-                  className="text-xs"
-                  data-testid={`button-day-${day}`}
-                >
-                  {day.slice(0, 3)}
-                </Button>
-              ))}
+              {firstWorkout.description && (
+                <p className="text-sm text-muted-foreground">{firstWorkout.description}</p>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Exercises Table */}
-          <Card className="border-0 overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b border-primary/20 pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <Dumbbell className="h-5 w-5" />
-                {currentWeekDay} Exercises ({currentDayExercises.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {currentDayExercises.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  No exercises scheduled for {currentWeekDay}
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="px-6 py-3 text-left font-semibold text-sm">Exercise</th>
-                        <th className="px-6 py-3 text-center font-semibold text-sm">Sets</th>
-                        <th className="px-6 py-3 text-center font-semibold text-sm">Reps</th>
-                        <th className="px-6 py-3 text-center font-semibold text-sm">Weight</th>
-                        <th className="px-6 py-3 text-center font-semibold text-sm">Rest</th>
-                        <th className="px-6 py-3 text-center font-semibold text-sm">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentDayExercises.map((exercise, idx) => (
-                        <tr
-                          key={idx}
-                          className={`border-b transition-colors ${
-                            idx % 2 === 0 ? "bg-white dark:bg-slate-950" : "bg-slate-50/50 dark:bg-slate-900/50"
-                          } hover:bg-primary/5`}
-                        >
-                          <td className="px-6 py-4">
-                            <div>
-                              <p className="font-medium">{exercise.name}</p>
-                              {exercise.difficulty && (
-                                <Badge variant="outline" className="text-xs capitalize mt-1">
-                                  {exercise.difficulty}
-                                </Badge>
+        {/* Vertical Cards - Responsive */}
+        <div className="space-y-6">
+          {DAYS_OF_WEEK.map((day, dayIdx) => {
+            const dayExercises = getExercisesForDay(day);
+            const dayCalories = dayExercises.length > 0 ? calculateCaloriesBurned(dayExercises, clientWeight, 1) : 0;
+            const hasExercises = dayExercises.length > 0;
+
+            return (
+              <Card key={day} className="overflow-hidden border-2 border-primary/10 hover:border-primary/20 transition-colors">
+                <CardContent className="p-0">
+                  <div className="flex flex-col md:flex-row md:items-stretch">
+                    {/* Day Summary Sidebar */}
+                    <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b md:border-b-0 md:border-r-2 border-primary/20 px-6 py-4 flex md:flex-col justify-between md:justify-between md:min-w-[200px]">
+                      <div>
+                        <Badge variant="secondary" className="font-semibold mb-4 text-base px-3 py-1">
+                          {day}
+                        </Badge>
+                      </div>
+                      {hasExercises ? (
+                        <>
+                          <div className="space-y-3">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">
+                                {dayCalories}
+                              </span>
+                              <span className="text-sm text-muted-foreground">cal</span>
+                            </div>
+                            <div className="space-y-1 text-xs md:text-sm hidden md:block">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Exercises:</span>
+                                <span className="font-semibold text-primary">{dayExercises.length}</span>
+                              </div>
+                              {firstWorkout.difficulty && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Difficulty:</span>
+                                  <Badge variant="outline" className="text-xs capitalize">{firstWorkout.difficulty}</Badge>
+                                </div>
                               )}
                             </div>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="font-semibold text-primary">{exercise.sets || "-"}</span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="font-semibold text-primary">{exercise.reps || "-"}</span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="font-semibold text-primary">{exercise.weight ? `${exercise.weight}kg` : "-"}</span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="text-sm text-muted-foreground">{exercise.restTime ? `${exercise.restTime}s` : "-"}</span>
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            <Button
-                              variant="outline"
-                              size="sm"
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-muted-foreground text-sm">Rest Day</div>
+                      )}
+                    </div>
+
+                    {/* Exercises List */}
+                    {hasExercises ? (
+                      <div className="flex-1 p-4 md:p-6">
+                        <div className="space-y-3">
+                          {dayExercises.map((exercise, idx) => (
+                            <div
+                              key={idx}
+                              className="border border-primary/10 rounded-md p-3 hover:bg-primary/5 transition-colors cursor-pointer"
                               onClick={() => setSelectedExercise(exercise)}
-                              data-testid={`button-exercise-details-${idx}`}
+                              data-testid={`card-exercise-${idx}`}
                             >
-                              Details
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                              <div className="flex justify-between items-start gap-2">
+                                <div className="flex-1">
+                                  <p className="font-semibold text-foreground text-sm md:text-base">{exercise.name}</p>
+                                  {exercise.difficulty && (
+                                    <Badge variant="outline" className="text-xs capitalize mt-1">
+                                      {exercise.difficulty}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* Exercise Stats */}
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+                                {exercise.sets && (
+                                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded px-2 py-1 text-center">
+                                    <p className="text-xs text-muted-foreground">Sets</p>
+                                    <p className="font-bold text-blue-600 dark:text-blue-400 text-xs md:text-sm">{exercise.sets}</p>
+                                  </div>
+                                )}
+                                {exercise.reps && (
+                                  <div className="bg-orange-50 dark:bg-orange-950/30 rounded px-2 py-1 text-center">
+                                    <p className="text-xs text-muted-foreground">Reps</p>
+                                    <p className="font-bold text-orange-600 dark:text-orange-400 text-xs md:text-sm">{exercise.reps}</p>
+                                  </div>
+                                )}
+                                {exercise.weight && (
+                                  <div className="bg-primary/10 rounded px-2 py-1 text-center">
+                                    <p className="text-xs text-muted-foreground">Weight</p>
+                                    <p className="font-bold text-primary text-xs md:text-sm">{exercise.weight}kg</p>
+                                  </div>
+                                )}
+                                {exercise.restTime && (
+                                  <div className="bg-purple-50 dark:bg-purple-950/30 rounded px-2 py-1 text-center">
+                                    <p className="text-xs text-muted-foreground">Rest</p>
+                                    <p className="font-bold text-purple-600 dark:text-purple-400 text-xs md:text-sm">{exercise.restTime}s</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 p-6 text-center text-muted-foreground">
+                        No exercises scheduled for this day
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Calorie Balance */}
+        {dietCalories > 0 && (
+          <Card className="mt-8 border-2 border-primary/10">
+            <CardContent className="p-6 space-y-6">
+              <h2 className="font-semibold text-lg flex items-center gap-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+                Daily Calorie Balance
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 border border-green-200 dark:border-green-900">
+                  <p className="text-sm text-muted-foreground mb-2">Calories Consumed</p>
+                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">{dietCalories}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">From diet plan</p>
                 </div>
-              )}
+                <div className="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-4 border border-orange-200 dark:border-orange-900">
+                  <p className="text-sm text-muted-foreground mb-2">Calories Burned</p>
+                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{caloriesBurned}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">From workout</p>
+                </div>
+                <div className={`${isWeightGain ? 'bg-blue-50 dark:bg-blue-950/30' : 'bg-primary/10'} rounded-lg p-4 border ${isWeightGain ? 'border-blue-200 dark:border-blue-800' : 'border-primary/20'}`}>
+                  <p className="text-sm text-muted-foreground mb-2">Calorie {isWeightGain ? 'Surplus' : 'Deficit'}</p>
+                  <div className="flex items-center gap-2">
+                    {isWeightGain ? (
+                      <TrendingUp className={`h-5 w-5 ${calorieBalance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`} />
+                    ) : (
+                      <TrendingDown className={`h-5 w-5 ${calorieBalance <= 0 ? 'text-primary' : 'text-yellow-600 dark:text-yellow-400'}`} />
+                    )}
+                    <p className={`text-3xl font-bold ${calorieBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {Math.abs(calorieBalance)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Progress</span>
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    {calorieBalance >= 0 ? '+' : ''}{calorieBalance} calories
+                  </span>
+                </div>
+                <Progress value={Math.min(Math.max((dietCalories / (dietCalories + 500)) * 100, 0), 100)} className="h-3" />
+              </div>
             </CardContent>
           </Card>
-
-          {/* Calorie Balance */}
-          {dietCalories > 0 && (
-            <Card className="border-0">
-              <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 border-b border-primary/20 pb-4">
-                <CardTitle className="flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-orange-500" />
-                  Daily Calorie Balance
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4 border border-green-200 dark:border-green-900">
-                    <p className="text-sm text-muted-foreground mb-2">Calories Consumed</p>
-                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">{dietCalories}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">From diet plan</p>
-                  </div>
-                  <div className="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-4 border border-orange-200 dark:border-orange-900">
-                    <p className="text-sm text-muted-foreground mb-2">Calories Burned</p>
-                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{caloriesBurned}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">From workout</p>
-                  </div>
-                  <div className={`${isWeightGain ? 'bg-blue-50 dark:bg-blue-950/30' : 'bg-primary/10'} rounded-lg p-4 border ${isWeightGain ? 'border-blue-200 dark:border-blue-800' : 'border-primary/20'}`}>
-                    <p className="text-sm text-muted-foreground mb-2">Calorie {isWeightGain ? 'Surplus' : 'Deficit'}</p>
-                    <div className="flex items-center gap-2">
-                      {isWeightGain ? (
-                        <TrendingUp className={`h-5 w-5 ${calorieBalance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`} />
-                      ) : (
-                        <TrendingDown className={`h-5 w-5 ${calorieBalance <= 0 ? 'text-primary' : 'text-yellow-600 dark:text-yellow-400'}`} />
-                      )}
-                      <p className={`text-3xl font-bold ${calorieBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {Math.abs(calorieBalance)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Progress</span>
-                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                      {calorieBalance >= 0 ? '+' : ''}{calorieBalance} calories
-                    </span>
-                  </div>
-                  <Progress value={Math.min(Math.max((dietCalories / (dietCalories + 500)) * 100, 0), 100)} className="h-3" />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </main>
+        )}
+      </div>
 
       {/* Exercise Details Dialog */}
       <Dialog open={!!selectedExercise} onOpenChange={(open) => { if (!open) setSelectedExercise(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedExercise?.name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5" />
+              {selectedExercise?.name}
+            </DialogTitle>
           </DialogHeader>
           {selectedExercise && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {selectedExercise.sets && (
-                  <div className="bg-primary/10 rounded-lg p-3 text-center">
+                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 text-center">
                     <p className="text-xs text-muted-foreground">Sets</p>
-                    <p className="text-2xl font-bold text-primary">{selectedExercise.sets}</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedExercise.sets}</p>
                   </div>
                 )}
                 {selectedExercise.reps && (
-                  <div className="bg-primary/10 rounded-lg p-3 text-center">
+                  <div className="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-3 text-center">
                     <p className="text-xs text-muted-foreground">Reps</p>
-                    <p className="text-2xl font-bold text-primary">{selectedExercise.reps}</p>
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{selectedExercise.reps}</p>
                   </div>
                 )}
                 {selectedExercise.weight && (
-                  <div className="bg-orange-100/30 dark:bg-orange-950/30 rounded-lg p-3 text-center">
+                  <div className="bg-primary/10 rounded-lg p-3 text-center">
                     <p className="text-xs text-muted-foreground">Weight</p>
-                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{selectedExercise.weight}kg</p>
+                    <p className="text-2xl font-bold text-primary">{selectedExercise.weight}kg</p>
                   </div>
                 )}
                 {selectedExercise.restTime && (
-                  <div className="bg-blue-100/30 dark:bg-blue-950/30 rounded-lg p-3 text-center">
+                  <div className="bg-purple-100/30 dark:bg-purple-950/30 rounded-lg p-3 text-center">
                     <p className="text-xs text-muted-foreground">Rest</p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedExercise.restTime}s</p>
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{selectedExercise.restTime}s</p>
                   </div>
                 )}
               </div>
@@ -495,7 +462,7 @@ export default function ClientWorkouts() {
       </Dialog>
 
       <ContactTrainerDialog open={contactTrainerOpen} onOpenChange={setContactTrainerOpen} />
+      <MobileNavigation />
     </div>
   );
 }
-
