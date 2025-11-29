@@ -16,8 +16,6 @@ export default function NotFound() {
           </p>
         </CardContent>
       </Card>
-    </div>
 
-    </div>
   );
 }

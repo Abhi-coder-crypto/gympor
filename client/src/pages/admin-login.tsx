@@ -163,8 +163,6 @@ export default function AdminLogin() {
         </Card>
         </div>
       </main>
-    </div>
 
-    </div>
   );
 }

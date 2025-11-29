@@ -170,8 +170,6 @@ export default function ForgotPassword() {
           </Form>
         </CardContent>
       </Card>
-    </div>
 
-    </div>
   );
 }
