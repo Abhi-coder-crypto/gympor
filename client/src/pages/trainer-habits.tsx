@@ -57,8 +57,8 @@ export default function TrainerHabits() {
 
   const trainerId = authData?.user?._id?.toString() || authData?.user?.id;
 
-  // Get trainer's clients (Pro/Elite only)
-  const { data: clients = [] } = useQuery<any[]>({
+  // Get trainer's ALL clients
+  const { data: allClients = [] } = useQuery<any[]>({
     queryKey: ["/api/trainers", trainerId, "clients"],
     queryFn: async () => {
       const token = sessionStorage.getItem("trainerToken");
@@ -67,21 +67,18 @@ export default function TrainerHabits() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error("Failed to fetch clients");
-      const allClients = await response.json();
-      // Filter for Pro/Elite packages only (exclude Basic and Fit Plus)
-      return allClients.filter((c: any) => {
-        const packageName = c.packageId?.name || c.packageName || "";
-        const packageLower = packageName.toLowerCase();
-        // Include only Pro and Elite packages
-        const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
-        const isElite = packageLower.includes("elite");
-        // Exclude Basic and Fit Plus
-        const isBasic = packageLower.includes("basic");
-        const isFitPlus = packageLower.includes("fit plus") || packageLower.includes("fitplus");
-        return (isPro || isElite) && !isBasic && !isFitPlus;
-      });
+      return await response.json();
     },
     enabled: !!trainerId,
+  });
+
+  // Filter for Pro/Elite only (for assignment dropdown)
+  const eligibleClients = allClients.filter((c: any) => {
+    const packageName = c.packageId?.name || c.packageName || "";
+    const packageLower = packageName.toLowerCase();
+    const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
+    const isElite = packageLower.includes("elite");
+    return isPro || isElite;
   });
 
   // Get all habits for trainer
@@ -215,16 +212,16 @@ export default function TrainerHabits() {
                 </div>
 
                 {/* Habits by Client */}
-                {clients.length === 0 ? (
+                {allClients.length === 0 ? (
                   <Card>
                     <CardContent className="pt-6 text-center">
                       <p className="text-muted-foreground">
-                        No Pro/Elite clients assigned to you yet
+                        No clients assigned to you yet
                       </p>
                     </CardContent>
                   </Card>
                 ) : (
-                  clients.map((client: any) => {
+                  allClients.map((client: any) => {
                     const clientHabits = habits.filter((h: any) => h.clientId === client._id);
                     return (
                       <Card key={client._id}>
@@ -362,9 +359,9 @@ export default function TrainerHabits() {
                     <SelectValue placeholder="Choose a client" />
                   </SelectTrigger>
                   <SelectContent>
-                    {clients.map((client: any) => (
+                    {eligibleClients.map((client: any) => (
                       <SelectItem key={client._id} value={client._id}>
-                        {client.name}
+                        {client.name} ({client.packageId?.name || "Pro/Elite"})
                       </SelectItem>
                     ))}
                   </SelectContent>
