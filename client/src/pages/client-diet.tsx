@@ -178,10 +178,10 @@ Total Items: ${items.length}
   if (error || !currentPlan) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
-        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <UtensilsCrossed className="h-12 w-12 text-muted-foreground" />
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">No Diet Plan Assigned</h2>
-          <p className="text-muted-foreground">Contact your trainer to get a personalized diet plan</p>
+          <h2 className="text-xl font-semibold mb-2">No Diet Plan Assigned Yet</h2>
+          <p className="text-muted-foreground">Your trainer will assign a personalized diet plan here</p>
           <Button onClick={() => setLocation("/client-dashboard")} className="mt-4">
             Back to Dashboard
           </Button>
