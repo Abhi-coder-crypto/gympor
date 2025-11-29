@@ -108,13 +108,9 @@ export default function TrainerSessions() {
     },
   });
 
-  const upcomingSessions = sessions.filter((s: LiveSession) => 
-    s.status === 'upcoming' && new Date(s.scheduledAt) > new Date()
+  const activeSessions = sessions.filter((s: LiveSession) => 
+    s.status === 'upcoming' || s.status === 'live'
   ).sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
-
-  const pastSessions = sessions.filter((s: LiveSession) => 
-    s.status === 'completed' || new Date(s.scheduledAt) <= new Date()
-  ).sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 
   const onSubmit = (data: SessionFormData) => {
     createSessionMutation.mutate(data);
@@ -146,22 +142,13 @@ export default function TrainerSessions() {
 
           <main className="flex-1 overflow-auto p-6 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10">
             <div className="max-w-7xl mx-auto space-y-6">
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
                 <Card className="bg-gradient-to-br from-green-500/10 to-green-600/10 border-green-500/20">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Sessions</CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Active Sessions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{upcomingSessions.length}</div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Completed Sessions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{pastSessions.length}</div>
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{activeSessions.length}</div>
                   </CardContent>
                 </Card>
 
@@ -177,14 +164,14 @@ export default function TrainerSessions() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Upcoming Sessions</CardTitle>
+                  <CardTitle>Sessions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {upcomingSessions.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No upcoming sessions</p>
+                  {activeSessions.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">No sessions scheduled</p>
                   ) : (
                     <div className="space-y-3">
-                      {upcomingSessions.map((session: LiveSession) => (
+                      {activeSessions.map((session: LiveSession) => (
                         <Card key={session._id} className="hover-elevate">
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between gap-4">
@@ -242,31 +229,6 @@ export default function TrainerSessions() {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Past Sessions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {pastSessions.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">No past sessions</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {pastSessions.slice(0, 10).map((session: LiveSession) => (
-                        <div key={session._id} className="flex items-center justify-between p-3 rounded-md bg-muted/50">
-                          <div className="flex-1">
-                            <p className="font-medium">{session.title}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {format(new Date(session.scheduledAt), 'PPp')}
-                            </p>
-                          </div>
-                          <Badge variant="secondary">{session.status}</Badge>
-                        </div>
                       ))}
                     </div>
                   )}

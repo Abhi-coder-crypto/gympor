@@ -463,6 +463,66 @@ export default function ClientDashboard() {
             </div>
           </div>
 
+          {/* Sessions Section - Clickable to Sessions Page */}
+          {hasLiveSessionAccess && formattedSessions.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Sessions</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/client/sessions")}
+                  className="text-primary hover:text-primary"
+                  data-testid="button-view-all-sessions"
+                >
+                  View All
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formattedSessions.slice(0, 4).map((session) => (
+                  <Card 
+                    key={session.id} 
+                    className="hover-elevate cursor-pointer"
+                    onClick={() => setLocation("/client/sessions")}
+                    data-testid={`card-session-${session.id}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h3 className="font-semibold truncate">{session.title}</h3>
+                          <p className="text-sm text-muted-foreground">{session.trainer}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{session.date}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            <span>{session.time}</span>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLocation("/client/sessions");
+                          }}
+                          data-testid={`button-join-session-${session.id}`}
+                        >
+                          Join Session
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
