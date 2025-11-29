@@ -22,8 +22,15 @@ export function AssignPlanDialog({ open, onOpenChange, plan, resourceType = 'die
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Get current trainer ID
+  const { data: authData } = useQuery<any>({
+    queryKey: ['/api/auth/me'],
+  });
+  const trainerId = authData?.user?._id?.toString() || authData?.user?.id;
+
   const { data: clients = [], isLoading } = useQuery<any[]>({
-    queryKey: ['/api/clients'],
+    queryKey: ['/api/trainers', trainerId, 'clients'],
+    enabled: !!trainerId,
   });
 
   const { data: packages = [] } = useQuery<any[]>({

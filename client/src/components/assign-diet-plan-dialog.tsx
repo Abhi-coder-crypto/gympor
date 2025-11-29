@@ -26,8 +26,15 @@ export function AssignDietPlanDialog({ open, onOpenChange, dietPlan }: AssignDie
   const { toast } = useToast();
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
 
+  // Get current trainer ID
+  const { data: authData } = useQuery<any>({
+    queryKey: ['/api/auth/me'],
+  });
+  const trainerId = authData?.user?._id?.toString() || authData?.user?.id;
+
   const { data: clients = [] } = useQuery<any[]>({
-    queryKey: ['/api/clients'],
+    queryKey: ['/api/trainers', trainerId, 'clients'],
+    enabled: !!trainerId,
   });
 
   const { data: packages = [] } = useQuery<any[]>({
