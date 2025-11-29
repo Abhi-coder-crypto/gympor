@@ -808,7 +808,6 @@ export default function AdminTrainersEnhanced() {
         </DialogContent>
       </Dialog>
 
-    </div>
   </SidebarProvider>
   );
 }

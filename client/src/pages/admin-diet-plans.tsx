@@ -751,7 +751,6 @@ export default function AdminDietPlans() {
         plan={selectedPlan}
       />
 
-    </div>
   </SidebarProvider>
   );
 }

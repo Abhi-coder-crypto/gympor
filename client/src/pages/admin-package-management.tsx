@@ -247,7 +247,6 @@ export default function AdminPackageManagement() {
         </DialogContent>
       </Dialog>
 
-    </div>
   </SidebarProvider>
   );
 }

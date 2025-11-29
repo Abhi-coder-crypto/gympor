@@ -664,7 +664,6 @@ export default function AdminSessions() {
         </DialogContent>
       </Dialog>
 
-    </div>
   </SidebarProvider>
   );
 }

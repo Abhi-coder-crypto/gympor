@@ -634,7 +634,6 @@ export default function AdminAnalytics() {
         </div>
       </div>
 
-    </div>
   </SidebarProvider>
   );
 }

@@ -270,7 +270,6 @@ export default function AdminClientSetup() {
         </DialogContent>
       </Dialog>
 
-    </div>
   </SidebarProvider>
   );
 }
