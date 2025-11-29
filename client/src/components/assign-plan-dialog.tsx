@@ -120,13 +120,18 @@ export function AssignPlanDialog({ open, onOpenChange, plan, resourceType = 'die
       if (!plan) return;
       
       const endpoint = resourceType === 'workout' 
-        ? `/api/workout-plan-templates/${plan._id}/clone`
+        ? `/api/assign-workout`
         : resourceType === 'meal'
-        ? `/api/meals/${plan._id}/clone`
-        : `/api/diet-plans/${plan._id}/clone`;
+        ? `/api/assign-diet`
+        : `/api/assign-diet`;
+      
+      const planIdField = resourceType === 'workout' ? 'workoutPlanId' : 'dietPlanId';
       
       const assignments = clientIds.map(clientId => 
-        apiRequest('POST', endpoint, { clientId })
+        apiRequest('POST', endpoint, { 
+          [planIdField]: plan._id,
+          clientId 
+        })
       );
       
       return Promise.all(assignments);

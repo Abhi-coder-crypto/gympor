@@ -312,7 +312,7 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
     const dayMeals = formData.meals[formData.selectedDay] || [];
     // Convert numeric fields to numbers
     const numericFields = ['calories', 'protein', 'carbs', 'fats'];
-    const finalValue = numericFields.includes(field) ? parseInt(value) || 0 : value;
+    const finalValue = numericFields.includes(field) ? Number(value) || 0 : value;
     
     setFormData({
       ...formData,
@@ -327,9 +327,9 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
                     const updatedDish = { ...dish, [field]: finalValue };
                     // Auto-calculate calories when macros change
                     if (field === 'protein' || field === 'carbs' || field === 'fats') {
-                      const protein = field === 'protein' ? finalValue : parseInt(dish.protein) || 0;
-                      const carbs = field === 'carbs' ? finalValue : parseInt(dish.carbs) || 0;
-                      const fats = field === 'fats' ? finalValue : parseInt(dish.fats) || 0;
+                      const protein = field === 'protein' ? finalValue : (dish.protein as number) || 0;
+                      const carbs = field === 'carbs' ? finalValue : (dish.carbs as number) || 0;
+                      const fats = field === 'fats' ? finalValue : (dish.fats as number) || 0;
                       updatedDish.calories = Math.round((protein * 4) + (carbs * 4) + (fats * 9));
                     }
                     return updatedDish;
@@ -348,7 +348,7 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
     const meal = dayMeals.find(m => m.type === mealType);
     if (!meal || !meal.dishes[dishIndex]) return 0;
     const dish = meal.dishes[dishIndex];
-    return Math.round((parseInt(dish.protein) || 0) * 4 + (parseInt(dish.carbs) || 0) * 4 + (parseInt(dish.fats) || 0) * 9);
+    return Math.round(((dish.protein as number) || 0) * 4 + ((dish.carbs as number) || 0) * 4 + ((dish.fats as number) || 0) * 9);
   };
 
   const removeDish = (mealType: string, dishIndex: number) => {
@@ -385,10 +385,10 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       mealsObject[day] = {};
       dayMeals.forEach((meal) => {
         // Aggregate calories and macros from dishes - ensure values are numbers
-        const totalCalories = meal.dishes.reduce((sum, dish) => sum + (parseInt(dish.calories) || 0), 0);
-        const totalProtein = meal.dishes.reduce((sum, dish) => sum + (parseInt(dish.protein) || 0), 0);
-        const totalCarbs = meal.dishes.reduce((sum, dish) => sum + (parseInt(dish.carbs) || 0), 0);
-        const totalFats = meal.dishes.reduce((sum, dish) => sum + (parseInt(dish.fats) || 0), 0);
+        const totalCalories = meal.dishes.reduce((sum, dish) => sum + ((dish.calories as number) || 0), 0);
+        const totalProtein = meal.dishes.reduce((sum, dish) => sum + ((dish.protein as number) || 0), 0);
+        const totalCarbs = meal.dishes.reduce((sum, dish) => sum + ((dish.carbs as number) || 0), 0);
+        const totalFats = meal.dishes.reduce((sum, dish) => sum + ((dish.fats as number) || 0), 0);
         
         mealsObject[day][meal.type] = {
           name: meal.dishes.map(d => d.name).filter(Boolean).join(', ') || `${meal.type} meal`,

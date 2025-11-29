@@ -246,7 +246,7 @@ export function AssignDietPlanDialog({ open, onOpenChange, dietPlan }: AssignDie
                             <div className="flex-1">
                               <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">Allergies:</p>
                               <div className="flex flex-wrap gap-1">
-                                {client.allergies.map((allergy, idx) => (
+                                {client.allergies.map((allergy: string, idx: number) => (
                                   <Badge key={idx} variant="secondary" className="text-xs bg-orange-100 dark:bg-orange-950/50 text-orange-900 dark:text-orange-200">
                                     {allergy}
                                   </Badge>

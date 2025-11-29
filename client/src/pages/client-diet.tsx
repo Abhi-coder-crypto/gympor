@@ -69,10 +69,10 @@ export default function ClientDiet() {
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 10000,
-    refetchOnWindowFocus: "stale",
+    refetchOnWindowFocus: true,
   });
 
-  const currentPlan = dietPlans?.[0];
+  const currentPlan = Array.isArray(dietPlans) ? dietPlans[0] : undefined;
 
   const getMealForDayAndType = (dayIndex: number, mealType: string): Meal | undefined => {
     if (!currentPlan?.meals) return undefined;
