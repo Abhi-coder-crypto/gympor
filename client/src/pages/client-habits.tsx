@@ -169,7 +169,6 @@ export default function ClientHabits() {
                 </div>
               </div>
             </CardContent>
-        </Card>
           </Card>
         )}
 
@@ -181,7 +180,6 @@ export default function ClientHabits() {
                 No habits assigned yet. Contact your trainer to get started.
               </p>
             </CardContent>
-        </Card>
           </Card>
         ) : (
           <div className="space-y-4">
@@ -217,10 +215,9 @@ export default function ClientHabits() {
             })}
           </div>
         )}
-      </main>
+      </div>
     </div>
 
     <MobileNavigation />
-  </div>
   );
 }

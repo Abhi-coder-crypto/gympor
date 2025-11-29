@@ -318,7 +318,6 @@ Total Items: ${items.length}
                     </Button>
                   </div>
                 </CardContent>
-        </Card>
               </Card>
             );
           })}
@@ -437,7 +436,7 @@ Total Items: ${items.length}
         </Dialog>
 
         <MobileNavigation />
-      </main>
+      </div>
     </div>
   );
 }
