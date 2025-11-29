@@ -168,16 +168,32 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       mealTypeKeys.forEach(type => {
         const meal = template.meals[type];
         if (meal) {
-          mealsForFirstDay.push({
-            type,
-            dishes: meal.dishes ? meal.dishes.map((d: any) => ({
+          // Extract dishes from the meal - ensure they have all fields
+          let dishes: Dish[] = [];
+          if (meal.dishes && Array.isArray(meal.dishes)) {
+            dishes = meal.dishes.map((d: any) => ({
               name: d.name || "",
               description: d.description || "",
               calories: parseInt(d.calories) || 0,
               protein: parseInt(d.protein) || 0,
               carbs: parseInt(d.carbs) || 0,
               fats: parseInt(d.fats) || 0,
-            })) : []
+            }));
+          } else if (meal.name) {
+            // If no dishes array but has meal name/data, create single dish from meal aggregate data
+            dishes = [{
+              name: meal.name || "",
+              description: "",
+              calories: parseInt(meal.calories) || 0,
+              protein: parseInt(meal.protein) || 0,
+              carbs: parseInt(meal.carbs) || 0,
+              fats: parseInt(meal.fats) || 0,
+            }];
+          }
+          
+          mealsForFirstDay.push({
+            type,
+            dishes: dishes.length > 0 ? dishes : [{ name: "", description: "", calories: 0, protein: 0, carbs: 0, fats: 0 }]
           });
         }
       });
@@ -276,6 +292,14 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
         )
       }
     });
+  };
+  
+  const getDishCalories = (dishIndex: number, mealType: string): number => {
+    const dayMeals = formData.meals[formData.selectedDay] || [];
+    const meal = dayMeals.find(m => m.type === mealType);
+    if (!meal || !meal.dishes[dishIndex]) return 0;
+    const dish = meal.dishes[dishIndex];
+    return Math.round((parseInt(dish.protein) || 0) * 4 + (parseInt(dish.carbs) || 0) * 4 + (parseInt(dish.fats) || 0) * 9);
   };
 
   const removeDish = (mealType: string, dishIndex: number) => {
@@ -617,30 +641,28 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
                         {(formData.meals[formData.selectedDay] || [])
                           .find((m: any) => m.type === mealType.value)
                           ?.dishes.map((dish: any, dishIndex: any) => (
-                            <Card key={dishIndex} className="p-4">
+                            <Card key={dishIndex} className="p-4 bg-blue-50 dark:bg-blue-950/20">
                               <div className="space-y-3">
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex-1 space-y-3">
                                     <div className="grid grid-cols-2 gap-3">
-                                      <div className="space-y-1">
-                                        <Label className="text-xs">Dish Name *</Label>
+                                      <div className="col-span-2 space-y-1">
+                                        <Label className="text-sm font-semibold">Dish Name *</Label>
                                         <Input
                                           value={dish.name}
                                           onChange={(e) => updateDish(mealType.value, dishIndex, 'name', e.target.value)}
-                                          placeholder="e.g., Scrambled Eggs"
+                                          placeholder="e.g., Grilled chicken"
                                           data-testid={`input-dish-name-${mealType.value}-${dishIndex}`}
                                         />
                                       </div>
-                                      <div className="space-y-1">
-                                        <Label className="text-xs">Calories (auto)</Label>
+                                      <div className="col-span-2 space-y-1">
+                                        <Label className="text-sm font-semibold">Calories (auto)</Label>
                                         <Input
-                                          type="number"
-                                          value={dish.calories}
-                                          readOnly
                                           disabled
+                                          value={getDishCalories(dishIndex, mealType.value)}
                                           placeholder="0"
-                                          className="bg-muted"
-                                          data-testid={`input-dish-calories-${mealType.value}-${dishIndex}`}
+                                          className="bg-gray-100 dark:bg-gray-800 font-semibold"
+                                          data-testid={`input-dish-calories-auto-${mealType.value}-${dishIndex}`}
                                         />
                                       </div>
                                     </div>
@@ -658,31 +680,31 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
 
                                     <div className="grid grid-cols-3 gap-2">
                                       <div className="space-y-1">
-                                        <Label className="text-xs">Protein (g)</Label>
+                                        <Label className="text-xs font-semibold">Protein (g)</Label>
                                         <Input
                                           type="number"
                                           value={dish.protein}
-                                          onChange={(e) => updateDish(mealType.value, dishIndex, 'protein', parseFloat(e.target.value) || 0)}
+                                          onChange={(e) => updateDish(mealType.value, dishIndex, 'protein', e.target.value)}
                                           placeholder="0"
                                           data-testid={`input-dish-protein-${mealType.value}-${dishIndex}`}
                                         />
                                       </div>
                                       <div className="space-y-1">
-                                        <Label className="text-xs">Carbs (g)</Label>
+                                        <Label className="text-xs font-semibold">Carbs (g)</Label>
                                         <Input
                                           type="number"
                                           value={dish.carbs}
-                                          onChange={(e) => updateDish(mealType.value, dishIndex, 'carbs', parseFloat(e.target.value) || 0)}
+                                          onChange={(e) => updateDish(mealType.value, dishIndex, 'carbs', e.target.value)}
                                           placeholder="0"
                                           data-testid={`input-dish-carbs-${mealType.value}-${dishIndex}`}
                                         />
                                       </div>
                                       <div className="space-y-1">
-                                        <Label className="text-xs">Fats (g)</Label>
+                                        <Label className="text-xs font-semibold">Fats (g)</Label>
                                         <Input
                                           type="number"
                                           value={dish.fats}
-                                          onChange={(e) => updateDish(mealType.value, dishIndex, 'fats', parseFloat(e.target.value) || 0)}
+                                          onChange={(e) => updateDish(mealType.value, dishIndex, 'fats', e.target.value)}
                                           placeholder="0"
                                           data-testid={`input-dish-fats-${mealType.value}-${dishIndex}`}
                                         />
