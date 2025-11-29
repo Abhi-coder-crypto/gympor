@@ -1692,8 +1692,6 @@ export default function AdminClientsEnhanced() {
         document={viewingDocument}
         onClose={() => setViewingDocument(null)}
       />
-
-    </div>
-  </SidebarProvider>
+    </SidebarProvider>
   );
 }
