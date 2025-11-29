@@ -272,16 +272,47 @@ export default function ClientDashboard() {
   const hasHabitTrackingAccess = ['Pro Transformation', 'Elite Athlete / Fast Result'].includes(packageName);
   const hasVideoAccess = true; // All packages have video access
   
-  // Weekly workout data from calendar - match actual workout dates
-  const weeklyWorkouts = {
-    mon: (calendarData[1]?.hasWorkout) || false,
-    tue: (calendarData[2]?.hasWorkout) || false,
-    wed: (calendarData[3]?.hasWorkout) || false,
-    thu: (calendarData[4]?.hasWorkout) || false,
-    fri: (calendarData[5]?.hasWorkout) || false,
-    sat: (calendarData[6]?.hasWorkout) || false,
-    sun: (calendarData[0]?.hasWorkout) || false,
+  // Calculate workout days from assignment date (6 days: Mon-Sat)
+  const getWorkoutDaysFromAssignment = () => {
+    if (!workoutPlans || workoutPlans.length === 0) {
+      return [];
+    }
+
+    // Get earliest assignment date
+    const assignmentDate = workoutPlans[0]?.createdAt 
+      ? new Date(workoutPlans[0].createdAt)
+      : new Date();
+
+    // Get the Monday of the week of assignment
+    const assignmentDay = assignmentDate.getDay();
+    const diff = assignmentDate.getDate() - assignmentDay + (assignmentDay === 0 ? -6 : 1);
+    const mondayOfAssignmentWeek = new Date(assignmentDate.setDate(diff));
+
+    // Build 6 days from Monday to Saturday
+    const days = [];
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    
+    for (let i = 0; i < 6; i++) {
+      const currentDate = new Date(mondayOfAssignmentWeek);
+      currentDate.setDate(currentDate.getDate() + i);
+      
+      // Check if any workout plan is completed on this date
+      const dayCompleted = workoutPlans.some((plan: any) => {
+        if (!plan.completed) return false;
+        const planDate = new Date(plan.completedAt || plan.createdAt);
+        return planDate.toDateString() === currentDate.toDateString();
+      });
+
+      days.push({
+        day: dayNames[i],
+        completed: dayCompleted
+      });
+    }
+
+    return days;
   };
+
+  const workoutDays = getWorkoutDaysFromAssignment();
 
   // Count assigned workout sessions from the day workout was assigned
   let completedWorkouts = 0;
@@ -442,10 +473,10 @@ export default function ClientDashboard() {
             {/* Right Column: Progress */}
             <div className="space-y-6">
               <ProgressSidebar
-                weeklyWorkouts={weeklyWorkouts}
+                workoutDays={workoutDays}
                 weightCurrent={Math.round(Number(currentWeight) || 0)}
                 weightTarget={Math.round(Number(targetWeight) || 0)}
-                weeklyCompletion={workoutCompliancePercent}
+                weightInitial={Math.round(Number(initialWeight) || 0)}
                 onUpdateGoals={() => setLocation("/client/goals")}
               />
 

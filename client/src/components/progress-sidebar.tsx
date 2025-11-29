@@ -5,34 +5,32 @@ import { Button } from "@/components/ui/button";
 import { TrendingUp, Target, CheckCircle2, XCircle } from "lucide-react";
 
 interface ProgressSidebarProps {
-  weeklyWorkouts: {
-    mon: boolean;
-    tue: boolean;
-    wed: boolean;
-    thu: boolean;
-    fri: boolean;
-    sat: boolean;
-    sun: boolean;
-  };
+  workoutDays: Array<{
+    day: string;
+    completed: boolean;
+  }>;
   weightCurrent: number;
   weightTarget: number;
-  weeklyCompletion: number;
+  weightInitial: number;
   onUpdateGoals?: () => void;
 }
 
 export function ProgressSidebar({
-  weeklyWorkouts,
+  workoutDays,
   weightCurrent,
   weightTarget,
-  weeklyCompletion,
+  weightInitial,
   onUpdateGoals,
 }: ProgressSidebarProps) {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const workoutValues = Object.values(weeklyWorkouts);
-  const completedDays = workoutValues.filter(Boolean).length;
-  const missedDays = 5 - completedDays;
-  const weightProgress = weightTarget > 0 ? (weightCurrent / weightTarget) * 100 : 0;
-  const sessionsProgress = (completedDays / 5) * 100;
+  const completedDays = workoutDays.filter(d => d.completed).length;
+  const totalDays = workoutDays.length;
+  const sessionsProgress = totalDays > 0 ? (completedDays / totalDays) * 100 : 0;
+  
+  // Calculate weight progress based on initial and target
+  const weightProgress = weightInitial && weightTarget && weightInitial !== weightTarget
+    ? Math.max(0, Math.min(100, ((weightInitial - weightCurrent) / (weightInitial - weightTarget)) * 100))
+    : 0;
+  const weightToGo = Math.abs(weightTarget - weightCurrent);
 
   return (
     <Card className="hover-elevate border-0 shadow-lg bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
@@ -51,25 +49,23 @@ export function ProgressSidebar({
               <h3 className="font-semibold text-sm">Weekly Workouts</h3>
             </div>
             <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-              {completedDays} / 5 sessions
+              {completedDays} / {totalDays} sessions
             </span>
           </div>
           
-          {/* Workout Days Grid - Circles (Mon-Sat only) */}
+          {/* Workout Days Grid - Circles from assignment date */}
           <div className="flex justify-between gap-2">
-            {days.slice(0, 6).map((day, index) => (
-              <div key={day} className="flex flex-col items-center">
+            {workoutDays.map((dayData) => (
+              <div key={dayData.day} className="flex flex-col items-center">
                 <button
                   className={`w-12 h-12 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center ${
-                    index < 3
+                    dayData.completed
                       ? "bg-green-500 text-white shadow-md hover:shadow-lg"
-                      : index < 5
-                      ? "bg-red-500 text-white shadow-md hover:shadow-lg"
-                      : "bg-white border-2 border-black text-black"
+                      : "bg-red-500 text-white shadow-md hover:shadow-lg"
                   }`}
-                  data-testid={`workout-day-${day.toLowerCase()}`}
+                  data-testid={`workout-day-${dayData.day.toLowerCase()}`}
                 >
-                  {day}
+                  {dayData.day}
                 </button>
               </div>
             ))}
@@ -99,7 +95,7 @@ export function ProgressSidebar({
                 {weightCurrent} / {weightTarget} lbs
               </p>
               <p className="text-xs text-muted-foreground">
-                {weightTarget > 0 ? weightTarget - weightCurrent : 0} lbs to go
+                {weightToGo} lbs to go
               </p>
             </div>
           </div>
@@ -107,11 +103,11 @@ export function ProgressSidebar({
           {/* Weight Progress Bar */}
           <div className="space-y-2">
             <Progress
-              value={Math.min(weightProgress, 100)}
+              value={Math.round(weightProgress)}
               className="h-2.5"
               data-testid="progress-weight"
             />
-            <p className="text-xs text-muted-foreground text-right">{Math.round(Math.min(weightProgress, 100))}% progress</p>
+            <p className="text-xs text-muted-foreground text-right">{Math.round(weightProgress)}% progress</p>
           </div>
         </div>
 
