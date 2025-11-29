@@ -242,7 +242,12 @@ export default function ClientDashboard() {
     ? format(new Date(nextSession.scheduledAt), "MMM d, yyyy")
     : "scheduled";
 
-  // Weekly workout data from calendar
+  // Determine package access
+  const packageName = packageAccess?.packageName || client.packageName || '';
+  const hasLiveSessionAccess = packageName !== 'Basic';
+  const hasVideoAccess = ['Standard', 'Premium'].includes(packageName);
+  
+  // Weekly workout data from calendar - match actual workout dates
   const weeklyWorkouts = {
     mon: (calendarData[1]?.hasWorkout) || false,
     tue: (calendarData[2]?.hasWorkout) || false,
@@ -268,6 +273,11 @@ export default function ClientDashboard() {
       });
     }
   });
+
+  // Calculate workout compliance percentage
+  const workoutCompliancePercent = assignedWorkoutCount > 0 
+    ? Math.round((completedWorkouts / assignedWorkoutCount) * 100)
+    : 0;
 
   return (
     <div className="w-full bg-background min-h-screen mb-20 md:mb-0">
@@ -358,10 +368,10 @@ export default function ClientDashboard() {
 
           {/* Two Column Layout: Videos + Progress */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Videos */}
+            {/* Left Column: Videos (Assigned from Workout Library) */}
             <div className="lg:col-span-2">
               <ContinueWatching 
-                videos={videos || []} 
+                videos={assignedVideos && assignedVideos.length > 0 ? assignedVideos : videos || []} 
                 onWatchAll={() => setLocation("/client/videos")}
               />
             </div>
@@ -372,7 +382,7 @@ export default function ClientDashboard() {
                 weeklyWorkouts={weeklyWorkouts}
                 weightCurrent={Math.round(parseFloat(progress.currentWeight as any))}
                 weightTarget={Math.round(parseFloat(progress.targetWeight as any))}
-                weeklyCompletion={progress.weeklyWorkoutCompletion}
+                weeklyCompletion={workoutCompliancePercent}
                 onUpdateGoals={() => setLocation("/client/goals")}
               />
 
@@ -387,54 +397,56 @@ export default function ClientDashboard() {
             </div>
           </div>
 
-          {/* Upcoming Live Sessions */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Upcoming Live Sessions</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation("/client/sessions")}
-                className="text-primary hover:text-primary"
-                data-testid="button-view-all-sessions"
-              >
-                View All
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-
-            {formattedSessions && formattedSessions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {formattedSessions.map((session) => (
-                  <LiveSessionCard
-                    key={session.id}
-                    title={session.title}
-                    trainer={session.trainer}
-                    date={session.date}
-                    time={session.time}
-                    duration={session.duration}
-                    participants={session.participants}
-                    maxParticipants={session.maxParticipants}
-                    status={session.status}
-                    onJoin={() => {
-                      if (session.joinUrl) {
-                        window.open(session.joinUrl, '_blank');
-                      } else {
-                        alert('Zoom link not available for this session yet');
-                      }
-                    }}
-                  />
-                ))}
+          {/* Upcoming Live Sessions - Only show if package allows */}
+          {hasLiveSessionAccess && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Upcoming Live Sessions</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/client/sessions")}
+                  className="text-primary hover:text-primary"
+                  data-testid="button-view-all-sessions"
+                >
+                  View All
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
               </div>
-            ) : (
-              <Card className="hover-elevate">
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No upcoming sessions scheduled</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+
+              {formattedSessions && formattedSessions.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {formattedSessions.map((session) => (
+                    <LiveSessionCard
+                      key={session.id}
+                      title={session.title}
+                      trainer={session.trainer}
+                      date={session.date}
+                      time={session.time}
+                      duration={session.duration}
+                      participants={session.participants}
+                      maxParticipants={session.maxParticipants}
+                      status={session.status}
+                      onJoin={() => {
+                        if (session.joinUrl) {
+                          window.open(session.joinUrl, '_blank');
+                        } else {
+                          alert('Zoom link not available for this session yet');
+                        }
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="hover-elevate">
+                  <CardContent className="pt-6 text-center text-muted-foreground">
+                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No upcoming sessions scheduled</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
