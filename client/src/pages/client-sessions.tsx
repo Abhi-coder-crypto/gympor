@@ -92,32 +92,11 @@ export default function ClientSessions() {
             </div>
           ) : (
             <>
-              {liveSessions.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-display font-bold tracking-tight mb-6">Live Now</h2>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {liveSessions.map((session: any) => (
-                      <LiveSessionCard
-                        key={session.id}
-                        {...session}
-                        onJoin={() => {
-                          if (session.joinUrl) {
-                            window.open(session.joinUrl, '_blank');
-                          } else {
-                            alert('Zoom link not available for this session yet');
-                          }
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <div>
                 <h2 className="text-2xl font-display font-bold tracking-tight mb-6">Sessions</h2>
-                {upcomingSessions.length > 0 ? (
+                {(liveSessions.length > 0 || upcomingSessions.length > 0) ? (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {upcomingSessions.map((session: any) => (
+                    {[...liveSessions, ...upcomingSessions].map((session: any) => (
                       <LiveSessionCard
                         key={session.id}
                         {...session}
@@ -133,22 +112,7 @@ export default function ClientSessions() {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
-                    No upcoming sessions scheduled
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-display font-bold tracking-tight mb-6">Completed Sessions</h2>
-                {completedSessions.length > 0 ? (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {completedSessions.map((session: any) => (
-                      <LiveSessionCard key={session.id} {...session} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No completed sessions yet
+                    No sessions scheduled
                   </div>
                 )}
               </div>
