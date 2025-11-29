@@ -272,5 +272,6 @@ export default function AdminClientSetup() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

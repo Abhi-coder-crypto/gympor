@@ -753,5 +753,6 @@ export default function AdminDietPlans() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

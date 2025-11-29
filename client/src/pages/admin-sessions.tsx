@@ -666,5 +666,6 @@ export default function AdminSessions() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

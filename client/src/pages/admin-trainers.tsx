@@ -291,5 +291,6 @@ export default function AdminTrainers() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

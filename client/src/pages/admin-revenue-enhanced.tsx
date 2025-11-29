@@ -493,5 +493,6 @@ export default function AdminRevenueEnhanced() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

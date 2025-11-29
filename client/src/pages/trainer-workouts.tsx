@@ -98,5 +98,6 @@ export default function TrainerWorkouts() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

@@ -374,5 +374,6 @@ export default function AdminVideos() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

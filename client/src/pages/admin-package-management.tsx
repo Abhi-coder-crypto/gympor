@@ -249,5 +249,6 @@ export default function AdminPackageManagement() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

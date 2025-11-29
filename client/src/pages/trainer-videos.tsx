@@ -251,5 +251,6 @@ export default function TrainerVideos() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

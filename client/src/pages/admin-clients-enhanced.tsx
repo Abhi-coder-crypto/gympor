@@ -1695,5 +1695,6 @@ export default function AdminClientsEnhanced() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

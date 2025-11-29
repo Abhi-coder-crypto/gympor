@@ -406,5 +406,6 @@ export default function TrainerClients() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }

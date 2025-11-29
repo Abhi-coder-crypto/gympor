@@ -423,5 +423,6 @@ export default function TrainerHabits() {
 
       <MobileNavigation />
     </div>
+  </SidebarProvider>
   );
 }
