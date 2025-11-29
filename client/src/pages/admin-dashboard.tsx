@@ -95,6 +95,11 @@ export default function AdminDashboard() {
     return sum + (client.packageData?.price || 0);
   }, 0);
 
+  // Filter to show only active/unique packages (remove duplicates)
+  const uniquePackages = packages.filter((pkg, index) => {
+    return packages.findIndex(p => p.name === pkg.name) === index;
+  });
+
   const recentClients = [...clientsWithPackages]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 4)
@@ -163,15 +168,15 @@ export default function AdminDashboard() {
                 />
                 <StatCard
                   title="Monthly Revenue"
-                  value={`$${monthlyRevenue.toLocaleString()}`}
+                  value={`₹${monthlyRevenue.toLocaleString()}`}
                   icon={DollarSign}
-                  trend={`From ${totalClients} clients`}
+                  trend={`From ${activeClients} active clients`}
                   trendUp={true}
                   colorScheme="orange"
                 />
                 <StatCard
                   title="Packages Available"
-                  value={packages.length}
+                  value={uniquePackages.length}
                   icon={TrendingUp}
                   trend="Membership plans"
                   trendUp={true}
