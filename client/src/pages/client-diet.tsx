@@ -259,8 +259,8 @@ Total Items: ${items.length}
                       </Button>
                     </div>
 
-                    {/* Meals Grid - 2 cols on mobile, 4 cols on desktop */}
-                    <div className="flex-1 grid grid-cols-2 md:grid-cols-4 divide-x divide-primary/20">
+                    {/* Meals Grid - 2 cols on mobile, 5 cols on desktop */}
+                    <div className="flex-1 grid grid-cols-2 md:grid-cols-5 divide-x divide-primary/20">
                       {MEAL_TYPES.map((mealType) => {
                         const meal = getMealForDayAndType(dayIdx, mealType);
                         return (
