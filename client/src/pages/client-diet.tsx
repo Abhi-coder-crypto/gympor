@@ -79,6 +79,7 @@ export default function ClientDiet() {
     
     const mealsArray = Object.entries(currentPlan.meals).filter(([key]) => 
       key.toLowerCase().startsWith(mealType.toLowerCase())
+    );
     
     if (mealsArray.length === 0) return undefined;
     
@@ -433,4 +434,5 @@ Total Items: ${items.length}
         </Dialog>
       </div>
     </div>
+  );
 }

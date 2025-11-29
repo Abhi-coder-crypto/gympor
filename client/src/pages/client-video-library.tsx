@@ -73,6 +73,7 @@ export default function ClientVideoLibrary() {
         // Remove from bookmarks
         queryClient.setQueryData([`/api/clients/${clientId}/bookmarks`], 
           (previousBookmarks || []).filter((b: any) => b.videoId !== videoId)
+        );
       } else {
         // Add to bookmarks (optimistic update)
         const video = videos.find(v => v._id === videoId);
@@ -317,4 +318,5 @@ export default function ClientVideoLibrary() {
 
       <MobileNavigation />
     </div>
+  );
 }
