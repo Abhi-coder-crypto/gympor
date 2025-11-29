@@ -34,7 +34,6 @@ interface Notification {
   isRead: boolean;
   link?: string;
   createdAt: string;
-  );
 }
 
 
@@ -157,7 +156,6 @@ export default function ClientNotifications() {
       return (
         n.title.toLowerCase().includes(query) ||
         n.message.toLowerCase().includes(query)
-      );
     });
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -352,7 +350,5 @@ export default function ClientNotifications() {
         </Tabs>
       </main>
     </div>
-  );
-  );
 }
 

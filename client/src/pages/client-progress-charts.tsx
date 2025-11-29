@@ -247,7 +247,5 @@ export default function ClientProgressCharts() {
         </div>
       </main>
     </div>
-  );
-  );
 }
 

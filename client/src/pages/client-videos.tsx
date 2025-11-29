@@ -205,7 +205,6 @@ export default function ClientVideos() {
           )}
         </CardContent>
       </Card>
-    );
   };
 
   if (!clientId) return null;
@@ -402,7 +401,5 @@ export default function ClientVideos() {
         </div>
       </main>
     </div>
-  );
-  );
 }
 

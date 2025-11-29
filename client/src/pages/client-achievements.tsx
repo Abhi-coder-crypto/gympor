@@ -207,7 +207,5 @@ export default function ClientAchievements() {
         </div>
       </main>
     </div>
-  );
-  );
 }
 

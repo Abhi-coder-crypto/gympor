@@ -26,7 +26,6 @@ interface LiveSession {
   trainerId: {
     name: string;
   };
-  );
 }
 
 
@@ -38,7 +37,6 @@ interface WorkoutSession {
   date: string;
   completed: boolean;
   duration: number;
-  );
 }
 
 
@@ -55,7 +53,6 @@ interface Goal {
     achieved: boolean;
     achievedAt?: string;
   }>;
-  );
 }
 
 
@@ -447,7 +444,5 @@ export default function ClientCalendar() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-  );
 }
 

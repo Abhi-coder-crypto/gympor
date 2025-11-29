@@ -198,7 +198,5 @@ export default function ClientBodyMeasurements() {
         </div>
       </main>
     </div>
-  );
-  );
 }
 

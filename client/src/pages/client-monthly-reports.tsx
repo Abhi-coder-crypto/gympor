@@ -156,7 +156,5 @@ export default function ClientMonthlyReports() {
         </div>
       </main>
     </div>
-  );
-  );
 }
 

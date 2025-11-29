@@ -53,7 +53,6 @@ export default function ClientHabits() {
           </Card>
         </div>
       </div>
-    );
   }
 
   // Get habits for client
@@ -217,5 +216,4 @@ export default function ClientHabits() {
         )}
       </div>
     </div>
-  );
 }

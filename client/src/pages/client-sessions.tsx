@@ -157,5 +157,4 @@ export default function ClientSessions() {
         </div>
       </main>
     </div>
-  );
 }

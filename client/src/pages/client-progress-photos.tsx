@@ -28,7 +28,6 @@ interface ProgressPhoto {
   description?: string;
   weight?: number;
   uploadedAt: string;
-  );
 }
 
 
@@ -127,7 +126,6 @@ export default function ClientProgressPhotos() {
 
   const sortedPhotos = [...photos].sort((a, b) => 
     new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
-  );
 
   const weightChange = (() => {
     const photosWithWeight = sortedPhotos.filter(p => p.weight);
@@ -342,7 +340,5 @@ export default function ClientProgressPhotos() {
         </div>
       </main>
     </div>
-  );
-  );
 }
 
