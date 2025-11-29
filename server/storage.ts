@@ -2273,7 +2273,7 @@ export class MongoStorage implements IStorage {
     if (!settings) {
       settings = await this.initializeSystemSettings();
     }
-    return settings ? settings.toObject() : null;
+    return (settings ? settings.toObject() : null) as any;
   }
   
   async updateSystemSettings(data: Partial<ISystemSettings>): Promise<any> {
@@ -2291,7 +2291,7 @@ export class MongoStorage implements IStorage {
       { new: true, upsert: true }
     );
     
-    return updated ? updated.toObject() : null;
+    return (updated ? updated.toObject() : null) as any;
   }
   
   async initializeSystemSettings(): Promise<ISystemSettings> {
