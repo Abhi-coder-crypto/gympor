@@ -68,10 +68,17 @@ export default function TrainerHabits() {
       });
       if (!response.ok) throw new Error("Failed to fetch clients");
       const allClients = await response.json();
-      // Filter for Pro/Elite packages
+      // Filter for Pro/Elite packages only (exclude Basic and Fit Plus)
       return allClients.filter((c: any) => {
-        const pkg = c.packageId?.name || c.packageName || "";
-        return pkg.includes("Pro") || pkg.includes("Elite");
+        const packageName = c.packageId?.name || c.packageName || "";
+        const packageLower = packageName.toLowerCase();
+        // Include only Pro and Elite packages
+        const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
+        const isElite = packageLower.includes("elite");
+        // Exclude Basic and Fit Plus
+        const isBasic = packageLower.includes("basic");
+        const isFitPlus = packageLower.includes("fit plus") || packageLower.includes("fitplus");
+        return (isPro || isElite) && !isBasic && !isFitPlus;
       });
     },
     enabled: !!trainerId,
