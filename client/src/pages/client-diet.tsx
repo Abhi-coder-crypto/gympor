@@ -160,6 +160,7 @@ Total Items: ${items.length}
           <p className="text-muted-foreground">Loading your diet plan...</p>
         </div>
       </div>
+    );
   }
 
   if (error || !currentPlan) {
@@ -174,6 +175,7 @@ Total Items: ${items.length}
           </Button>
         </div>
       </div>
+    );
   }
 
   return (
