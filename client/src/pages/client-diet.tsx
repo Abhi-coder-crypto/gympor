@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 const DAYS_OF_WEEK = ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7"];
-const MEAL_TYPES = ["breakfast", "lunch", "snack", "dinner"];
+const MEAL_TYPES = ["breakfast", "lunch", "pre-workout", "post-workout", "dinner"];
 
 interface Meal {
   name: string;
