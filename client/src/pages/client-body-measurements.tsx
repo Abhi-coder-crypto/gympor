@@ -197,5 +197,8 @@ export default function ClientBodyMeasurements() {
         )}
         </div>
       </main>
+
+      <MobileNavigation />
+    </div>
   );
 }
