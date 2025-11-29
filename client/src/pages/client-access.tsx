@@ -194,4 +194,5 @@ export default function ClientAccess() {
         </Card>
       </main>
     </div>
+  );
 }
