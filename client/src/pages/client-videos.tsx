@@ -400,5 +400,8 @@ export default function ClientVideos() {
           </Tabs>
         </div>
       </main>
+
+      <MobileNavigation />
+    </div>
   );
 }

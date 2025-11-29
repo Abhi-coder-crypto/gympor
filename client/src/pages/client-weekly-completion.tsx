@@ -161,5 +161,8 @@ export default function ClientWeeklyCompletion() {
           </CardContent>
         </Card>
       </main>
+
+      <MobileNavigation />
+    </div>
   );
 }

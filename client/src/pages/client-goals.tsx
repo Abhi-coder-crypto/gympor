@@ -210,6 +210,7 @@ export default function ClientGoals() {
       
       const newMilestones = data.milestones.filter(m => 
         m.achieved && new Date(m.achievedAt || '').getTime() > Date.now() - 5000
+      );
       
       if (newMilestones.length > 0) {
         newMilestones.forEach(milestone => {
@@ -623,5 +624,8 @@ export default function ClientGoals() {
           )}
         </div>
       </main>
+
+      <MobileNavigation />
+    </div>
   );
 }
