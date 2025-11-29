@@ -151,6 +151,7 @@ export default function ClientProfile() {
         <ClientHeader currentPage="profile" />
         <div className="flex items-center justify-center flex-1">{t('common.loading')}</div>
       </div>
+    );
   }
 
   return (

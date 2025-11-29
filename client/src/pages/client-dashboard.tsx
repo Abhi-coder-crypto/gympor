@@ -183,6 +183,7 @@ export default function ClientDashboard() {
           </div>
         </main>
       </div>
+    );
   }
 
   const { client, stats, progress, nextSession, upcomingSessions: dashboardUpcomingSessions, videos: apiVideos } =

@@ -214,6 +214,7 @@ export default function ClientWorkouts() {
           </Card>
         </main>
       </div>
+    );
   }
 
   if (isError) {
@@ -235,6 +236,7 @@ export default function ClientWorkouts() {
           </Card>
         </main>
       </div>
+    );
   }
 
   if (!firstWorkout || availableDays.length === 0) {
@@ -256,6 +258,7 @@ export default function ClientWorkouts() {
           </Card>
         </main>
       </div>
+    );
   }
 
   return (

@@ -138,5 +138,5 @@ export default function ClientHistory() {
         </div>
       </main>
     </div>
+  );
 }
-
