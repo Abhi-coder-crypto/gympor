@@ -337,91 +337,88 @@ export default function TrainerHabits() {
             </main>
           </div>
         </div>
-    </div>
 
+        {/* Add Habit Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign New Habit</DialogTitle>
+              <DialogDescription>
+                Create a new daily habit for your client to track
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="client">Select Client</Label>
+                <Select value={selectedClient} onValueChange={setSelectedClient}>
+                  <SelectTrigger data-testid="select-client-habit">
+                    <SelectValue placeholder="Choose a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client: any) => (
+                      <SelectItem key={client._id} value={client._id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="habitName">Habit Name</Label>
+                <Input
+                  id="habitName"
+                  placeholder="e.g., Drink 3L Water"
+                  value={habitName}
+                  onChange={(e) => setHabitName(e.target.value)}
+                  data-testid="input-habit-name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="habitDescription">Description (Optional)</Label>
+                <Textarea
+                  id="habitDescription"
+                  placeholder="Add any notes or instructions..."
+                  value={habitDescription}
+                  onChange={(e) => setHabitDescription(e.target.value)}
+                  data-testid="textarea-habit-description"
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="frequency">Frequency</Label>
+                <Select value={frequency} onValueChange={setFrequency}>
+                  <SelectTrigger data-testid="select-frequency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}
+                data-testid="button-cancel-habit"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddHabit}
+                disabled={createHabitMutation.isPending}
+                data-testid="button-add-habit"
+              >
+                Assign Habit
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SidebarProvider>
-
-      {/* Add Habit Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Assign New Habit</DialogTitle>
-            <DialogDescription>
-              Create a new daily habit for your client to track
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="client">Select Client</Label>
-              <Select value={selectedClient} onValueChange={setSelectedClient}>
-                <SelectTrigger data-testid="select-client-habit">
-                  <SelectValue placeholder="Choose a client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client: any) => (
-                    <SelectItem key={client._id} value={client._id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="habitName">Habit Name</Label>
-              <Input
-                id="habitName"
-                placeholder="e.g., Drink 3L Water"
-                value={habitName}
-                onChange={(e) => setHabitName(e.target.value)}
-                data-testid="input-habit-name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="habitDescription">Description (Optional)</Label>
-              <Textarea
-                id="habitDescription"
-                placeholder="Add any notes or instructions..."
-                value={habitDescription}
-                onChange={(e) => setHabitDescription(e.target.value)}
-                data-testid="textarea-habit-description"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="frequency">Frequency</Label>
-              <Select value={frequency} onValueChange={setFrequency}>
-                <SelectTrigger data-testid="select-frequency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddDialogOpen(false)}
-              data-testid="button-cancel-habit"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddHabit}
-              disabled={createHabitMutation.isPending}
-              data-testid="button-add-habit"
-            >
-              Assign Habit
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </SidebarProvider>
   );
 }
