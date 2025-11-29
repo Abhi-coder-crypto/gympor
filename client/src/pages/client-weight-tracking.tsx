@@ -337,5 +337,8 @@ export default function ClientWeightTracking() {
           )}
         </div>
       </main>
+
+      <MobileNavigation />
+    </div>
   );
 }
