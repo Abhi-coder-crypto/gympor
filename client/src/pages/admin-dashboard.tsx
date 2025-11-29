@@ -246,7 +246,7 @@ export default function AdminDashboard() {
                     <Button 
                       className="w-full justify-start bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700" 
                       variant="ghost"
-                      onClick={() => setLocation('/admin/live-sessions')}
+                      onClick={() => setLocation('/admin/sessions')}
                       data-testid="button-schedule-session"
                     >
                       <Activity className="h-4 w-4 mr-2" />
