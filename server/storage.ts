@@ -941,11 +941,6 @@ export class MongoStorage implements IStorage {
   }
 
   // Workout History/Session methods
-  async createWorkoutSession(data: Partial<IWorkoutSession>): Promise<IWorkoutSession> {
-    const session = new WorkoutSession(data);
-    return await session.save();
-  }
-
   async getClientWorkoutHistory(clientId: string): Promise<IWorkoutSession[]> {
     const convertedClientId = new mongoose.Types.ObjectId(clientId);
     return await WorkoutSession.find({ clientId: convertedClientId }).populate('workoutPlanId').sort({ completedAt: -1 });
@@ -1718,8 +1713,8 @@ export class MongoStorage implements IStorage {
     const weekSessions = sessions.filter(s => s.completedAt >= weekAgo).length;
     const monthSessions = sessions.filter(s => s.completedAt >= monthAgo).length;
     
-    const totalCalories = sessions.reduce((sum, s) => sum + s.caloriesBurned, 0);
-    const weekCalories = sessions.filter(s => s.completedAt >= weekAgo).reduce((sum, s) => sum + s.caloriesBurned, 0);
+    const totalCalories = sessions.reduce((sum, s) => sum + (s.caloriesBurned || 0), 0);
+    const weekCalories = sessions.filter(s => s.completedAt >= weekAgo).reduce((sum, s) => sum + (s.caloriesBurned || 0), 0);
     
     let currentStreak = 0;
     let maxStreak = 0;
@@ -2278,7 +2273,7 @@ export class MongoStorage implements IStorage {
     if (!settings) {
       settings = await this.initializeSystemSettings();
     }
-    return settings;
+    return settings?.toObject() || settings;
   }
   
   async updateSystemSettings(data: Partial<ISystemSettings>): Promise<any> {
@@ -2296,7 +2291,7 @@ export class MongoStorage implements IStorage {
       { new: true, upsert: true }
     );
     
-    return updated;
+    return updated?.toObject() || updated;
   }
   
   async initializeSystemSettings(): Promise<ISystemSettings> {
@@ -2404,9 +2399,10 @@ export class MongoStorage implements IStorage {
     
     const pkg = client.packageId as any;
     const isSubscriptionActive = !client.subscription?.endDate || new Date(client.subscription.endDate) >= new Date();
+    const packageId = typeof client.packageId === 'string' ? client.packageId : (client.packageId as any)?._id;
     
     return {
-      packageId: client.packageId?._id,
+      packageId,
       packageName: pkg?.name || null,
       duration: client.packageDuration,
       subscriptionStart: client.subscription?.startDate,
