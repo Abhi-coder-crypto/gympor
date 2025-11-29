@@ -24,12 +24,21 @@ export function AssignSessionDialog({ open, onOpenChange, sessionId, sessionTitl
   const { toast } = useToast();
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
 
+  // Get current user to check role
+  const { data: authData } = useQuery<any>({
+    queryKey: ['/api/auth/me'],
+  });
+  const isAdmin = authData?.role === 'admin';
+  const trainerId = authData?.user?._id?.toString() || authData?.user?.id || authData?._id?.toString();
+
   const { data: packages = [], isLoading: isLoadingPackages } = useQuery<any[]>({
     queryKey: ['/api/packages'],
   });
 
+  // Fetch appropriate clients based on user role
   const { data: allClients = [], isLoading: isLoadingAllClients } = useQuery<any[]>({
-    queryKey: ['/api/clients'],
+    queryKey: isAdmin ? ['/api/admin/clients'] : ['/api/trainers', trainerId, 'clients'],
+    enabled: isAdmin || !!trainerId,
   });
 
   // Reset when dialog closes
