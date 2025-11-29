@@ -491,6 +491,8 @@ export default function AdminRevenueEnhanced() {
         </DialogContent>
       </Dialog>
 
+    </div>
+  </div>
   </SidebarProvider>
   );
 }

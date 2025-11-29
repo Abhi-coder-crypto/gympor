@@ -369,6 +369,8 @@ export default function AdminAnalyticsEnhanced() {
         </div>
       </div>
 
+    </div>
+  </div>
   </SidebarProvider>
   );
 }
