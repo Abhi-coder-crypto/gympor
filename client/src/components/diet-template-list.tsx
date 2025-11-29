@@ -159,44 +159,93 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
   const handleEdit = (template: any) => {
     setEditingTemplate(template);
     
-    // Handle 5-meal structure: breakfast, lunch, pre-workout, post-workout, dinner
-    const mealsForFirstDay: Meal[] = [];
     const mealTypeKeys = ['breakfast', 'lunch', 'pre-workout', 'post-workout', 'dinner'];
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const allMeals: Record<string, Meal[]> = {};
+    let firstDayMeals: Meal[] = [];
     
     if (template.meals && typeof template.meals === 'object' && !Array.isArray(template.meals)) {
-      // Load meals in correct order with proper type names
-      mealTypeKeys.forEach(type => {
-        const meal = template.meals[type];
-        if (meal) {
-          // Extract dishes from the meal - ensure they have all fields
-          let dishes: Dish[] = [];
-          if (meal.dishes && Array.isArray(meal.dishes)) {
-            dishes = meal.dishes.map((d: any) => ({
-              name: d.name || "",
-              description: d.description || "",
-              calories: parseInt(d.calories) || 0,
-              protein: parseInt(d.protein) || 0,
-              carbs: parseInt(d.carbs) || 0,
-              fats: parseInt(d.fats) || 0,
-            }));
-          } else if (meal.name) {
-            // If no dishes array but has meal name/data, create single dish from meal aggregate data
-            dishes = [{
-              name: meal.name || "",
-              description: "",
-              calories: parseInt(meal.calories) || 0,
-              protein: parseInt(meal.protein) || 0,
-              carbs: parseInt(meal.carbs) || 0,
-              fats: parseInt(meal.fats) || 0,
-            }];
+      // Check if it's day-organized structure (new format with 7 days)
+      const hasDayStructure = daysOfWeek.some(day => template.meals[day]);
+      
+      if (hasDayStructure) {
+        // Load all 7 days from the nested structure
+        daysOfWeek.forEach(day => {
+          const dayMeals: Meal[] = [];
+          const dayData = template.meals[day];
+          
+          if (dayData && typeof dayData === 'object') {
+            mealTypeKeys.forEach(type => {
+              const meal = dayData[type];
+              if (meal) {
+                let dishes: Dish[] = [];
+                
+                if (meal.dishes && Array.isArray(meal.dishes)) {
+                  dishes = meal.dishes.map((d: any) => ({
+                    name: d.dishName || d.name || "",
+                    description: d.recipe || d.description || "",
+                    calories: parseInt(d.calories) || 0,
+                    protein: parseInt(d.protein) || 0,
+                    carbs: parseInt(d.carbs) || 0,
+                    fats: parseInt(d.fats) || 0,
+                  }));
+                } else if (meal.name || meal.dishName) {
+                  dishes = [{
+                    name: meal.dishName || meal.name || "",
+                    description: meal.recipe || meal.description || "",
+                    calories: parseInt(meal.calories) || 0,
+                    protein: parseInt(meal.protein) || 0,
+                    carbs: parseInt(meal.carbs) || 0,
+                    fats: parseInt(meal.fats) || 0,
+                  }];
+                }
+                
+                dayMeals.push({
+                  type,
+                  dishes: dishes.length > 0 ? dishes : [{ name: "", description: "", calories: 0, protein: 0, carbs: 0, fats: 0 }]
+                });
+              }
+            });
           }
           
-          mealsForFirstDay.push({
-            type,
-            dishes: dishes.length > 0 ? dishes : [{ name: "", description: "", calories: 0, protein: 0, carbs: 0, fats: 0 }]
-          });
-        }
-      });
+          allMeals[day] = dayMeals;
+          if (day === 'Monday') firstDayMeals = dayMeals;
+        });
+      } else {
+        // Old flat structure - load into Monday
+        mealTypeKeys.forEach(type => {
+          const meal = template.meals[type];
+          if (meal) {
+            let dishes: Dish[] = [];
+            
+            if (meal.dishes && Array.isArray(meal.dishes)) {
+              dishes = meal.dishes.map((d: any) => ({
+                name: d.name || "",
+                description: d.description || "",
+                calories: parseInt(d.calories) || 0,
+                protein: parseInt(d.protein) || 0,
+                carbs: parseInt(d.carbs) || 0,
+                fats: parseInt(d.fats) || 0,
+              }));
+            } else if (meal.name) {
+              dishes = [{
+                name: meal.name || "",
+                description: "",
+                calories: parseInt(meal.calories) || 0,
+                protein: parseInt(meal.protein) || 0,
+                carbs: parseInt(meal.carbs) || 0,
+                fats: parseInt(meal.fats) || 0,
+              }];
+            }
+            
+            firstDayMeals.push({
+              type,
+              dishes: dishes.length > 0 ? dishes : [{ name: "", description: "", calories: 0, protein: 0, carbs: 0, fats: 0 }]
+            });
+          }
+        });
+        allMeals['Monday'] = firstDayMeals;
+      }
     }
     
     setFormData({
@@ -204,10 +253,10 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
       description: template.description ?? "",
       category: template.category ?? "weight_loss",
       targetCalories: String(template.targetCalories ?? ""),
-      meals: { Monday: mealsForFirstDay },
+      meals: Object.keys(allMeals).length > 0 ? allMeals : { Monday: [] },
       selectedDay: "Monday",
     });
-    const mealTypes = mealsForFirstDay.map((m: any) => m.type);
+    const mealTypes = firstDayMeals.map((m: any) => m.type);
     setSelectedMealTypes(mealTypes);
     setEditDialogOpen(true);
   };
