@@ -7,10 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Plus, X, Upload, Link as LinkIcon } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+
+// Calorie per minute suggestions based on category and intensity
+const CALORIE_SUGGESTIONS: Record<string, Record<string, number>> = {
+  "Strength": { "Low": 4.0, "Moderate": 6.0, "High": 9.0 },
+  "Cardio": { "Low": 6.0, "Moderate": 10.0, "High": 14.0 },
+  "Yoga": { "Low": 3.0, "Moderate": 4.5, "High": 6.0 },
+  "HIIT": { "Low": 8.0, "Moderate": 12.0, "High": 15.0 },
+  "Flexibility": { "Low": 2.0, "Moderate": 3.0, "High": 4.0 },
+};
 
 interface UploadVideoModalProps {
   open: boolean;
@@ -43,6 +52,16 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
   });
   const [equipment, setEquipment] = useState<string[]>([]);
   const [newEquipment, setNewEquipment] = useState("");
+
+  // Auto-fill calorie per minute based on category and intensity
+  useEffect(() => {
+    if (formData.category && formData.intensity && !formData.caloriePerMinute) {
+      const suggestion = CALORIE_SUGGESTIONS[formData.category]?.[formData.intensity];
+      if (suggestion) {
+        setFormData(prev => ({ ...prev, caloriePerMinute: suggestion.toString() }));
+      }
+    }
+  }, [formData.category, formData.intensity]);
 
   const uploadMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -484,6 +503,9 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
                 data-testid="input-calorie-per-minute"
                 placeholder="5.5"
               />
+              <p className="text-xs text-muted-foreground">
+                Auto-filled based on category & intensity. Edit to customize.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="difficulty">Difficulty Level</Label>

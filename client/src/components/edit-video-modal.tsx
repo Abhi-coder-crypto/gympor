@@ -11,6 +11,15 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, X } from "lucide-react";
 
+// Calorie per minute suggestions based on category and intensity
+const CALORIE_SUGGESTIONS: Record<string, Record<string, number>> = {
+  "Strength": { "Low": 4.0, "Moderate": 6.0, "High": 9.0 },
+  "Cardio": { "Low": 6.0, "Moderate": 10.0, "High": 14.0 },
+  "Yoga": { "Low": 3.0, "Moderate": 4.5, "High": 6.0 },
+  "HIIT": { "Low": 8.0, "Moderate": 12.0, "High": 15.0 },
+  "Flexibility": { "Low": 2.0, "Moderate": 3.0, "High": 4.0 },
+};
+
 interface Video {
   _id: string;
   title: string;
@@ -52,6 +61,7 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
   });
   const [equipment, setEquipment] = useState<string[]>(video.equipment || []);
   const [newEquipment, setNewEquipment] = useState("");
+  const [isCalorieSuggested, setIsCalorieSuggested] = useState(false);
 
   // Reset form when video changes
   useEffect(() => {
@@ -69,7 +79,18 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
       isDraft: video.isDraft || false,
     });
     setEquipment(video.equipment || []);
+    setIsCalorieSuggested(false);
   }, [video]);
+
+  // Auto-fill calorie per minute based on category and intensity (only if not manually set)
+  useEffect(() => {
+    if (formData.category && formData.intensity && isCalorieSuggested) {
+      const suggestion = CALORIE_SUGGESTIONS[formData.category]?.[formData.intensity];
+      if (suggestion) {
+        setFormData(prev => ({ ...prev, caloriePerMinute: suggestion.toString() }));
+      }
+    }
+  }, [formData.category, formData.intensity, isCalorieSuggested]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -210,16 +231,34 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-caloriePerMinute">Calories per Minute</Label>
-              <Input
-                id="edit-caloriePerMinute"
-                type="number"
-                min="0"
-                step="0.1"
-                value={formData.caloriePerMinute}
-                onChange={(e) => setFormData({ ...formData, caloriePerMinute: e.target.value })}
-                data-testid="input-edit-calorie-per-minute"
-                placeholder="5.5"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="edit-caloriePerMinute"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={formData.caloriePerMinute}
+                  onChange={(e) => {
+                    setFormData({ ...formData, caloriePerMinute: e.target.value });
+                    setIsCalorieSuggested(false);
+                  }}
+                  data-testid="input-edit-calorie-per-minute"
+                  placeholder="5.5"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCalorieSuggested(true)}
+                  data-testid="button-suggest-calories"
+                >
+                  Suggest
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Click "Suggest" to auto-fill based on category & intensity.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-difficulty">Difficulty Level</Label>
