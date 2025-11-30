@@ -44,6 +44,7 @@ export default function ClientWorkoutPlans() {
   const [expandedNotePlanId, setExpandedNotePlanId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [dayBookmarks, setDayBookmarks] = useState<Array<{ planId: string; day: string; planName: string }>>([]);
+  const [expandedBookmarkId, setExpandedBookmarkId] = useState<string | null>(null);
 
   // Get client ID from localStorage
   const clientId = localStorage.getItem("clientId");
@@ -598,25 +599,91 @@ export default function ClientWorkoutPlans() {
                   </Card>
                 ) : (
                   <div className="grid gap-4">
-                    {dayBookmarks.map((bookmark, idx) => (
-                      <Card key={idx} className="p-4 flex items-center justify-between hover:border-primary/40 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <BookmarkCheck className="h-5 w-5 fill-amber-400 text-amber-400" />
-                          <div>
-                            <p className="font-semibold text-foreground">{bookmark.day}</p>
-                            <p className="text-sm text-muted-foreground">{bookmark.planName}</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => toggleDayBookmark(bookmark.planId, bookmark.day, bookmark.planName)}
-                          className="p-2 hover:bg-destructive/10 rounded transition-colors"
-                          title="Remove from bookmarks"
-                          data-testid={`button-remove-bookmark-${bookmark.planId}-${bookmark.day}`}
-                        >
-                          <Bookmark className="h-4 w-4 text-destructive" />
-                        </button>
-                      </Card>
-                    ))}
+                    {dayBookmarks.map((bookmark, idx) => {
+                      const isExpanded = expandedBookmarkId === `${bookmark.planId}-${bookmark.day}`;
+                      const plan = (plans as WorkoutPlan[]).find(p => p._id === bookmark.planId);
+                      const dayExercises = plan?.exercises?.[bookmark.day] ? (Array.isArray(plan.exercises[bookmark.day]) ? plan.exercises[bookmark.day] : []) : [];
+                      const clientWeight = (dashboardData as any)?.progress?.currentWeight || (dashboardData as any)?.weight || 70;
+                      const weightMultiplier = clientWeight / 70;
+                      const totalDayCalories = dayExercises.reduce((sum: number, ex: any) => {
+                        const sets = Number(ex.sets) || 0;
+                        const reps = parseReps(ex.reps);
+                        const calories = (sets * reps * 0.15) * weightMultiplier;
+                        return sum + calories;
+                      }, 0);
+
+                      return (
+                        <Card key={idx} className={`overflow-hidden border transition-colors cursor-pointer ${isExpanded ? 'border-primary/40 bg-primary/5' : 'hover:border-primary/40'}`}>
+                          <button
+                            onClick={() => setExpandedBookmarkId(isExpanded ? null : `${bookmark.planId}-${bookmark.day}`)}
+                            className="w-full text-left p-4 flex items-center justify-between"
+                            data-testid={`button-expand-bookmark-${bookmark.planId}-${bookmark.day}`}
+                          >
+                            <div className="flex items-center gap-3 flex-1">
+                              <BookmarkCheck className="h-5 w-5 fill-amber-400 text-amber-400 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="font-semibold text-foreground">{bookmark.day}</p>
+                                <p className="text-sm text-muted-foreground">{bookmark.planName}</p>
+                              </div>
+                              <div className="text-right mr-2">
+                                <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{Math.round(totalDayCalories)}</p>
+                                <p className="text-xs text-muted-foreground">cal</p>
+                              </div>
+                            </div>
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5 text-primary flex-shrink-0" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            )}
+                          </button>
+
+                          {isExpanded && (
+                            <div className="border-t px-4 py-4 space-y-4 bg-background/50">
+                              {dayExercises.length > 0 ? (
+                                <>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                                    {dayExercises.map((exercise: any, exIdx: number) => (
+                                      <div key={exIdx} className="p-2 bg-primary/5 rounded-md border border-primary/20">
+                                        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+                                          Ex {exIdx + 1}
+                                        </p>
+                                        <p className="font-semibold text-foreground text-xs leading-tight mb-1.5 line-clamp-2">
+                                          {exercise.name || exercise}
+                                        </p>
+                                        {exercise.sets && (
+                                          <div className="grid grid-cols-2 gap-1 text-xs">
+                                            <div>
+                                              <p className="text-muted-foreground font-medium">Sets</p>
+                                              <p className="font-bold text-blue-600 dark:text-blue-400">{exercise.sets}</p>
+                                            </div>
+                                            <div>
+                                              <p className="text-muted-foreground font-medium">Reps</p>
+                                              <p className="font-bold text-orange-600 dark:text-orange-400">{exercise.reps || exercise.duration || '-'}</p>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="flex gap-2 pt-2">
+                                    <Button size="sm" variant="default" onClick={() => setSelectedPlanForLogging(bookmark.planId)} data-testid={`button-log-from-bookmark-${bookmark.planId}`}>
+                                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                                      Log Session
+                                    </Button>
+                                    <Button size="sm" variant="outline" onClick={() => toggleDayBookmark(bookmark.planId, bookmark.day, bookmark.planName)} data-testid={`button-unbookmark-${bookmark.planId}-${bookmark.day}`}>
+                                      <Bookmark className="h-3 w-3 mr-1" />
+                                      Remove
+                                    </Button>
+                                  </div>
+                                </>
+                              ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">Rest day</p>
+                              )}
+                            </div>
+                          )}
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
