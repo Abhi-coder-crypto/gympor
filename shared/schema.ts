@@ -69,7 +69,7 @@ export const videos = pgTable("videos", {
   thumbnail: text("thumbnail"),
   category: text("category").notNull(),
   duration: integer("duration"),
-  calories: integer("calories"),
+  caloriePerMinute: decimal("calorie_per_minute", { precision: 5, scale: 2 }),
   packageRequirement: varchar("package_requirement").references(() => packages.id),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });

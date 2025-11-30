@@ -38,7 +38,7 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
     intensity: "",
     difficulty: "",
     trainer: "",
-    calories: "",
+    caloriePerMinute: "",
     isDraft: false,
   });
   const [equipment, setEquipment] = useState<string[]>([]);
@@ -62,7 +62,7 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
         
         formDataToSend.append('category', data.category);
         formDataToSend.append('duration', data.duration || '');
-        formDataToSend.append('calories', data.calories || '');
+        formDataToSend.append('caloriePerMinute', data.caloriePerMinute || '');
         formDataToSend.append('intensity', data.intensity || '');
         formDataToSend.append('difficulty', data.difficulty || '');
         formDataToSend.append('trainer', data.trainer || '');
@@ -85,7 +85,7 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
         const res = await apiRequest('POST', '/api/videos', {
           ...data,
           duration: data.duration ? parseInt(data.duration) : undefined,
-          calories: data.calories ? parseInt(data.calories) : undefined,
+          caloriePerMinute: data.caloriePerMinute ? parseFloat(data.caloriePerMinute) : undefined,
           equipment,
         });
         return res.json();
@@ -110,7 +110,7 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
         intensity: "",
         difficulty: "",
         trainer: "",
-        calories: "",
+        caloriePerMinute: "",
         isDraft: false,
       });
       setEquipment([]);
@@ -473,15 +473,16 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="calories">Calories Burned</Label>
+              <Label htmlFor="caloriePerMinute">Calories per Minute</Label>
               <Input
-                id="calories"
+                id="caloriePerMinute"
                 type="number"
                 min="0"
-                value={formData.calories}
-                onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
-                data-testid="input-calories"
-                placeholder="250"
+                step="0.1"
+                value={formData.caloriePerMinute}
+                onChange={(e) => setFormData({ ...formData, caloriePerMinute: e.target.value })}
+                data-testid="input-calorie-per-minute"
+                placeholder="5.5"
               />
             </div>
             <div className="space-y-2">
