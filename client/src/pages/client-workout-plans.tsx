@@ -42,6 +42,7 @@ export default function ClientWorkoutPlans() {
   const [sessionDuration, setSessionDuration] = useState("30");
   const [selectedDay, setSelectedDay] = useState("");
   const [expandedNotePlanId, setExpandedNotePlanId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
 
   // Get client ID from localStorage
   const clientId = localStorage.getItem("clientId");
@@ -238,6 +239,10 @@ export default function ClientWorkoutPlans() {
     }
   };
 
+  const displayedPlans = activeTab === "bookmarks" 
+    ? (plans as WorkoutPlan[]).filter((plan: WorkoutPlan) => isBookmarked(plan._id))
+    : (plans as WorkoutPlan[]);
+
   return (
     <div className="min-h-screen bg-background">
       <ClientHeader currentPage="workout-history" />
@@ -258,9 +263,16 @@ export default function ClientWorkoutPlans() {
             </Card>
           </div>
         ) : (
-          <div className="space-y-8">
-            {(plans as WorkoutPlan[]).map((plan: WorkoutPlan) => (
-              <div key={plan._id} className="space-y-6">
+          <div className="space-y-6">
+            {/* Tab Navigation */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 max-w-md">
+                <TabsTrigger value="all">All Plans ({(plans as WorkoutPlan[]).length})</TabsTrigger>
+                <TabsTrigger value="bookmarks">Bookmarks ({(bookmarks as any[]).length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all" className="space-y-8 mt-6">
+                {displayedPlans.map((plan: WorkoutPlan) => (
+                  <div key={plan._id} className="space-y-6">
                 {/* Header Section */}
                 <div>
                   <div className="flex items-center gap-3 mb-2">
@@ -566,8 +578,51 @@ export default function ClientWorkoutPlans() {
                 )}
 
                 <div className="border-t pt-8" />
-              </div>
-            ))}
+                  </div>
+                ))}
+              </TabsContent>
+              <TabsContent value="bookmarks" className="space-y-8 mt-6">
+                {displayedPlans.length === 0 ? (
+                  <Card className="p-12 text-center bg-gradient-to-br from-muted/50 to-muted border-dashed">
+                    <Bookmark className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium text-muted-foreground mb-2">No bookmarks yet</p>
+                    <p className="text-sm text-muted-foreground">Bookmark your favorite workout plans to see them here</p>
+                  </Card>
+                ) : (
+                  displayedPlans.map((plan: WorkoutPlan) => (
+                    <div key={plan._id} className="space-y-6">
+                      {/* Simplified view for bookmarked plans - same structure */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-2xl font-bold text-foreground">{plan.name}</h2>
+                          {plan.description && (
+                            <p className="text-muted-foreground text-sm mt-1">{plan.description}</p>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => bookmarkMutation.mutate({ planId: plan._id, isBookmarked: isBookmarked(plan._id) })}
+                          data-testid={`button-bookmark-${plan._id}`}
+                        >
+                          {isBookmarked(plan._id) ? (
+                            <>
+                              <BookmarkCheck className="h-4 w-4 mr-2 fill-amber-400 text-amber-400" />
+                              Bookmarked
+                            </>
+                          ) : (
+                            <>
+                              <Bookmark className="h-4 w-4 mr-2" />
+                              Bookmark
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <div className="border-t pt-8" />
+                    </div>
+                  ))
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </main>
