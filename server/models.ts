@@ -97,6 +97,7 @@ export interface IVideo extends Document {
   originalFileName?: string;
   category: string;
   duration?: number;
+  caloriePerMinute?: number;
   intensity?: string;
   difficulty?: string;
   trainer?: string;
@@ -437,6 +438,7 @@ const VideoSchema = new Schema({
   originalFileName: String,
   category: { type: String, required: true },
   duration: Number,
+  caloriePerMinute: Number,
   intensity: String,
   difficulty: { type: String, enum: ['beginner', 'intermediate', 'advanced'] },
   trainer: String,
