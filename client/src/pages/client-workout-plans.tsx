@@ -305,73 +305,62 @@ export default function ClientWorkoutPlans() {
                       }, 0);
                       
                       return (
-                        <Card key={day} className="overflow-hidden border-2 border-primary/10 hover:border-primary/20 transition-colors">
-                          <div className="flex flex-col md:flex-row md:items-stretch">
-                            {/* Day Summary Sidebar */}
-                            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b md:border-b-0 md:border-r-2 border-primary/20 px-6 py-4 flex md:flex-col justify-between md:justify-between md:min-w-[200px]">
+                        <Card key={day} className="overflow-hidden border border-primary/20 hover:border-primary/40 transition-colors">
+                          <div className="flex flex-col sm:flex-row sm:items-stretch">
+                            {/* Day Summary Sidebar - Compact */}
+                            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b sm:border-b-0 sm:border-r border-primary/20 px-4 py-3 flex sm:flex-col justify-between items-start sm:min-w-[140px]">
                               <div>
-                                <div className="font-semibold mb-3 text-base px-3 py-1 bg-primary/20 rounded-md text-primary inline-block">
+                                <div className="font-semibold text-sm px-2 py-0.5 bg-primary/20 rounded text-primary inline-block">
                                   {day}
                                 </div>
                                 {plan.musclesByDay?.[day] && (
-                                  <p className="text-xs md:text-sm text-muted-foreground mt-2 hidden md:block">{plan.musclesByDay[day]}</p>
+                                  <p className="text-xs text-muted-foreground mt-1 hidden sm:block line-clamp-2">{plan.musclesByDay[day]}</p>
                                 )}
                               </div>
-                              <div className="space-y-3">
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">
+                              <div className="space-y-1">
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400">
                                     {Math.round(totalDayCalories)}
                                   </span>
-                                  <span className="text-sm text-muted-foreground">cal</span>
+                                  <span className="text-xs text-muted-foreground">cal</span>
                                 </div>
-                                <div className="space-y-1 text-xs md:text-sm hidden md:block">
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Exercises:</span>
-                                    <span className="font-semibold">{dayExercises.length}</span>
-                                  </div>
-                                  {plan.difficulty && (
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Level:</span>
-                                      <span className="font-semibold capitalize">{plan.difficulty}</span>
-                                    </div>
-                                  )}
+                                <div className="text-xs text-muted-foreground hidden sm:block">
+                                  {dayExercises.length} ex
                                 </div>
                               </div>
                             </div>
 
-                            {/* Exercises Grid */}
-                            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 divide-x divide-primary/20">
+                            {/* Exercises Grid - Compact */}
+                            <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 divide-x divide-primary/15">
                               {dayExercises.length > 0 ? (
                                 dayExercises.map((exercise: any, idx: number) => (
                                   <div
                                     key={idx}
-                                    className="p-3 md:p-4 flex flex-col hover:bg-primary/5 transition-colors"
+                                    className="p-2 sm:p-3 flex flex-col hover:bg-primary/5 transition-colors"
                                   >
-                                    <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+                                    <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
                                       Ex {idx + 1}
                                     </p>
-                                    <div className="space-y-2">
-                                      <p className="font-semibold text-foreground text-xs md:text-sm leading-tight">
-                                        {exercise.name || exercise}
-                                      </p>
-                                      {exercise.sets && (
-                                        <>
-                                          <div className="bg-blue-50 dark:bg-blue-950/30 rounded px-2 py-1 text-center">
-                                            <p className="text-xs text-muted-foreground hidden md:block">Sets</p>
-                                            <p className="font-bold text-blue-600 dark:text-blue-400 text-xs md:text-sm">{exercise.sets}</p>
-                                          </div>
-                                          <div className="bg-orange-50 dark:bg-orange-950/30 rounded px-2 py-1 text-center">
-                                            <p className="text-xs text-muted-foreground hidden md:block">Reps</p>
-                                            <p className="font-bold text-orange-600 dark:text-orange-400 text-xs md:text-sm">{exercise.reps || exercise.duration || '-'}</p>
-                                          </div>
-                                        </>
-                                      )}
-                                    </div>
+                                    <p className="font-semibold text-foreground text-xs leading-tight mb-1.5 line-clamp-2">
+                                      {exercise.name || exercise}
+                                    </p>
+                                    {exercise.sets && (
+                                      <div className="grid grid-cols-2 gap-1 text-xs">
+                                        <div>
+                                          <p className="text-muted-foreground font-medium">Sets</p>
+                                          <p className="font-bold text-blue-600 dark:text-blue-400">{exercise.sets}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-muted-foreground font-medium">Reps</p>
+                                          <p className="font-bold text-orange-600 dark:text-orange-400">{exercise.reps || exercise.duration || '-'}</p>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 ))
                               ) : (
-                                <div className="col-span-full p-6 text-center">
-                                  <p className="text-muted-foreground">Rest day</p>
+                                <div className="col-span-full p-3 text-center">
+                                  <p className="text-sm text-muted-foreground">Rest day</p>
                                 </div>
                               )}
                             </div>
