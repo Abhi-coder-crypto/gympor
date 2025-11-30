@@ -15,7 +15,8 @@ interface WorkoutPlan {
   name: string;
   description?: string;
   durationWeeks: number;
-  exercises: any;
+  exercises: Record<string, any[]>;
+  musclesByDay?: Record<string, string>;
   category?: string;
   goal?: string;
   difficulty?: string;
@@ -87,16 +88,15 @@ export default function ClientWorkoutPlans() {
   // Bookmark mutation
   const bookmarkMutation = useMutation({
     mutationFn: async ({ planId, isBookmarked }: { planId: string; isBookmarked: boolean }) => {
-      return apiRequest(
-        isBookmarked
-          ? `DELETE /api/clients/${clientId}/workout-bookmarks/${planId}`
-          : `POST /api/clients/${clientId}/workout-bookmarks`,
-        !isBookmarked ? { workoutPlanId: planId } : undefined
-      );
+      if (isBookmarked) {
+        return apiRequest('DELETE', `/api/clients/${clientId}/workout-bookmarks/${planId}`);
+      } else {
+        return apiRequest('POST', `/api/clients/${clientId}/workout-bookmarks`, { workoutPlanId: planId });
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_data: any, variables: { planId: string; isBookmarked: boolean }) => {
       queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}/workout-bookmarks`] });
-      toast({ description: isBookmarked ? "Bookmark removed" : "Added to bookmarks" });
+      toast({ description: variables.isBookmarked ? "Bookmark removed" : "Added to bookmarks" });
     },
     onError: () => {
       toast({ description: "Failed to update bookmark", variant: "destructive" });
@@ -105,10 +105,11 @@ export default function ClientWorkoutPlans() {
 
   // Session logging mutation
   const logSessionMutation = useMutation({
-    mutationFn: async (data: { planId: string; duration: number; notes: string }) => {
-      return apiRequest(`POST /api/clients/${clientId}/workout-history`, {
+    mutationFn: async (data: { planId: string; duration: string; notes: string }) => {
+      const plan = (plans as WorkoutPlan[]).find((p: WorkoutPlan) => p._id === data.planId);
+      return apiRequest('POST', `/api/clients/${clientId}/workout-history`, {
         workoutPlanId: data.planId,
-        workoutName: plans.find((p: WorkoutPlan) => p._id === data.planId)?.name || "Workout",
+        workoutName: plan?.name || "Workout",
         duration: parseInt(data.duration),
         notes: data.notes,
       });
@@ -118,6 +119,7 @@ export default function ClientWorkoutPlans() {
       setSessionNotes("");
       setSessionDuration("30");
       setSelectedPlanForLogging(null);
+      setSelectedDay("");
       toast({ description: "Workout session logged successfully" });
     },
     onError: () => {
@@ -128,10 +130,11 @@ export default function ClientWorkoutPlans() {
   // Notes mutation
   const notesMutation = useMutation({
     mutationFn: async ({ planId, notes }: { planId: string; notes: string }) => {
-      return apiRequest(
-        notes ? `POST /api/clients/${clientId}/workout-notes` : `DELETE /api/clients/${clientId}/workout-notes/${planId}`,
-        notes ? { workoutPlanId: planId, notes } : undefined
-      );
+      if (notes) {
+        return apiRequest('POST', `/api/clients/${clientId}/workout-notes`, { workoutPlanId: planId, notes });
+      } else {
+        return apiRequest('DELETE', `/api/clients/${clientId}/workout-notes/${planId}`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}/workout-notes`] });
@@ -142,9 +145,9 @@ export default function ClientWorkoutPlans() {
     },
   });
 
-  const isBookmarked = (planId: string) => bookmarks.some((b: any) => b.workoutPlanId === planId);
-  const getPlanHistory = (planId: string) => history.filter((s: any) => s.workoutPlanId === planId);
-  const getPlanNotes = (planId: string) => (notesMap as any)[planId] || "";
+  const isBookmarked = (planId: string) => (bookmarks as any[]).some((b: any) => b.workoutPlanId === planId);
+  const getPlanHistory = (planId: string) => (history as any[]).filter((s: any) => s.workoutPlanId === planId);
+  const getPlanNotes = (planId: string) => (notesMap as Record<string, string>)[planId] || "";
 
   // Helper function to parse reps (handles ranges like "10-12" or single values)
   const parseReps = (repsInput: any): number => {
@@ -167,7 +170,7 @@ export default function ClientWorkoutPlans() {
 
   // Calculate total calories burned from all exercises in a plan with weight multiplier
   const calculatePlanCalories = (plan: WorkoutPlan) => {
-    const clientWeight = dashboardData?.progress?.currentWeight || dashboardData?.weight || 70;
+    const clientWeight = (dashboardData as any)?.progress?.currentWeight || (dashboardData as any)?.weight || 70;
     const weightMultiplier = clientWeight / 70;
     let totalCalories = 0;
 
@@ -224,7 +227,7 @@ export default function ClientWorkoutPlans() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : plans.length === 0 ? (
+        ) : (plans as WorkoutPlan[]).length === 0 ? (
           <div>
             <h1 className="text-4xl font-bold mb-2 text-foreground">Your Workout Plans</h1>
             <p className="text-muted-foreground mb-8">Your personalized workout programs</p>
@@ -236,7 +239,7 @@ export default function ClientWorkoutPlans() {
           </div>
         ) : (
           <div className="space-y-8">
-            {plans.map((plan: WorkoutPlan) => (
+            {(plans as WorkoutPlan[]).map((plan: WorkoutPlan) => (
               <div key={plan._id} className="space-y-6">
                 {/* Header Section */}
                 <div>
@@ -296,7 +299,7 @@ export default function ClientWorkoutPlans() {
                   <div className="space-y-6">
                     {Object.entries(plan.exercises).map(([day, exercises]: [string, any]) => {
                       const dayExercises = Array.isArray(exercises) ? exercises : [];
-                      const clientWeight = dashboardData?.progress?.currentWeight || dashboardData?.weight || 70;
+                      const clientWeight = (dashboardData as any)?.progress?.currentWeight || (dashboardData as any)?.weight || 70;
                       const weightMultiplier = clientWeight / 70;
                       const totalDayCalories = dayExercises.reduce((sum: number, ex: any) => {
                         const sets = Number(ex.sets) || 0;
@@ -416,7 +419,7 @@ export default function ClientWorkoutPlans() {
                           data-testid={`select-day-${plan._id}`}
                         >
                           <option value="">Choose a day...</option>
-                          {plan.exercises && Object.keys(plan.exercises).map((day) => (
+                          {plan.exercises && Object.keys(plan.exercises).map((day: string) => (
                             <option key={day} value={day}>
                               {day}
                             </option>
