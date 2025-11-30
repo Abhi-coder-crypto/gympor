@@ -186,15 +186,20 @@ Total Items: ${items.length}
 
   if (error || !currentPlan) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
-        <UtensilsCrossed className="h-12 w-12 text-muted-foreground" />
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">No Diet Plan Assigned Yet</h2>
-          <p className="text-muted-foreground">Your trainer will assign a personalized diet plan here</p>
-          <Button onClick={() => setLocation("/client-dashboard")} className="mt-4">
-            Back to Dashboard
-          </Button>
-        </div>
+      <div className="min-h-screen bg-background">
+        <ClientHeader />
+        <main className="container mx-auto px-4 py-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 text-foreground">Your Diet Plans</h1>
+            <p className="text-muted-foreground mb-8">Your personalized nutrition programs</p>
+            <Card className="p-12 text-center bg-gradient-to-br from-muted/50 to-muted border-dashed">
+              <UtensilsCrossed className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium text-muted-foreground mb-2">No diet plans assigned yet</p>
+              <p className="text-sm text-muted-foreground">Your trainer will assign a personalized diet plan here.</p>
+            </Card>
+          </div>
+        </main>
+        <MobileNavigation />
       </div>
     );
   }
