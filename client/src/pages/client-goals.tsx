@@ -92,6 +92,7 @@ export default function ClientGoals() {
   const [clientId, setClientId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [updateProgressOpenGoalId, setUpdateProgressOpenGoalId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -210,6 +211,7 @@ export default function ClientGoals() {
     },
     onSuccess: (data: Goal) => {
       queryClient.invalidateQueries({ queryKey: ['/api/goals', clientId] });
+      setUpdateProgressOpenGoalId(null);
       
       const newMilestones = data.milestones.filter(m => 
         m.achieved && new Date(m.achievedAt || '').getTime() > Date.now() - 5000
@@ -574,9 +576,11 @@ export default function ClientGoals() {
                       )}
 
                       <div className="flex gap-2 pt-2">
-                        <Dialog>
+                        <Dialog open={updateProgressOpenGoalId === goal._id} onOpenChange={(open) => {
+                          if (!open) setUpdateProgressOpenGoalId(null);
+                        }}>
                           <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex-1" data-testid={`button-update-progress-${goal._id}`}>
+                            <Button variant="outline" size="sm" className="flex-1" onClick={() => setUpdateProgressOpenGoalId(goal._id)} data-testid={`button-update-progress-${goal._id}`}>
                               <TrendingUp className="h-3 w-3 mr-1" />
                               Update
                             </Button>
@@ -592,6 +596,7 @@ export default function ClientGoals() {
                               <div>
                                 <label className="text-sm font-medium">Current Value</label>
                                 <Input
+                                  key={`${goal._id}-input`}
                                   type="number"
                                   step="0.1"
                                   defaultValue={goal.currentValue}
