@@ -58,14 +58,7 @@ export default function ClientDiet() {
   }, [setLocation]);
 
   const { data: dietPlans = [], isLoading, error } = useQuery<DietPlan[]>({
-    queryKey: ["/api/diet-plans", clientId],
-    queryFn: async () => {
-      if (!clientId) return [];
-      const url = `/api/diet-plans?clientId=${clientId}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch diet plans");
-      return response.json();
-    },
+    queryKey: [`/api/clients/${clientId}/diet-plans`],
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 10000,
