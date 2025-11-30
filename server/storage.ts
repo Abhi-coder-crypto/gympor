@@ -435,7 +435,7 @@ export class MongoStorage implements IStorage {
   async getClientVideos(clientId: string): Promise<IVideo[]> {
     const convertedClientId = new mongoose.Types.ObjectId(clientId);
     const clientVideos = await ClientVideo.find({ clientId: convertedClientId }).populate('videoId');
-    return clientVideos.map(cv => cv.videoId as any);
+    return clientVideos.map(cv => cv.videoId as any).filter((video: any) => video !== null);
   }
 
   async assignVideoToClient(clientId: string, videoId: string): Promise<IClientVideo> {

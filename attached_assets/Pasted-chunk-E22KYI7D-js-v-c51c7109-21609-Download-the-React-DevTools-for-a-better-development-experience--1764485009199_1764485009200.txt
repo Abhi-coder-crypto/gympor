@@ -1,0 +1,60 @@
+chunk-E22KYI7D.js?v=c51c7109:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+client-video-library.tsx:59 [ClientVideoLibrary] clientId: null
+client-video-library.tsx:60 [ClientVideoLibrary] assignedVideosData: []
+client-video-library.tsx:61 [ClientVideoLibrary] isLoading: false
+client-video-library.tsx:59 [ClientVideoLibrary] clientId: 69202b504ab4a0b2fb0e5e75
+client-video-library.tsx:60 [ClientVideoLibrary] assignedVideosData: []
+client-video-library.tsx:61 [ClientVideoLibrary] isLoading: true
+queryClient.ts:54  GET https://a75cbcf5-45d5-4a44-a83b-f87edd15a2c5-00-1d2a71u397kwb.picard.replit.dev/api/clients/69202b504ab4a0b2fb0e5e75/bookmarks 403 (Forbidden)
+(anonymous) @ queryClient.ts:54
+fetchFn @ @tanstack_react-query.js?v=c51c7109:812
+run @ @tanstack_react-query.js?v=c51c7109:477
+start @ @tanstack_react-query.js?v=c51c7109:518
+fetch @ @tanstack_react-query.js?v=c51c7109:893
+#executeFetch @ @tanstack_react-query.js?v=c51c7109:1963
+setOptions @ @tanstack_react-query.js?v=c51c7109:1897
+(anonymous) @ @tanstack_react-query.js?v=c51c7109:2972
+commitHookEffectListMount @ chunk-E22KYI7D.js?v=c51c7109:16963
+commitPassiveMountOnFiber @ chunk-E22KYI7D.js?v=c51c7109:18211
+commitPassiveMountEffects_complete @ chunk-E22KYI7D.js?v=c51c7109:18179
+commitPassiveMountEffects_begin @ chunk-E22KYI7D.js?v=c51c7109:18169
+commitPassiveMountEffects @ chunk-E22KYI7D.js?v=c51c7109:18159
+flushPassiveEffectsImpl @ chunk-E22KYI7D.js?v=c51c7109:19543
+flushPassiveEffects @ chunk-E22KYI7D.js?v=c51c7109:19500
+performSyncWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18921
+flushSyncCallbacks @ chunk-E22KYI7D.js?v=c51c7109:9166
+commitRootImpl @ chunk-E22KYI7D.js?v=c51c7109:19485
+commitRoot @ chunk-E22KYI7D.js?v=c51c7109:19330
+finishConcurrentRender @ chunk-E22KYI7D.js?v=c51c7109:18858
+performConcurrentWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18768
+workLoop @ chunk-E22KYI7D.js?v=c51c7109:197
+flushWork @ chunk-E22KYI7D.js?v=c51c7109:176
+performWorkUntilDeadline @ chunk-E22KYI7D.js?v=c51c7109:384
+queryClient.ts:54  GET https://a75cbcf5-45d5-4a44-a83b-f87edd15a2c5-00-1d2a71u397kwb.picard.replit.dev/api/clients/69202b504ab4a0b2fb0e5e75/videos 500 (Internal Server Error)
+(anonymous) @ queryClient.ts:54
+fetchFn @ @tanstack_react-query.js?v=c51c7109:812
+run @ @tanstack_react-query.js?v=c51c7109:477
+start @ @tanstack_react-query.js?v=c51c7109:518
+fetch @ @tanstack_react-query.js?v=c51c7109:893
+#executeFetch @ @tanstack_react-query.js?v=c51c7109:1963
+setOptions @ @tanstack_react-query.js?v=c51c7109:1897
+(anonymous) @ @tanstack_react-query.js?v=c51c7109:2972
+commitHookEffectListMount @ chunk-E22KYI7D.js?v=c51c7109:16963
+commitPassiveMountOnFiber @ chunk-E22KYI7D.js?v=c51c7109:18211
+commitPassiveMountEffects_complete @ chunk-E22KYI7D.js?v=c51c7109:18179
+commitPassiveMountEffects_begin @ chunk-E22KYI7D.js?v=c51c7109:18169
+commitPassiveMountEffects @ chunk-E22KYI7D.js?v=c51c7109:18159
+flushPassiveEffectsImpl @ chunk-E22KYI7D.js?v=c51c7109:19543
+flushPassiveEffects @ chunk-E22KYI7D.js?v=c51c7109:19500
+performSyncWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18921
+flushSyncCallbacks @ chunk-E22KYI7D.js?v=c51c7109:9166
+commitRootImpl @ chunk-E22KYI7D.js?v=c51c7109:19485
+commitRoot @ chunk-E22KYI7D.js?v=c51c7109:19330
+finishConcurrentRender @ chunk-E22KYI7D.js?v=c51c7109:18858
+performConcurrentWorkOnRoot @ chunk-E22KYI7D.js?v=c51c7109:18768
+workLoop @ chunk-E22KYI7D.js?v=c51c7109:197
+flushWork @ chunk-E22KYI7D.js?v=c51c7109:176
+performWorkUntilDeadline @ chunk-E22KYI7D.js?v=c51c7109:384
+client-video-library.tsx:59 [ClientVideoLibrary] clientId: 69202b504ab4a0b2fb0e5e75
+client-video-library.tsx:60 [ClientVideoLibrary] assignedVideosData: []
+client-video-library.tsx:61 [ClientVideoLibrary] isLoading: false

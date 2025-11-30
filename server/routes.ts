@@ -2125,6 +2125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Helper function to ensure boolean flags are set for legacy documents
   const ensureVideoFlags = (video: any) => {
+    if (!video) return null;
     return {
       ...video.toObject ? video.toObject() : video,
       hasVideoData: video.hasVideoData !== undefined ? video.hasVideoData : !!video.videoData,
@@ -2315,7 +2316,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[API] Client found, fetching videos...');
       const videos = await storage.getClientVideos(req.params.clientId);
       console.log('[API] Videos fetched:', videos.length, 'videos');
-      res.json(videos.map(ensureVideoFlags));
+      const videosWithFlags = videos.map(ensureVideoFlags).filter(v => v !== null);
+      console.log('[API] Videos after filtering:', videosWithFlags.length, 'videos');
+      res.json(videosWithFlags);
     } catch (error: any) {
       console.error('[API] Error fetching client videos:', error.message, error.stack);
       res.status(500).json({ message: error.message });
