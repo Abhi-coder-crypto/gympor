@@ -337,8 +337,8 @@ export default function ClientDashboard() {
     if (plan.completed) completedWorkouts++;
   });
 
-  // Count only live sessions assigned to this client
-  const assignedSessions = (sessionsData || []).filter((s: any) => s.status === 'live').length;
+  // Count all sessions assigned to this client (upcoming, live, or completed)
+  const assignedSessions = (sessionsData || []).length;
 
   // Calculate total calories from 7-day diet plan
   const dietCalories = dietPlanData?.totalCalories || 0;
