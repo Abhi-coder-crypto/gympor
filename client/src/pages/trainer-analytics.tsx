@@ -195,11 +195,10 @@ export default function TrainerAnalytics() {
                         data={clientsByGoal}
                         cx="50%"
                         cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
+                        outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
+                        label={false}
                       >
                         {clientsByGoal.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -209,7 +208,19 @@ export default function TrainerAnalytics() {
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--card))', 
                           border: '1px solid hsl(var(--border))' 
-                        }} 
+                        }}
+                        formatter={(value: number, name: string) => [`${value} clients`, name]}
+                      />
+                      <Legend 
+                        layout="vertical"
+                        align="right"
+                        verticalAlign="middle"
+                        formatter={(value: string, entry: any) => {
+                          const total = clientsByGoal.reduce((sum, item) => sum + item.value, 0);
+                          const item = clientsByGoal.find(g => g.name === value);
+                          const percent = total > 0 ? ((item?.value || 0) / total * 100).toFixed(0) : 0;
+                          return `${value}: ${percent}%`;
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
