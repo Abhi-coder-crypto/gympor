@@ -26,7 +26,8 @@ interface Meal {
   protein?: number;
   carbs?: number;
   fats?: number;
-  dishes?: Array<{ name: string; quantity?: string }>;
+  ingredients?: string[];
+  servings?: number;
 }
 
 interface DietPlan {
@@ -123,15 +124,23 @@ export default function ClientDiet() {
     
     MEAL_TYPES.forEach((mealType) => {
       const meal = getMealForDayAndType(dayIndex, mealType);
-      if (meal?.dishes) {
-        meal.dishes.forEach((dish: any) => {
-          const text = dish.quantity ? `${dish.name} - ${dish.quantity}` : dish.name;
-          items.add(text);
-        });
+      if (meal) {
+        // Add meal name as main item
+        if (meal.name && meal.name.trim()) {
+          items.add(meal.name);
+        }
+        // Add individual ingredients if available
+        if (meal.ingredients && Array.isArray(meal.ingredients)) {
+          meal.ingredients.forEach((ingredient: string) => {
+            if (ingredient && ingredient.trim()) {
+              items.add(ingredient);
+            }
+          });
+        }
       }
     });
     
-    return Array.from(items);
+    return Array.from(items).filter(item => item !== 'undefined' && item !== '-');
   };
 
   const downloadGroceryList = (dayIndex: number) => {
