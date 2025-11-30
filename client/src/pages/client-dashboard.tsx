@@ -177,6 +177,11 @@ export default function ClientDashboard() {
     refetchInterval: 10000,
   });
 
+  useEffect(() => {
+    console.log('[ClientDashboard] clientId:', clientId);
+    console.log('[ClientDashboard] assignedVideos:', assignedVideos);
+  }, [clientId, assignedVideos]);
+
   const { data: workoutPlans = [] } = useQuery<any[]>({
     queryKey: [`/api/clients/${clientId}/workout-plans`],
     enabled: !!clientId,

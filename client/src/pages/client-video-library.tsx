@@ -54,6 +54,12 @@ export default function ClientVideoLibrary() {
     refetchOnWindowFocus: true,
     refetchInterval: 10000,
   });
+
+  useEffect(() => {
+    console.log('[ClientVideoLibrary] clientId:', clientId);
+    console.log('[ClientVideoLibrary] assignedVideosData:', assignedVideosData);
+    console.log('[ClientVideoLibrary] isLoading:', isLoading);
+  }, [clientId, assignedVideosData, isLoading]);
   
   // Extract videos from assigned data (handle both formats: direct video or {video: ...})
   const videos: Video[] = assignedVideosData.map((item: any) => item.video || item).filter(Boolean);

@@ -2305,14 +2305,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Client Video routes (accessible by client via localStorage clientId or authenticated users)
   app.get("/api/clients/:clientId/videos", optionalAuth, async (req, res) => {
     try {
+      console.log('[API] GET /api/clients/:clientId/videos - clientId:', req.params.clientId);
       // Verify client exists before returning videos
       const client = await storage.getClient(req.params.clientId);
       if (!client) {
+        console.log('[API] Client not found:', req.params.clientId);
         return res.status(404).json({ message: "Client not found" });
       }
+      console.log('[API] Client found, fetching videos...');
       const videos = await storage.getClientVideos(req.params.clientId);
+      console.log('[API] Videos fetched:', videos.length, 'videos');
       res.json(videos.map(ensureVideoFlags));
     } catch (error: any) {
+      console.error('[API] Error fetching client videos:', error.message, error.stack);
       res.status(500).json({ message: error.message });
     }
   });
