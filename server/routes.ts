@@ -2140,6 +2140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Video routes
   app.get("/api/videos", async (_req, res) => {
     try {
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       const videos = await storage.getAllVideos();
       const videosWithFlags = videos.map(ensureVideoFlags);
       res.json(videosWithFlags);
@@ -2310,6 +2311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Client Video routes (accessible by client via localStorage clientId or authenticated users)
   app.get("/api/clients/:clientId/videos", optionalAuth, async (req, res) => {
     try {
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       console.log('[API] GET /api/clients/:clientId/videos - clientId:', req.params.clientId);
       // Verify client exists before returning videos
       const client = await storage.getClient(req.params.clientId);
