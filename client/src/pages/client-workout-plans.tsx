@@ -145,9 +145,28 @@ export default function ClientWorkoutPlans() {
   const getPlanHistory = (planId: string) => history.filter((s: any) => s.workoutPlanId === planId);
   const getPlanNotes = (planId: string) => (notesMap as any)[planId] || "";
 
+  // Helper function to parse reps (handles ranges like "10-12" or single values)
+  const parseReps = (repsInput: any): number => {
+    if (!repsInput) return 0;
+    const repsStr = String(repsInput).trim();
+    
+    // Check if it's a range (e.g., "10-12")
+    if (repsStr.includes('-')) {
+      const parts = repsStr.split('-').map(p => parseInt(p, 10));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        // Return average of range
+        return Math.round((parts[0] + parts[1]) / 2);
+      }
+    }
+    
+    // Try parsing as single number
+    const num = parseInt(repsStr, 10);
+    return !isNaN(num) ? num : 0;
+  };
+
   // Calculate total calories burned from all exercises in a plan with weight multiplier
   const calculatePlanCalories = (plan: WorkoutPlan) => {
-    const clientWeight = dashboardData?.progress?.currentWeight || 70;
+    const clientWeight = dashboardData?.progress?.currentWeight || dashboardData?.weight || 70;
     const weightMultiplier = clientWeight / 70;
     let totalCalories = 0;
 
@@ -160,9 +179,8 @@ export default function ClientWorkoutPlans() {
               totalCalories += exercise.caloriesBurned;
             } else if (exercise?.sets && exercise?.reps) {
               // Estimate: 0.15 calories per rep (standard fitness formula)
-              // Ensure sets and reps are numbers (convert from string if needed)
               const sets = Number(exercise.sets) || 0;
-              const reps = Number(exercise.reps) || 0;
+              const reps = parseReps(exercise.reps);
               const estimatedCalories = sets * reps * 0.15;
               if (!isNaN(estimatedCalories) && estimatedCalories > 0) {
                 totalCalories += estimatedCalories;
@@ -277,10 +295,12 @@ export default function ClientWorkoutPlans() {
                   <div className="space-y-6">
                     {Object.entries(plan.exercises).map(([day, exercises]: [string, any]) => {
                       const dayExercises = Array.isArray(exercises) ? exercises : [];
+                      const clientWeight = dashboardData?.progress?.currentWeight || dashboardData?.weight || 70;
+                      const weightMultiplier = clientWeight / 70;
                       const totalDayCalories = dayExercises.reduce((sum: number, ex: any) => {
-                        const sets = Number(ex.sets) || 1;
-                        const reps = Number(ex.reps) || 0;
-                        const calories = (sets * reps * 0.15) * (dashboardData?.weight || 70) / 70;
+                        const sets = Number(ex.sets) || 0;
+                        const reps = parseReps(ex.reps);
+                        const calories = (sets * reps * 0.15) * weightMultiplier;
                         return sum + calories;
                       }, 0);
                       
