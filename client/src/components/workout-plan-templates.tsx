@@ -42,6 +42,7 @@ interface WorkoutPlanFormData {
   difficulty: string;
   durationWeeks: number;
   exercises: Record<string, Array<{ name: string; sets: number; reps: string; rest: string; notes: string }>>;
+  musclesByDay: Record<string, string>;
 }
 
 // Force rebuild - filters should display
@@ -62,6 +63,7 @@ export function WorkoutPlanTemplates({ isTrainer = false, trainerId = '' }: { is
     difficulty: "beginner",
     durationWeeks: 4,
     exercises: {},
+    musclesByDay: {},
   });
 
   const [selectedDay, setSelectedDay] = useState<string>("Monday");
@@ -128,6 +130,7 @@ export function WorkoutPlanTemplates({ isTrainer = false, trainerId = '' }: { is
       difficulty: "beginner",
       durationWeeks: 4,
       exercises: {},
+      musclesByDay: {},
     });
     setSelectedDay("Monday");
   };
@@ -149,6 +152,7 @@ export function WorkoutPlanTemplates({ isTrainer = false, trainerId = '' }: { is
       difficulty: plan.difficulty || "beginner",
       durationWeeks: plan.durationWeeks,
       exercises: normalizedExercises,
+      musclesByDay: plan.musclesByDay || {},
     });
     setDialogOpen(true);
   };
@@ -374,6 +378,25 @@ export function WorkoutPlanTemplates({ isTrainer = false, trainerId = '' }: { is
               </div>
 
               <div className="space-y-2 border rounded-md p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex-1">
+                    <Label className="text-base">{selectedDay} - Muscles Targeted</Label>
+                    <Input
+                      placeholder="e.g., Chest, Triceps"
+                      value={formData.musclesByDay[selectedDay] || ""}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        musclesByDay: {
+                          ...formData.musclesByDay,
+                          [selectedDay]: e.target.value
+                        }
+                      })}
+                      className="mt-1"
+                      data-testid={`input-muscles-${selectedDay}`}
+                    />
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-base">{selectedDay} Exercises</Label>
                   <Button size="sm" onClick={addExercise} data-testid="button-add-exercise">

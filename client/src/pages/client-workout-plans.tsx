@@ -310,9 +310,12 @@ export default function ClientWorkoutPlans() {
                             {/* Day Summary Sidebar */}
                             <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b md:border-b-0 md:border-r-2 border-primary/20 px-6 py-4 flex md:flex-col justify-between md:justify-between md:min-w-[200px]">
                               <div>
-                                <div className="font-semibold mb-4 text-base px-3 py-1 bg-primary/20 rounded-md text-primary inline-block">
+                                <div className="font-semibold mb-3 text-base px-3 py-1 bg-primary/20 rounded-md text-primary inline-block">
                                   {day}
                                 </div>
+                                {plan.musclesByDay?.[day] && (
+                                  <p className="text-xs md:text-sm text-muted-foreground mt-2 hidden md:block">{plan.musclesByDay[day]}</p>
+                                )}
                               </div>
                               <div className="space-y-3">
                                 <div className="flex items-baseline gap-2">
