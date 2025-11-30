@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Bookmark, BookmarkCheck, CheckCircle2, Clock, Dumbbell, BarChart3, FileText, AlertCircle, Loader2, GripVertical, LayoutGrid, ChevronDown, ChevronUp, Target, Flame } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface WorkoutPlan {
   _id: string;
@@ -43,9 +43,46 @@ export default function ClientWorkoutPlans() {
   const [selectedDay, setSelectedDay] = useState("");
   const [expandedNotePlanId, setExpandedNotePlanId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [dayBookmarks, setDayBookmarks] = useState<Array<{ planId: string; day: string; planName: string }>>([]);
 
   // Get client ID from localStorage
   const clientId = localStorage.getItem("clientId");
+
+  // Load day bookmarks from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem("dayBookmarks");
+    if (stored) {
+      try {
+        setDayBookmarks(JSON.parse(stored));
+      } catch (e) {
+        setDayBookmarks([]);
+      }
+    }
+  }, []);
+
+  // Save day bookmarks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("dayBookmarks", JSON.stringify(dayBookmarks));
+  }, [dayBookmarks]);
+
+  // Helper to toggle day bookmark
+  const toggleDayBookmark = (planId: string, day: string, planName: string) => {
+    setDayBookmarks(prev => {
+      const exists = prev.find(b => b.planId === planId && b.day === day);
+      if (exists) {
+        toast({ description: "Bookmark removed" });
+        return prev.filter(b => !(b.planId === planId && b.day === day));
+      } else {
+        toast({ description: "Added to bookmarks" });
+        return [...prev, { planId, day, planName }];
+      }
+    });
+  };
+
+  // Helper to check if a day is bookmarked
+  const isDayBookmarked = (planId: string, day: string): boolean => {
+    return dayBookmarks.some(b => b.planId === planId && b.day === day);
+  };
 
   // Fetch dashboard data for client weight
   const { data: dashboardData } = useQuery({
@@ -57,14 +94,6 @@ export default function ClientWorkoutPlans() {
   // Fetch assigned workout plans
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: [`/api/clients/${clientId}/workout-plans`],
-    enabled: !!clientId,
-    staleTime: 0,
-    refetchInterval: 5000,
-  });
-
-  // Fetch bookmarked workout plans
-  const { data: bookmarks = [], isLoading: bookmarksLoading } = useQuery({
-    queryKey: [`/api/clients/${clientId}/workout-bookmarks`],
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 5000,
@@ -92,24 +121,6 @@ export default function ClientWorkoutPlans() {
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 5000,
-  });
-
-  // Bookmark mutation
-  const bookmarkMutation = useMutation({
-    mutationFn: async ({ planId, isBookmarked }: { planId: string; isBookmarked: boolean }) => {
-      if (isBookmarked) {
-        return apiRequest('DELETE', `/api/clients/${clientId}/workout-bookmarks/${planId}`);
-      } else {
-        return apiRequest('POST', `/api/clients/${clientId}/workout-bookmarks`, { workoutPlanId: planId });
-      }
-    },
-    onSuccess: (_data: any, variables: { planId: string; isBookmarked: boolean }) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}/workout-bookmarks`] });
-      toast({ description: variables.isBookmarked ? "Bookmark removed" : "Added to bookmarks" });
-    },
-    onError: () => {
-      toast({ description: "Failed to update bookmark", variant: "destructive" });
-    },
   });
 
   // Session logging mutation
@@ -164,7 +175,6 @@ export default function ClientWorkoutPlans() {
     },
   });
 
-  const isBookmarked = (planId: string) => (bookmarks as any[]).some((b: any) => b.workoutPlanId === planId);
   const getPlanHistory = (planId: string) => (history as any[]).filter((s: any) => s.workoutPlanId === planId);
   const getPlanNotes = (planId: string) => (notesMap as Record<string, string>)[planId] || "";
   const getPlanLogs = (planId: string) => (workoutLogs as any[]).filter((l: any) => l.workoutPlanId === planId);
@@ -239,8 +249,11 @@ export default function ClientWorkoutPlans() {
     }
   };
 
+  // Get unique plan IDs from day bookmarks
+  const bookmarkedPlanIds = new Set(dayBookmarks.map(b => b.planId));
+  
   const displayedPlans = activeTab === "bookmarks" 
-    ? (plans as WorkoutPlan[]).filter((plan: WorkoutPlan) => isBookmarked(plan._id))
+    ? (plans as WorkoutPlan[]).filter((plan: WorkoutPlan) => bookmarkedPlanIds.has(plan._id))
     : (plans as WorkoutPlan[]);
 
   return (
@@ -268,7 +281,7 @@ export default function ClientWorkoutPlans() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 max-w-md">
                 <TabsTrigger value="all">All Plans ({(plans as WorkoutPlan[]).length})</TabsTrigger>
-                <TabsTrigger value="bookmarks">Bookmarks ({(bookmarks as any[]).length})</TabsTrigger>
+                <TabsTrigger value="bookmarks">Bookmarked Days ({dayBookmarks.length})</TabsTrigger>
               </TabsList>
               <TabsContent value="all" className="space-y-8 mt-6">
                 {displayedPlans.map((plan: WorkoutPlan) => (
@@ -356,14 +369,26 @@ export default function ClientWorkoutPlans() {
                                 ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700'
                                 : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20'
                             }`}>
-                              <div>
+                              <div className="flex items-center gap-2">
                                 <div className="font-semibold text-sm px-2 py-0.5 bg-primary/20 rounded text-primary inline-block">
                                   {day}
                                 </div>
-                                {plan.musclesByDay?.[day] && (
-                                  <p className="text-xs text-muted-foreground mt-1 hidden sm:block line-clamp-2">{plan.musclesByDay[day]}</p>
-                                )}
+                                <button
+                                  onClick={() => toggleDayBookmark(plan._id, day, plan.name)}
+                                  className="p-1 hover:bg-primary/10 rounded transition-colors"
+                                  title={isDayBookmarked(plan._id, day) ? "Remove from bookmarks" : "Add to bookmarks"}
+                                  data-testid={`button-bookmark-day-${plan._id}-${day}`}
+                                >
+                                  {isDayBookmarked(plan._id, day) ? (
+                                    <BookmarkCheck className="h-4 w-4 fill-amber-400 text-amber-400" />
+                                  ) : (
+                                    <Bookmark className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                  )}
+                                </button>
                               </div>
+                              {plan.musclesByDay?.[day] && (
+                                <p className="text-xs text-muted-foreground mt-1 hidden sm:block line-clamp-2">{plan.musclesByDay[day]}</p>
+                              )}
                               <div className="space-y-1">
                                 <div className="flex items-baseline gap-1">
                                   <span className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400">
@@ -428,23 +453,6 @@ export default function ClientWorkoutPlans() {
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
                     Log Workout Session
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => bookmarkMutation.mutate({ planId: plan._id, isBookmarked: isBookmarked(plan._id) })}
-                    data-testid={`button-bookmark-workout-${plan._id}`}
-                  >
-                    {isBookmarked(plan._id) ? (
-                      <>
-                        <BookmarkCheck className="h-4 w-4 mr-2 fill-amber-400 text-amber-400" />
-                        Bookmarked
-                      </>
-                    ) : (
-                      <>
-                        <Bookmark className="h-4 w-4 mr-2" />
-                        Bookmark
-                      </>
-                    )}
                   </Button>
                 </div>
 
@@ -581,45 +589,35 @@ export default function ClientWorkoutPlans() {
                   </div>
                 ))}
               </TabsContent>
-              <TabsContent value="bookmarks" className="space-y-8 mt-6">
-                {displayedPlans.length === 0 ? (
+              <TabsContent value="bookmarks" className="space-y-6 mt-6">
+                {dayBookmarks.length === 0 ? (
                   <Card className="p-12 text-center bg-gradient-to-br from-muted/50 to-muted border-dashed">
                     <Bookmark className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium text-muted-foreground mb-2">No bookmarks yet</p>
-                    <p className="text-sm text-muted-foreground">Bookmark your favorite workout plans to see them here</p>
+                    <p className="text-lg font-medium text-muted-foreground mb-2">No bookmarked days yet</p>
+                    <p className="text-sm text-muted-foreground">Bookmark individual workout days to see them here</p>
                   </Card>
                 ) : (
-                  displayedPlans.map((plan: WorkoutPlan) => (
-                    <div key={plan._id} className="space-y-6">
-                      {/* Simplified view for bookmarked plans - same structure */}
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h2 className="text-2xl font-bold text-foreground">{plan.name}</h2>
-                          {plan.description && (
-                            <p className="text-muted-foreground text-sm mt-1">{plan.description}</p>
-                          )}
+                  <div className="grid gap-4">
+                    {dayBookmarks.map((bookmark, idx) => (
+                      <Card key={idx} className="p-4 flex items-center justify-between hover:border-primary/40 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <BookmarkCheck className="h-5 w-5 fill-amber-400 text-amber-400" />
+                          <div>
+                            <p className="font-semibold text-foreground">{bookmark.day}</p>
+                            <p className="text-sm text-muted-foreground">{bookmark.planName}</p>
+                          </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          onClick={() => bookmarkMutation.mutate({ planId: plan._id, isBookmarked: isBookmarked(plan._id) })}
-                          data-testid={`button-bookmark-${plan._id}`}
+                        <button
+                          onClick={() => toggleDayBookmark(bookmark.planId, bookmark.day, bookmark.planName)}
+                          className="p-2 hover:bg-destructive/10 rounded transition-colors"
+                          title="Remove from bookmarks"
+                          data-testid={`button-remove-bookmark-${bookmark.planId}-${bookmark.day}`}
                         >
-                          {isBookmarked(plan._id) ? (
-                            <>
-                              <BookmarkCheck className="h-4 w-4 mr-2 fill-amber-400 text-amber-400" />
-                              Bookmarked
-                            </>
-                          ) : (
-                            <>
-                              <Bookmark className="h-4 w-4 mr-2" />
-                              Bookmark
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <div className="border-t pt-8" />
-                    </div>
-                  ))
+                          <Bookmark className="h-4 w-4 text-destructive" />
+                        </button>
+                      </Card>
+                    ))}
+                  </div>
                 )}
               </TabsContent>
             </Tabs>
