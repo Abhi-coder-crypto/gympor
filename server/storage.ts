@@ -1085,17 +1085,22 @@ export class MongoStorage implements IStorage {
       
       const mealType = meal.type || meal.mealType || 'breakfast';
       
-      // Store meal under the day and meal type
+      // Store meal under the day and meal type - PRESERVE ALL FIELDS
       dayIndexed[dayKey][mealType] = {
+        name: meal.name || meal.dishName || 'Meal',
         time: meal.time || '9:00 AM',
-        calories: meal.calories || 0,
-        protein: meal.protein || 0,
-        carbs: meal.carbs || 0,
-        fats: meal.fats || 0,
-        dishes: meal.dishes || []
+        calories: Number(meal.calories) || 0,
+        protein: Number(meal.protein) || 0,
+        carbs: Number(meal.carbs) || 0,
+        fats: Number(meal.fats) || 0,
+        ingredients: meal.ingredients || [],
+        servings: Number(meal.servings) || 1,
+        dishes: meal.dishes || [],
+        prepTime: meal.prepTime,
+        cookTime: meal.cookTime
       };
       
-      console.log(`[Diet Convert] Mapped meal to ${dayKey}/${mealType}: cal=${dayIndexed[dayKey][mealType].calories}`);
+      console.log(`[Diet Convert] Mapped meal to ${dayKey}/${mealType}: name=${dayIndexed[dayKey][mealType].name}, cal=${dayIndexed[dayKey][mealType].calories}`);
     });
     
     return dayIndexed;
