@@ -4479,9 +4479,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const nextSession = upcomingSessions[0] || null;
       
-      const initialWeight = metrics?.weight || client.weight || 0;
+      const initialWeight = client.weight || metrics?.weight || 0;
       const targetWeight = metrics?.idealWeight || 0;
-      const currentWeight = metrics?.weight || client.weight || 0;
+      const currentWeight = client.weight || metrics?.weight || 0;
       const weightProgress = targetWeight ? Math.round(((initialWeight - currentWeight) / (initialWeight - targetWeight)) * 100) : 0;
       
       const today = new Date();
