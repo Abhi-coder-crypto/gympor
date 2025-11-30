@@ -1040,6 +1040,22 @@ export class MongoStorage implements IStorage {
             plan.meals = this.convertArrayMealsToDayIndexed(plan.meals);
           }
           
+          // RECALCULATE all meal calories from macros to ensure accuracy (fixes old/existing plans)
+          if (plan.meals && typeof plan.meals === 'object' && !Array.isArray(plan.meals)) {
+            Object.entries(plan.meals).forEach(([day, dayMeals]: [string, any]) => {
+              Object.entries(dayMeals).forEach(([mealType, meal]: [string, any]) => {
+                if (meal && typeof meal === 'object') {
+                  const protein = Number(meal.protein) || 0;
+                  const carbs = Number(meal.carbs) || 0;
+                  const fats = Number(meal.fats) || 0;
+                  // Recalculate from macros: protein*4 + carbs*4 + fats*9
+                  meal.calories = Math.round((protein * 4) + (carbs * 4) + (fats * 9));
+                  console.log(`[Diet Plans] RECALC ${day}/${mealType}: calories=${meal.calories} from P:${protein}g C:${carbs}g F:${fats}g`);
+                }
+              });
+            });
+          }
+          
           const mealsKeys = plan.meals && typeof plan.meals === 'object' ? Object.keys(plan.meals) : [];
           console.log(`[Diet Plans] Plan ${idx}: ${plan.name}, Meals days: [${mealsKeys.join(', ')}]`);
           if (plan.meals && typeof plan.meals === 'object' && !Array.isArray(plan.meals)) {
@@ -1332,6 +1348,22 @@ export class MongoStorage implements IStorage {
 
   async getAllDietPlansWithAssignments(): Promise<any[]> {
     const plans = await DietPlan.find().lean();
+    
+    // RECALCULATE all meal calories from macros for accuracy
+    plans.forEach((plan: any) => {
+      if (plan.meals && typeof plan.meals === 'object' && !Array.isArray(plan.meals)) {
+        Object.entries(plan.meals).forEach(([day, dayMeals]: [string, any]) => {
+          Object.entries(dayMeals).forEach(([mealType, meal]: [string, any]) => {
+            if (meal && typeof meal === 'object') {
+              const protein = Number(meal.protein) || 0;
+              const carbs = Number(meal.carbs) || 0;
+              const fats = Number(meal.fats) || 0;
+              meal.calories = Math.round((protein * 4) + (carbs * 4) + (fats * 9));
+            }
+          });
+        });
+      }
+    });
     
     // Enrich each plan with assignment info from junction table
     const enrichedPlans = await Promise.all(
