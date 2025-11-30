@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Bell, Clock } from "lucide-react";
@@ -11,8 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 export function SessionReminders() {
-  const [upcomingSessions, setUpcomingSessions] = useState<any[]>([]);
-
   // Fetch assigned sessions for the client
   const { data: sessions = [] } = useQuery<any[]>({
     queryKey: ['/api/my-sessions'],
@@ -27,14 +25,15 @@ export function SessionReminders() {
     },
   });
 
-  useEffect(() => {
-    if (!Array.isArray(sessions)) return;
+  // Memoize the upcoming sessions calculation to prevent infinite loops
+  const upcomingSessions = useMemo(() => {
+    if (!Array.isArray(sessions)) return [];
 
     const now = new Date();
     const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
 
     // Find sessions within the next hour
-    const sessionsWithinOneHour = sessions.filter((session: any) => {
+    return sessions.filter((session: any) => {
       if (!session.scheduledAt) return false;
       const sessionTime = new Date(session.scheduledAt);
       return (
@@ -43,8 +42,6 @@ export function SessionReminders() {
         session.status !== 'completed'
       );
     });
-
-    setUpcomingSessions(sessionsWithinOneHour);
   }, [sessions]);
 
   return (
