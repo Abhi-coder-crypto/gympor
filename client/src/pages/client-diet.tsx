@@ -70,16 +70,23 @@ export default function ClientDiet() {
   const getMealForDayAndType = (dayIndex: number, mealType: string): Meal | undefined => {
     if (!currentPlan?.meals) return undefined;
     
-    // Handle flat 5-meal structure (breakfast, lunch, pre-workout, post-workout, dinner)
     const meals = currentPlan.meals;
     const mealKey = mealType.toLowerCase();
     
-    // Check if it's a direct meal (flat structure)
+    // Handle day-based structure (Monday, Tuesday, etc.)
+    const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const dayName = dayNames[dayIndex];
+    
+    if (dayName && meals[dayName] && meals[dayName][mealKey]) {
+      return meals[dayName][mealKey];
+    }
+    
+    // Handle flat 5-meal structure (breakfast, lunch, pre-workout, post-workout, dinner)
     if (meals[mealKey]) {
       return meals[mealKey];
     }
     
-    // Handle day-based structure fallback
+    // Handle day-based structure with key search fallback
     const mealTypeKey = Object.keys(meals).find(key => 
       key.toLowerCase().startsWith(mealType.toLowerCase())
     );

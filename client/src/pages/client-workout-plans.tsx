@@ -160,8 +160,13 @@ export default function ClientWorkoutPlans() {
               totalCalories += exercise.caloriesBurned;
             } else if (exercise?.sets && exercise?.reps) {
               // Estimate: 0.15 calories per rep (standard fitness formula)
-              const estimatedCalories = exercise.sets * exercise.reps * 0.15;
-              totalCalories += estimatedCalories;
+              // Ensure sets and reps are numbers (convert from string if needed)
+              const sets = Number(exercise.sets) || 0;
+              const reps = Number(exercise.reps) || 0;
+              const estimatedCalories = sets * reps * 0.15;
+              if (!isNaN(estimatedCalories) && estimatedCalories > 0) {
+                totalCalories += estimatedCalories;
+              }
             }
           });
         }
