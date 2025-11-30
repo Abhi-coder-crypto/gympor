@@ -346,8 +346,10 @@ export default function ClientDashboard() {
   // Count all sessions assigned to this client (upcoming, live, or completed)
   const assignedSessions = (sessionsData || []).length;
 
-  // Calculate total calories from 7-day diet plan
-  const dietCalories = dietPlanData?.totalCalories || 0;
+  // Calculate total calories from assigned videos
+  const videoCalories = (assignedVideos || []).reduce((total: number, video: any) => {
+    return total + (video.calories || 0);
+  }, 0);
 
   // Get next session - show tomorrow's date at the same time as today's session
   const getNextSession = () => {
@@ -458,7 +460,7 @@ export default function ClientDashboard() {
               <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-300 rounded-full opacity-20" />
               <div className="relative z-10">
                 <p className="text-xs font-medium text-white">Calories Burned</p>
-                <div className="text-6xl font-bold text-white my-4">{dietCalories.toLocaleString()}</div>
+                <div className="text-6xl font-bold text-white my-4">{videoCalories.toLocaleString()}</div>
                 <p className="text-sm text-white">This week</p>
               </div>
               <div className="flex items-center justify-between relative z-10 pt-4 border-t border-emerald-300">

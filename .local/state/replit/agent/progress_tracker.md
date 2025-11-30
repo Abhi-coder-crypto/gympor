@@ -6,3 +6,4 @@
 [x] 6. Fix Vite HMR WebSocket errors - Disabled HMR to resolve WebSocket connection failures in Replit environment - COMPLETED
 [x] 7. Re-verify after environment reset - All packages reinstalled and application verified working (November 30, 2025)
 [x] 8. Fixed 502 Bad Gateway and WebSocket errors - Disabled HMR in vite.config.ts (set hmr: false). API endpoints working correctly. Application fully functional.
+[x] 9. Added calories field to video upload system - Added calories column to videos table, updated upload form with calories input, updated client dashboard to calculate total calories from assigned videos (November 30, 2025)
