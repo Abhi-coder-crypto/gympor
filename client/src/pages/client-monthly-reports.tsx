@@ -7,12 +7,23 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 export default function ClientMonthlyReports() {
+  const clientId = localStorage.getItem("clientId");
+  
   const { data: reportsData, isLoading } = useQuery({
-    queryKey: ['/api/progress/monthly-reports'],
+    queryKey: ['/api/progress/monthly-reports', clientId],
+    queryFn: async () => {
+      if (!clientId) return null;
+      const res = await fetch(`/api/progress/monthly-reports?clientId=${clientId}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to fetch reports');
+      return res.json();
+    },
+    enabled: !!clientId,
   });
 
-  const currentMonth = reportsData?.current || {};
-  const previousReports = reportsData?.history || [];
+  const currentMonth = (reportsData as any)?.current || {};
+  const previousReports = (reportsData as any)?.history || [];
 
   const handleDownloadReport = (monthYear: string) => {
     // Generate PDF or CSV download

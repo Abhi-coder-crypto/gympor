@@ -4903,43 +4903,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Progress Tracking - Monthly Reports
   app.get("/api/progress/monthly-reports", authenticateToken, async (req, res) => {
     try {
-      const clientId = req.user?.clientId;
-      if (!clientId) {
-        return res.status(400).json({ message: "Client ID not found in authentication" });
+      // Get clientId from query param or from authenticated user
+      let clientId = (req.query.clientId as string) || (req.user as any)?.clientId?.toString();
+      
+      if (!clientId && (req.user as any)?.email) {
+        // Try to find client by email if clientId not available
+        const client = await storage.getClientByEmail((req.user as any).email);
+        if (client) {
+          clientId = ((client as any)._id as any).toString();
+        }
       }
       
-      const sessions = await storage.getClientWorkoutSessions(clientId);
-      const achievements = await storage.getClientAchievements(clientId);
-      const weightHistory = await storage.getClientWeightHistory(clientId);
-      const weeklyCompletion = await storage.getClientWeeklyCompletion(clientId);
+      if (!clientId) {
+        return res.status(400).json({ message: "Client ID not found" });
+      }
       
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthSessions = sessions.filter((s: any) => new Date(s.date) >= monthStart);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
       
-      const weightChange = weightHistory.length >= 2 
-        ? (weightHistory[0].weight - weightHistory[weightHistory.length - 1].weight).toFixed(1)
-        : null;
+      // Fetch workout logs for the month
+      const workoutLogs = await storage.getClientWorkoutLogs(clientId);
+      const monthWorkoutLogs = (workoutLogs as any[]).filter((log: any) => {
+        const logDate = new Date(log.createdAt || log.loggedAt || new Date());
+        return logDate >= monthStart && logDate <= monthEnd;
+      });
+      
+      // Fetch achievements
+      const achievements = await storage.getClientAchievements(clientId);
+      const monthAchievements = (achievements as any[]).filter((a: any) => {
+        const achieveDate = new Date(a.unlockedAt || a.createdAt || new Date());
+        return achieveDate >= monthStart && achieveDate <= monthEnd;
+      });
+      
+      // Fetch weight history
+      const weightHistory = await storage.getClientWeightHistory(clientId);
+      const monthWeightHistory = (weightHistory as any[]).filter((w: any) => {
+        const weightDate = new Date(w.recordedAt || w.createdAt || new Date());
+        return weightDate >= monthStart && weightDate <= monthEnd;
+      });
+      
+      // Calculate weight change
+      let weightChange = null;
+      if (monthWeightHistory.length >= 2) {
+        const firstWeight = monthWeightHistory[monthWeightHistory.length - 1]?.weight || 0;
+        const lastWeight = monthWeightHistory[0]?.weight || 0;
+        weightChange = (lastWeight - firstWeight).toFixed(1);
+      } else if (weightHistory.length >= 2) {
+        // If no weight history this month, use all-time first and last
+        const firstWeight = weightHistory[weightHistory.length - 1]?.weight || 0;
+        const lastWeight = weightHistory[0]?.weight || 0;
+        weightChange = (lastWeight - firstWeight).toFixed(1);
+      }
+      
+      // Calculate weekly completion percentage
+      const assignedPlans = await storage.getClientWorkoutPlans(clientId);
+      const plannedDays = (assignedPlans as any[]).length * 6; // 6 days per plan
+      const completedDays = monthWorkoutLogs.length;
+      const weeklyCompletion = plannedDays > 0 ? Math.round((completedDays / plannedDays) * 100) : 0;
+      
+      // Generate highlights
+      const highlights = [
+        `Completed ${monthWorkoutLogs.length} workout sessions this month`,
+        weightChange && parseFloat(weightChange) !== 0 
+          ? `Weight ${parseFloat(weightChange) < 0 ? 'lost' : 'gained'} ${Math.abs(parseFloat(weightChange))} kg` 
+          : 'Weight remained stable',
+        monthAchievements.length > 0 ? `Unlocked ${monthAchievements.length} achievements` : 'Keep pushing to unlock achievements',
+      ];
       
       res.json({
         current: {
           monthYear: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-          totalWorkouts: monthSessions.length,
-          weightChange,
-          achievements: achievements.filter((a: any) => 
-            new Date(a.unlockedAt || a.createdAt) >= monthStart
-          ).length,
-          weeklyCompletion: weeklyCompletion.plannedWorkouts > 0
-            ? Math.round((weeklyCompletion.completedWorkouts / weeklyCompletion.plannedWorkouts) * 100)
-            : 0,
-          highlights: [
-            `Completed ${monthSessions.length} workout sessions`,
-            weightChange ? `Weight ${parseFloat(weightChange) < 0 ? 'lost' : 'gained'} ${Math.abs(parseFloat(weightChange))} kg` : 'No weight change tracked',
-          ],
+          totalWorkouts: monthWorkoutLogs.length,
+          weightChange: weightChange ? parseFloat(weightChange) : null,
+          achievements: monthAchievements.length,
+          weeklyCompletion: weeklyCompletion,
+          highlights,
         },
         history: [],
       });
     } catch (error: any) {
+      console.error('[Monthly Reports] Error:', error);
       res.status(500).json({ message: error.message });
     }
   });
