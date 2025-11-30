@@ -316,11 +316,21 @@ export default function ClientDashboard() {
     const diff = assignmentDate.getDate() - assignmentDay + (assignmentDay === 0 ? -6 : 1);
     const mondayOfAssignmentWeek = new Date(assignmentDate.setDate(diff));
 
-    // Build 6 days from Monday to Saturday
+    // Check if Sunday is included in any workout plan
+    const hasSunday = workoutPlans.some((plan: any) => {
+      return plan.exercises && Object.keys(plan.exercises).some((day: string) => 
+        day.toLowerCase() === 'sunday'
+      );
+    });
+
+    // Build days from Monday to Saturday, plus Sunday if included
     const days = [];
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    if (hasSunday) {
+      dayNames.push("Sun");
+    }
     
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < dayNames.length; i++) {
       const currentDate = new Date(mondayOfAssignmentWeek);
       currentDate.setDate(currentDate.getDate() + i);
       

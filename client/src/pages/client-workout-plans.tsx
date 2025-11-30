@@ -473,7 +473,7 @@ export default function ClientWorkoutPlans() {
                         <Textarea
                           value={sessionNotes}
                           onChange={(e) => setSessionNotes(e.target.value)}
-                          placeholder="How did it feel? Any modifications?"
+                          placeholder="Share how you felt during this workout..."
                           className="min-h-24"
                           data-testid={`textarea-notes-${plan._id}`}
                         />
