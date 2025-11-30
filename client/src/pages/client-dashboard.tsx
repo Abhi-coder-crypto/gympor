@@ -177,6 +177,13 @@ export default function ClientDashboard() {
     refetchInterval: 10000,
   });
 
+  const { data: workoutLogs = [] } = useQuery<any[]>({
+    queryKey: [`/api/clients/${clientId}/workout-logs`],
+    enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 5000,
+  });
+
   useEffect(() => {
     console.log('[ClientDashboard] clientId:', clientId);
     console.log('[ClientDashboard] assignedVideos:', assignedVideos);
@@ -317,8 +324,11 @@ export default function ClientDashboard() {
       const currentDate = new Date(mondayOfAssignmentWeek);
       currentDate.setDate(currentDate.getDate() + i);
       
-      // Check if any workout plan is completed on this date
-      const dayCompleted = workoutPlans.some((plan: any) => {
+      // Check if day has logged workouts OR if any workout plan is completed on this date
+      const dayCompleted = (workoutLogs as any[]).some((log: any) => {
+        const logDate = new Date(log.loggedAt);
+        return logDate.toDateString() === currentDate.toDateString();
+      }) || workoutPlans.some((plan: any) => {
         if (!plan.completed) return false;
         const planDate = new Date(plan.completedAt || plan.createdAt);
         return planDate.toDateString() === currentDate.toDateString();

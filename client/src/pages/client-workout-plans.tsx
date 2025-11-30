@@ -85,6 +85,14 @@ export default function ClientWorkoutPlans() {
     refetchInterval: 10000,
   });
 
+  // Fetch workout logs
+  const { data: workoutLogs = [], isLoading: logsLoading } = useQuery({
+    queryKey: [`/api/clients/${clientId}/workout-logs`],
+    enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 5000,
+  });
+
   // Bookmark mutation
   const bookmarkMutation = useMutation({
     mutationFn: async ({ planId, isBookmarked }: { planId: string; isBookmarked: boolean }) => {
@@ -105,7 +113,15 @@ export default function ClientWorkoutPlans() {
 
   // Session logging mutation
   const logSessionMutation = useMutation({
-    mutationFn: async (data: { planId: string; duration: string; notes: string }) => {
+    mutationFn: async (data: { planId: string; duration: string; notes: string; day: string }) => {
+      // Save to workout logs with day selection
+      await apiRequest('POST', `/api/clients/${clientId}/workout-logs`, {
+        workoutPlanId: data.planId,
+        day: data.day,
+        notes: data.notes,
+      });
+      
+      // Also log to workout history for compatibility
       const plan = (plans as WorkoutPlan[]).find((p: WorkoutPlan) => p._id === data.planId);
       return apiRequest('POST', `/api/clients/${clientId}/workout-history`, {
         workoutPlanId: data.planId,
@@ -116,6 +132,8 @@ export default function ClientWorkoutPlans() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}/workout-history`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}/workout-logs`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/dashboard/${clientId}`] });
       setSessionNotes("");
       setSessionDuration("30");
       setSelectedPlanForLogging(null);
@@ -148,6 +166,8 @@ export default function ClientWorkoutPlans() {
   const isBookmarked = (planId: string) => (bookmarks as any[]).some((b: any) => b.workoutPlanId === planId);
   const getPlanHistory = (planId: string) => (history as any[]).filter((s: any) => s.workoutPlanId === planId);
   const getPlanNotes = (planId: string) => (notesMap as Record<string, string>)[planId] || "";
+  const getPlanLogs = (planId: string) => (workoutLogs as any[]).filter((l: any) => l.workoutPlanId === planId);
+  const isDayLogged = (planId: string, day: string) => getPlanLogs(planId).some((log: any) => log.day === day);
 
   // Helper function to parse reps (handles ranges like "10-12" or single values)
   const parseReps = (repsInput: any): number => {
@@ -309,10 +329,21 @@ export default function ClientWorkoutPlans() {
                       }, 0);
                       
                       return (
-                        <Card key={day} className="overflow-hidden border border-primary/20 hover:border-primary/40 transition-colors">
+                        <Card 
+                          key={day} 
+                          className={`overflow-hidden border transition-colors ${
+                            isDayLogged(plan._id, day) 
+                              ? 'border-green-400 bg-green-50 dark:bg-green-950/20' 
+                              : 'border-primary/20 hover:border-primary/40'
+                          }`}
+                        >
                           <div className="flex flex-col sm:flex-row sm:items-stretch">
                             {/* Day Summary Sidebar - Compact */}
-                            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b sm:border-b-0 sm:border-r border-primary/20 px-4 py-3 flex sm:flex-col justify-between items-start sm:min-w-[140px]">
+                            <div className={`border-b sm:border-b-0 sm:border-r px-4 py-3 flex sm:flex-col justify-between items-start sm:min-w-[140px] ${
+                              isDayLogged(plan._id, day)
+                                ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700'
+                                : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20'
+                            }`}>
                               <div>
                                 <div className="font-semibold text-sm px-2 py-0.5 bg-primary/20 rounded text-primary inline-block">
                                   {day}
@@ -450,7 +481,7 @@ export default function ClientWorkoutPlans() {
                       <div className="flex gap-3">
                         <Button
                           onClick={() => {
-                            logSessionMutation.mutate({ planId: plan._id, duration: sessionDuration, notes: sessionNotes });
+                            logSessionMutation.mutate({ planId: plan._id, duration: sessionDuration, notes: sessionNotes, day: selectedDay });
                             setSelectedDay("");
                           }}
                           disabled={logSessionMutation.isPending || !selectedDay}

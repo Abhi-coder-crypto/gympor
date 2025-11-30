@@ -3032,6 +3032,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Workout Logs Routes
+  app.get("/api/clients/:clientId/workout-logs", authenticateToken, async (req, res) => {
+    try {
+      const logs = await WorkoutLog.find({ clientId: req.params.clientId }).sort({ loggedAt: -1 });
+      res.json(logs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/clients/:clientId/workout-logs", authenticateToken, async (req, res) => {
+    try {
+      const { workoutPlanId, day, notes } = req.body;
+      
+      if (!workoutPlanId || !day) {
+        return res.status(400).json({ message: "Workout plan ID and day are required" });
+      }
+
+      const log = new WorkoutLog({
+        clientId: req.params.clientId,
+        workoutPlanId,
+        day,
+        notes,
+        loggedAt: new Date(),
+      });
+
+      const savedLog = await log.save();
+
+      // Increment achievement counter
+      const achievementType = 'workouts_completed';
+      let achievement = await Achievement.findOne({ 
+        clientId: req.params.clientId, 
+        type: achievementType 
+      });
+
+      if (!achievement) {
+        achievement = new Achievement({
+          clientId: req.params.clientId,
+          type: achievementType,
+          title: 'Workouts Completed',
+          description: 'Track your workout completion count',
+          unlockedAt: new Date(),
+          metadata: { count: 1 }
+        });
+      } else {
+        achievement.metadata = achievement.metadata || {};
+        achievement.metadata.count = (achievement.metadata.count || 0) + 1;
+      }
+
+      await achievement.save();
+      res.json({ log: savedLog, achievement });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Package-Based Access & Assignment Endpoints
   app.get("/api/client-access/:clientId", authenticateToken, async (req, res) => {
     try {
