@@ -433,35 +433,43 @@ export class MongoStorage implements IStorage {
 
   // Client Video methods
   async getClientVideos(clientId: string): Promise<IVideo[]> {
-    const clientVideos = await ClientVideo.find({ clientId }).populate('videoId');
+    const convertedClientId = new mongoose.Types.ObjectId(clientId);
+    const clientVideos = await ClientVideo.find({ clientId: convertedClientId }).populate('videoId');
     return clientVideos.map(cv => cv.videoId as any);
   }
 
   async assignVideoToClient(clientId: string, videoId: string): Promise<IClientVideo> {
-    const clientVideo = new ClientVideo({ clientId, videoId });
+    const convertedClientId = new mongoose.Types.ObjectId(clientId);
+    const convertedVideoId = new mongoose.Types.ObjectId(videoId);
+    const clientVideo = new ClientVideo({ clientId: convertedClientId, videoId: convertedVideoId });
     return await clientVideo.save();
   }
 
   async removeVideoFromClient(clientId: string, videoId: string): Promise<boolean> {
-    const result = await ClientVideo.findOneAndDelete({ clientId, videoId });
+    const convertedClientId = new mongoose.Types.ObjectId(clientId);
+    const convertedVideoId = new mongoose.Types.ObjectId(videoId);
+    const result = await ClientVideo.findOneAndDelete({ clientId: convertedClientId, videoId: convertedVideoId });
     return !!result;
   }
 
   async getVideoAssignedClients(videoId: string): Promise<IClient[]> {
-    const clientVideos = await ClientVideo.find({ videoId }).populate('clientId');
+    const convertedVideoId = new mongoose.Types.ObjectId(videoId);
+    const clientVideos = await ClientVideo.find({ videoId: convertedVideoId }).populate('clientId');
     return clientVideos.map(cv => cv.clientId as any).filter(c => c !== null);
   }
 
   async assignVideoToClients(videoId: string, clientIds: string[]): Promise<any> {
     const assigned = [];
     const errors = [];
+    const convertedVideoId = new mongoose.Types.ObjectId(videoId);
     
     for (const clientId of clientIds) {
       try {
+        const convertedClientId = new mongoose.Types.ObjectId(clientId);
         // Check if already assigned
-        const existing = await ClientVideo.findOne({ clientId, videoId });
+        const existing = await ClientVideo.findOne({ clientId: convertedClientId, videoId: convertedVideoId });
         if (!existing) {
-          const clientVideo = new ClientVideo({ clientId, videoId });
+          const clientVideo = new ClientVideo({ clientId: convertedClientId, videoId: convertedVideoId });
           await clientVideo.save();
           assigned.push(clientId);
         } else {
