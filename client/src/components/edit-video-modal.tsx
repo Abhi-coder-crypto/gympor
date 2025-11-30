@@ -19,6 +19,7 @@ interface Video {
   thumbnail?: string;
   category: string;
   duration?: number;
+  calories?: number;
   intensity?: string;
   difficulty?: string;
   trainer?: string;
@@ -43,6 +44,7 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
     thumbnail: video.thumbnail || "",
     category: video.category,
     duration: video.duration?.toString() || "",
+    calories: video.calories?.toString() || "",
     intensity: video.intensity || "",
     difficulty: video.difficulty || "",
     trainer: video.trainer || "",
@@ -60,6 +62,7 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
       thumbnail: video.thumbnail || "",
       category: video.category,
       duration: video.duration?.toString() || "",
+      calories: video.calories?.toString() || "",
       intensity: video.intensity || "",
       difficulty: video.difficulty || "",
       trainer: video.trainer || "",
@@ -73,6 +76,7 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
       const res = await apiRequest('PATCH', `/api/videos/${video._id}`, {
         ...data,
         duration: data.duration ? parseInt(data.duration) : undefined,
+        calories: data.calories ? parseInt(data.calories) : undefined,
         equipment,
       });
       return res.json();
@@ -191,7 +195,7 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit-duration">Duration (minutes)</Label>
               <Input
@@ -202,6 +206,18 @@ export function EditVideoModal({ open, onOpenChange, video }: EditVideoModalProp
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                 data-testid="input-edit-duration"
                 placeholder="30"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-calories">Calories Burned</Label>
+              <Input
+                id="edit-calories"
+                type="number"
+                min="0"
+                value={formData.calories}
+                onChange={(e) => setFormData({ ...formData, calories: e.target.value })}
+                data-testid="input-edit-calories"
+                placeholder="250"
               />
             </div>
             <div className="space-y-2">

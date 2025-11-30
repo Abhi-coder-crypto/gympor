@@ -7,3 +7,4 @@
 [x] 7. Re-verify after environment reset - All packages reinstalled and application verified working (November 30, 2025)
 [x] 8. Fixed 502 Bad Gateway and WebSocket errors - Disabled HMR in vite.config.ts (set hmr: false). API endpoints working correctly. Application fully functional.
 [x] 9. Added calories field to video upload system - Added calories column to videos table, updated upload form with calories input, updated client dashboard to calculate total calories from assigned videos (November 30, 2025)
+[x] 10. Added calories field to edit video modal - Existing videos can now be edited to add or update calories, form displays calories field alongside duration/difficulty/intensity (November 30, 2025)
