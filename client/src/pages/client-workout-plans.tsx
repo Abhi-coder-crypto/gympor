@@ -44,6 +44,13 @@ export default function ClientWorkoutPlans() {
   // Get client ID from localStorage
   const clientId = localStorage.getItem("clientId");
 
+  // Fetch dashboard data for client weight
+  const { data: dashboardData } = useQuery({
+    queryKey: [`/api/dashboard/${clientId}`],
+    enabled: !!clientId,
+    staleTime: 0,
+  });
+
   // Fetch assigned workout plans
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: [`/api/clients/${clientId}/workout-plans`],
@@ -138,6 +145,27 @@ export default function ClientWorkoutPlans() {
   const getPlanHistory = (planId: string) => history.filter((s: any) => s.workoutPlanId === planId);
   const getPlanNotes = (planId: string) => (notesMap as any)[planId] || "";
 
+  // Calculate total calories burned from all exercises in a plan with weight multiplier
+  const calculatePlanCalories = (plan: WorkoutPlan) => {
+    const clientWeight = dashboardData?.progress?.currentWeight || 70;
+    const weightMultiplier = clientWeight / 70;
+    let totalCalories = 0;
+
+    if (plan.exercises && typeof plan.exercises === 'object') {
+      Object.values(plan.exercises).forEach((dayExercises: any) => {
+        if (Array.isArray(dayExercises)) {
+          dayExercises.forEach((exercise: any) => {
+            if (exercise?.caloriesBurned) {
+              totalCalories += exercise.caloriesBurned;
+            }
+          });
+        }
+      });
+    }
+
+    return Math.round(totalCalories * weightMultiplier);
+  };
+
   if (!clientId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -212,6 +240,13 @@ export default function ClientWorkoutPlans() {
                         <p className="text-sm text-muted-foreground">Category</p>
                       </div>
                     )}
+                    <div className="text-center">
+                      <div className="flex items-center justify-center gap-1 mb-2">
+                        <Flame className="h-5 w-5 text-orange-500" />
+                        <p className="text-3xl font-bold text-orange-500">{calculatePlanCalories(plan)}</p>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Calories Burned</p>
+                    </div>
                     {plan.goal && (
                       <div className="text-center">
                         <p className="text-lg font-bold text-foreground mb-2">{plan.goal}</p>
