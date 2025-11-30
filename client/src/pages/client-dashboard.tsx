@@ -370,7 +370,7 @@ export default function ClientDashboard() {
 
   // Calculate weight goal progress from goals API or logged weight measurements
   const weightGoal = goalsData?.find((g: any) => g.goalType === 'weight' && g.status === 'active');
-  const currentWeight = weightGoal?.currentValue || weightData?.current || progress.currentWeight || 0;
+  const currentWeight = progress.currentWeight || weightGoal?.currentValue || weightData?.current || 0;
   const targetWeight = weightGoal?.targetValue || weightData?.goal || progress.targetWeight || 0;
   const initialWeight = weightData?.initial || progress.initialWeight || currentWeight;
   const weightProgress = targetWeight && initialWeight ? 
