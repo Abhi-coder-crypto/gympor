@@ -155,8 +155,13 @@ export default function ClientWorkoutPlans() {
       Object.values(plan.exercises).forEach((dayExercises: any) => {
         if (Array.isArray(dayExercises)) {
           dayExercises.forEach((exercise: any) => {
+            // Use caloriesBurned if available, otherwise estimate from sets × reps
             if (exercise?.caloriesBurned) {
               totalCalories += exercise.caloriesBurned;
+            } else if (exercise?.sets && exercise?.reps) {
+              // Estimate: 0.15 calories per rep (standard fitness formula)
+              const estimatedCalories = exercise.sets * exercise.reps * 0.15;
+              totalCalories += estimatedCalories;
             }
           });
         }
