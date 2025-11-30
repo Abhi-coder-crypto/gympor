@@ -493,6 +493,7 @@ export default function ClientDashboard() {
                 weightCurrent={Math.round(Number(currentWeight) || 0)}
                 weightTarget={Math.round(Number(targetWeight) || 0)}
                 weightInitial={Math.round(Number(initialWeight) || 0)}
+                weightProgress={weightGoal?.progress}
                 onUpdateGoals={() => setLocation("/client/goals")}
               />
 

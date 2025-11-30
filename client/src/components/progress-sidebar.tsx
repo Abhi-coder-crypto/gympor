@@ -12,6 +12,7 @@ interface ProgressSidebarProps {
   weightCurrent: number;
   weightTarget: number;
   weightInitial: number;
+  weightProgress?: number;
   onUpdateGoals?: () => void;
 }
 
@@ -20,16 +21,19 @@ export function ProgressSidebar({
   weightCurrent,
   weightTarget,
   weightInitial,
+  weightProgress: providedWeightProgress,
   onUpdateGoals,
 }: ProgressSidebarProps) {
   const completedDays = workoutDays.filter(d => d.completed).length;
   const totalDays = workoutDays.length;
   const sessionsProgress = totalDays > 0 ? (completedDays / totalDays) * 100 : 0;
   
-  // Calculate weight progress based on initial and target
-  const weightProgress = weightInitial && weightTarget && weightInitial !== weightTarget
-    ? Math.max(0, Math.min(100, ((weightInitial - weightCurrent) / (weightInitial - weightTarget)) * 100))
-    : 0;
+  // Use provided weight progress from goal API, or calculate as fallback
+  const weightProgress = providedWeightProgress !== undefined ? providedWeightProgress : (
+    weightInitial && weightTarget && weightInitial !== weightTarget
+      ? Math.max(0, Math.min(100, ((weightInitial - weightCurrent) / (weightInitial - weightTarget)) * 100))
+      : 0
+  );
   const weightToGo = Math.abs(weightTarget - weightCurrent);
 
   return (
