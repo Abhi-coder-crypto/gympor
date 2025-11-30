@@ -272,39 +272,90 @@ export default function ClientWorkoutPlans() {
                   </div>
                 </Card>
 
-                {/* Weekly Exercises Section */}
+                {/* Weekly Exercises Section - Card-based layout like diet */}
                 {plan.exercises && Object.keys(plan.exercises).length > 0 && (
-                  <div className="space-y-4">
-                    <h2 className="text-lg font-bold text-foreground">Weekly Workout Schedule</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {Object.entries(plan.exercises).map(([day, exercises]: [string, any]) => (
-                        <Card key={day} className="p-4 border">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-foreground capitalize">{day}</h3>
-                            {Array.isArray(exercises) && exercises.length > 0 && (
-                              <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium">
-                                {exercises.length} exercises
-                              </span>
-                            )}
-                          </div>
-                          <div className="space-y-3">
-                            {Array.isArray(exercises) && exercises.map((exercise: any, idx: number) => (
-                              <div key={idx} className="border-l-2 border-primary pl-3 py-2">
-                                <p className="font-semibold text-foreground text-sm">{exercise.name || exercise}</p>
-                                {exercise.sets && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {exercise.sets} sets × {exercise.reps || exercise.duration}
-                                  </p>
-                                )}
+                  <div className="space-y-6">
+                    {Object.entries(plan.exercises).map(([day, exercises]: [string, any]) => {
+                      const dayExercises = Array.isArray(exercises) ? exercises : [];
+                      const totalDayCalories = dayExercises.reduce((sum: number, ex: any) => {
+                        const sets = Number(ex.sets) || 1;
+                        const reps = Number(ex.reps) || 0;
+                        const calories = (sets * reps * 0.15) * (dashboardData?.weight || 70) / 70;
+                        return sum + calories;
+                      }, 0);
+                      
+                      return (
+                        <Card key={day} className="overflow-hidden border-2 border-primary/10 hover:border-primary/20 transition-colors">
+                          <div className="flex flex-col md:flex-row md:items-stretch">
+                            {/* Day Summary Sidebar */}
+                            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-b md:border-b-0 md:border-r-2 border-primary/20 px-6 py-4 flex md:flex-col justify-between md:justify-between md:min-w-[200px]">
+                              <div>
+                                <div className="font-semibold mb-4 text-base px-3 py-1 bg-primary/20 rounded-md text-primary inline-block">
+                                  {day}
+                                </div>
                               </div>
-                            ))}
-                            {(!Array.isArray(exercises) || exercises.length === 0) && (
-                              <p className="text-sm text-muted-foreground italic">Rest day</p>
-                            )}
+                              <div className="space-y-3">
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-2xl md:text-3xl font-bold text-orange-600 dark:text-orange-400">
+                                    {Math.round(totalDayCalories)}
+                                  </span>
+                                  <span className="text-sm text-muted-foreground">cal</span>
+                                </div>
+                                <div className="space-y-1 text-xs md:text-sm hidden md:block">
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Exercises:</span>
+                                    <span className="font-semibold">{dayExercises.length}</span>
+                                  </div>
+                                  {plan.difficulty && (
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">Level:</span>
+                                      <span className="font-semibold capitalize">{plan.difficulty}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Exercises Grid */}
+                            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 divide-x divide-primary/20">
+                              {dayExercises.length > 0 ? (
+                                dayExercises.map((exercise: any, idx: number) => (
+                                  <div
+                                    key={idx}
+                                    className="p-3 md:p-4 flex flex-col hover:bg-primary/5 transition-colors"
+                                  >
+                                    <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-2">
+                                      Ex {idx + 1}
+                                    </p>
+                                    <div className="space-y-2">
+                                      <p className="font-semibold text-foreground text-xs md:text-sm leading-tight">
+                                        {exercise.name || exercise}
+                                      </p>
+                                      {exercise.sets && (
+                                        <>
+                                          <div className="bg-blue-50 dark:bg-blue-950/30 rounded px-2 py-1 text-center">
+                                            <p className="text-xs text-muted-foreground hidden md:block">Sets</p>
+                                            <p className="font-bold text-blue-600 dark:text-blue-400 text-xs md:text-sm">{exercise.sets}</p>
+                                          </div>
+                                          <div className="bg-orange-50 dark:bg-orange-950/30 rounded px-2 py-1 text-center">
+                                            <p className="text-xs text-muted-foreground hidden md:block">Reps</p>
+                                            <p className="font-bold text-orange-600 dark:text-orange-400 text-xs md:text-sm">{exercise.reps || exercise.duration || '-'}</p>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="col-span-full p-6 text-center">
+                                  <p className="text-muted-foreground">Rest day</p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </Card>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 )}
 
