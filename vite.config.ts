@@ -35,11 +35,14 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: false,
-    hmr: {
-      clientPort: 443,
-      protocol: 'wss',
-      host: process.env.REPL_SLUG ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : undefined,
-    },
+    hmr: process.env.REPLIT_DEV_DOMAIN
+      ? {
+          clientPort: 443,
+          protocol: 'wss',
+          host: process.env.REPLIT_DEV_DOMAIN,
+        }
+      : true,
+    allowedHosts: true,
     fs: {
       strict: true,
       deny: ["**/.*"],
