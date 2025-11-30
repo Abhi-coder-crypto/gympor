@@ -39,6 +39,7 @@ export default function ClientWorkoutPlans() {
   const [selectedPlanForLogging, setSelectedPlanForLogging] = useState<string | null>(null);
   const [sessionNotes, setSessionNotes] = useState("");
   const [sessionDuration, setSessionDuration] = useState("30");
+  const [selectedDay, setSelectedDay] = useState("");
   const [expandedNotePlanId, setExpandedNotePlanId] = useState<string | null>(null);
 
   // Get client ID from localStorage
@@ -407,6 +408,22 @@ export default function ClientWorkoutPlans() {
                     <h3 className="font-bold text-foreground mb-4">Log Your Session</h3>
                     <div className="space-y-4">
                       <div>
+                        <label className="text-sm font-medium text-foreground block mb-2">Select Day</label>
+                        <select
+                          value={selectedDay}
+                          onChange={(e) => setSelectedDay(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+                          data-testid={`select-day-${plan._id}`}
+                        >
+                          <option value="">Choose a day...</option>
+                          {plan.exercises && Object.keys(plan.exercises).map((day) => (
+                            <option key={day} value={day}>
+                              {day}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
                         <label className="text-sm font-medium text-foreground block mb-2">Duration (minutes)</label>
                         <input
                           type="number"
@@ -429,12 +446,15 @@ export default function ClientWorkoutPlans() {
                       </div>
                       <div className="flex gap-3">
                         <Button
-                          onClick={() => logSessionMutation.mutate({ planId: plan._id, duration: sessionDuration, notes: sessionNotes })}
-                          disabled={logSessionMutation.isPending}
+                          onClick={() => {
+                            logSessionMutation.mutate({ planId: plan._id, duration: sessionDuration, notes: sessionNotes });
+                            setSelectedDay("");
+                          }}
+                          disabled={logSessionMutation.isPending || !selectedDay}
                           data-testid={`button-submit-log-${plan._id}`}
                         >
                           {logSessionMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                          Submit Session
+                          Log {selectedDay || 'Session'}
                         </Button>
                         <Button
                           variant="outline"

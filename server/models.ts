@@ -254,6 +254,14 @@ export interface IWorkoutNote extends Document {
   updatedAt: Date;
 }
 
+export interface IWorkoutLog extends Document {
+  clientId: string;
+  workoutPlanId: string;
+  day: string; // e.g., "Monday", "Tuesday"
+  loggedAt: Date;
+  notes?: string;
+}
+
 export interface IVideoProgress extends Document {
   userId: string;
   videoId: string;
@@ -618,6 +626,14 @@ const WorkoutNoteSchema = new Schema({
   workoutPlanId: { type: Schema.Types.ObjectId, ref: 'WorkoutPlan', required: true },
   notes: { type: String, default: '' },
   updatedAt: { type: Date, default: Date.now },
+});
+
+const WorkoutLogSchema = new Schema({
+  clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
+  workoutPlanId: { type: Schema.Types.ObjectId, ref: 'WorkoutPlan', required: true },
+  day: { type: String, required: true },
+  loggedAt: { type: Date, default: Date.now },
+  notes: String,
 });
 
 const VideoProgressSchema = new Schema({
@@ -1318,5 +1334,6 @@ export const DietPlanAssignment = mongoose.model<IDietPlanAssignment>('DietPlanA
 export const WorkoutPlanAssignment = mongoose.model<IWorkoutPlanAssignment>('WorkoutPlanAssignment', WorkoutPlanAssignmentSchema);
 export const WorkoutBookmark = mongoose.model<IWorkoutBookmark>('WorkoutBookmark', WorkoutBookmarkSchema);
 export const WorkoutNote = mongoose.model<IWorkoutNote>('WorkoutNote', WorkoutNoteSchema);
+export const WorkoutLog = mongoose.model<IWorkoutLog>('WorkoutLog', WorkoutLogSchema);
 export const Habit = mongoose.model<IHabit>('Habit', HabitSchema);
 export const HabitLog = mongoose.model<IHabitLog>('HabitLog', HabitLogSchema);
