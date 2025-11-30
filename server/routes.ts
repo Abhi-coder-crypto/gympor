@@ -2302,9 +2302,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Client Video routes (owner or admin only)
-  app.get("/api/clients/:clientId/videos", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
+  // Client Video routes (accessible by client via localStorage clientId or authenticated users)
+  app.get("/api/clients/:clientId/videos", optionalAuth, async (req, res) => {
     try {
+      // Verify client exists before returning videos
+      const client = await storage.getClient(req.params.clientId);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
       const videos = await storage.getClientVideos(req.params.clientId);
       res.json(videos.map(ensureVideoFlags));
     } catch (error: any) {

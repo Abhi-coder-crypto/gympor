@@ -46,10 +46,14 @@ export default function ClientVideoLibrary() {
     }
   }, [setLocation]);
 
-  const { data: videos = [], isLoading } = useQuery<Video[]>({
-    queryKey: ['/api/videos'],
+  // Fetch only videos assigned to this client
+  const { data: assignedVideosData = [], isLoading } = useQuery<any[]>({
+    queryKey: [`/api/clients/${clientId}/videos`],
     enabled: !!clientId,
   });
+  
+  // Extract videos from assigned data (handle both formats: direct video or {video: ...})
+  const videos: Video[] = assignedVideosData.map((item: any) => item.video || item).filter(Boolean);
 
   const { data: bookmarks = [] } = useQuery<any[]>({
     queryKey: [`/api/clients/${clientId}/bookmarks`],
@@ -128,12 +132,12 @@ export default function ClientVideoLibrary() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-4xl sm:text-5xl font-black text-black dark:text-white">
-                  {viewingBookmarks ? "Bookmarked Videos" : "Video Library"}
+                  {viewingBookmarks ? "Bookmarked Videos" : "Your Workout Videos"}
                 </h1>
                 <p className="text-muted-foreground mt-2">
                   {viewingBookmarks 
                     ? "Your saved workout videos" 
-                    : "Browse and watch all available workout videos"}
+                    : "Videos assigned to you by your trainer"}
                 </p>
               </div>
               <Button
@@ -212,7 +216,7 @@ export default function ClientVideoLibrary() {
                   ? "You haven't bookmarked any videos yet."
                   : searchQuery || categoryFilter !== "all" || difficultyFilter !== "all"
                   ? "No videos found matching your filters."
-                  : "No videos available yet."}
+                  : "No videos have been assigned to you yet. Contact your trainer to get started."}
               </p>
             </div>
           )}
