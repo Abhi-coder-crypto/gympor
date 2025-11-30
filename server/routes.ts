@@ -2126,8 +2126,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to ensure boolean flags are set for legacy documents
   const ensureVideoFlags = (video: any) => {
     if (!video) return null;
+    const videoObj = video.toObject ? video.toObject() : video;
     return {
-      ...video.toObject ? video.toObject() : video,
+      ...videoObj,
+      videoData: undefined,
+      thumbnailData: undefined,
+      caloriePerMinute: videoObj.caloriePerMinute,
       hasVideoData: video.hasVideoData !== undefined ? video.hasVideoData : !!video.videoData,
       hasThumbnailData: video.hasThumbnailData !== undefined ? video.hasThumbnailData : !!video.thumbnailData,
     };
