@@ -50,6 +50,9 @@ export default function ClientVideoLibrary() {
   const { data: assignedVideosData = [], isLoading } = useQuery<any[]>({
     queryKey: [`/api/clients/${clientId}/videos`],
     enabled: !!clientId,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
   });
   
   // Extract videos from assigned data (handle both formats: direct video or {video: ...})

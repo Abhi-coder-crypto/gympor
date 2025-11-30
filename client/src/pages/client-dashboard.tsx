@@ -173,7 +173,8 @@ export default function ClientDashboard() {
     queryKey: [`/api/clients/${clientId}/videos`],
     enabled: !!clientId,
     staleTime: 0,
-    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
   });
 
   const { data: workoutPlans = [] } = useQuery<any[]>({
