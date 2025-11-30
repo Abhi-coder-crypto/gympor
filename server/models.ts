@@ -124,6 +124,7 @@ export interface IWorkoutPlan extends Document {
   category?: string;
   durationWeeks: number;
   exercises: any;
+  musclesByDay?: Record<string, string>;
   isTemplate?: boolean;
   createdBy?: string;
   assignedCount?: number;
@@ -465,6 +466,7 @@ const WorkoutPlanSchema = new Schema({
   category: { type: String, enum: ['weight_loss', 'weight_gain', 'maintenance', 'general'] },
   durationWeeks: { type: Number, required: true },
   exercises: { type: Schema.Types.Mixed, required: true },
+  musclesByDay: { type: Schema.Types.Mixed, default: {} },
   isTemplate: { type: Boolean, default: false },
   createdBy: String,
   assignedCount: { type: Number, default: 0 },
