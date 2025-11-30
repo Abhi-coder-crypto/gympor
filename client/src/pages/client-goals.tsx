@@ -59,6 +59,7 @@ interface Goal {
   description?: string;
   targetValue: number;
   currentValue: number;
+  startingValue: number;
   unit: string;
   targetDate?: string;
   status: 'active' | 'completed' | 'abandoned';
@@ -135,7 +136,9 @@ export default function ClientGoals() {
       const response = await apiRequest('POST', '/api/goals', {
         ...data,
         clientId,
-        milestones: generateMilestones(data.targetValue, data.unit),
+        startingValue: data.currentValue,
+        progress: 0,
+        milestones: generateMilestones(data.currentValue, data.targetValue, data.unit),
       });
       return await response.json();
     },
@@ -237,14 +240,21 @@ export default function ClientGoals() {
     },
   });
 
-  function generateMilestones(targetValue: number, unit: string) {
+  function generateMilestones(startingValue: number, targetValue: number, unit: string) {
     const milestones = [];
     const steps = [0.25, 0.5, 0.75, 1.0];
+    const isDecreaseGoal = startingValue > targetValue;
+    const totalChange = Math.abs(targetValue - startingValue);
     
     for (const step of steps) {
+      const changeAmount = totalChange * step;
+      const milestoneValue = isDecreaseGoal 
+        ? startingValue - changeAmount 
+        : startingValue + changeAmount;
+      
       milestones.push({
-        value: targetValue * step,
-        label: `Reached ${Math.round(targetValue * step)}${unit} (${step * 100}% complete)`,
+        value: Math.round(milestoneValue * 100) / 100,
+        label: `Reached ${Math.round(milestoneValue)}${unit} (${step * 100}% complete)`,
         achieved: false,
       });
     }

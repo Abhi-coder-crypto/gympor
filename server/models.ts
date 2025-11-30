@@ -663,6 +663,7 @@ export interface IGoal extends Document {
   description?: string;
   targetValue: number;
   currentValue: number;
+  startingValue: number;
   unit: string;
   targetDate?: Date;
   status: 'active' | 'completed' | 'abandoned';
@@ -684,6 +685,7 @@ const GoalSchema = new Schema({
   description: String,
   targetValue: { type: Number, required: true },
   currentValue: { type: Number, required: true, default: 0 },
+  startingValue: { type: Number, required: true },
   unit: { type: String, required: true },
   targetDate: Date,
   status: { type: String, enum: ['active', 'completed', 'abandoned'], default: 'active' },

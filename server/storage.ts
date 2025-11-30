@@ -1956,20 +1956,42 @@ export class MongoStorage implements IStorage {
     const goal = await Goal.findById(goalId);
     if (!goal) return null;
     
-    const progress = Math.min(100, Math.round((currentValue / goal.targetValue) * 100));
+    const startingValue = goal.startingValue;
+    const targetValue = goal.targetValue;
+    const isDecreaseGoal = startingValue > targetValue;
+    
+    let progress: number;
+    if (isDecreaseGoal) {
+      const totalChange = startingValue - targetValue;
+      const currentChange = startingValue - currentValue;
+      progress = Math.min(100, Math.max(0, Math.round((currentChange / totalChange) * 100)));
+    } else {
+      const totalChange = targetValue - startingValue;
+      const currentChange = currentValue - startingValue;
+      progress = Math.min(100, Math.max(0, Math.round((currentChange / totalChange) * 100)));
+    }
+    
     const updatedMilestones = goal.milestones.map(milestone => {
-      if (!milestone.achieved && currentValue >= milestone.value) {
-        return {
-          value: milestone.value,
-          label: milestone.label,
-          achieved: true,
-          achievedAt: new Date(),
-        };
+      if (!milestone.achieved) {
+        const milestoneReached = isDecreaseGoal 
+          ? currentValue <= milestone.value
+          : currentValue >= milestone.value;
+        if (milestoneReached) {
+          return {
+            value: milestone.value,
+            label: milestone.label,
+            achieved: true,
+            achievedAt: new Date(),
+          };
+        }
       }
       return milestone;
     });
     
-    const status = progress >= 100 ? 'completed' : 'active';
+    const goalReached = isDecreaseGoal 
+      ? currentValue <= targetValue 
+      : currentValue >= targetValue;
+    const status = goalReached ? 'completed' : 'active';
     
     return await Goal.findByIdAndUpdate(
       goalId,

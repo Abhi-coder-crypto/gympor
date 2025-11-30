@@ -4951,6 +4951,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/goals/client/:clientId", async (req, res) => {
+    try {
+      const goals = await storage.getClientGoals(req.params.clientId);
+      for (const goal of goals) {
+        await storage.deleteGoal(goal._id.toString());
+      }
+      res.json({ success: true, deleted: goals.length });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/goals/:id/progress", async (req, res) => {
     try {
       const { currentValue } = req.body;
