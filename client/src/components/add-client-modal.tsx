@@ -18,6 +18,7 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
     phone: "",
     password: "",
     package: "",
+    weight: "",
     allergies: "",
   });
 
@@ -25,7 +26,7 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
     e.preventDefault();
     console.log("Adding new client:", formData);
     // Reset form
-    setFormData({ firstName: "", lastName: "", email: "", phone: "", password: "", package: "", allergies: "" });
+    setFormData({ firstName: "", lastName: "", email: "", phone: "", password: "", package: "", weight: "", allergies: "" });
     onOpenChange(false);
   };
 
@@ -95,18 +96,34 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="package">Package *</Label>
-            <Select value={formData.package} onValueChange={(value) => setFormData({ ...formData, package: value })}>
-              <SelectTrigger data-testid="select-package">
-                <SelectValue placeholder="Select a package" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Basic">Basic - $29/month</SelectItem>
-                <SelectItem value="Premium">Premium - $59/month</SelectItem>
-                <SelectItem value="Elite">Elite - $99/month</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="weight">Weight (kg) *</Label>
+              <Input
+                id="weight"
+                type="number"
+                required
+                min="1"
+                step="0.1"
+                value={formData.weight}
+                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                data-testid="input-weight"
+                placeholder="Enter weight in kilograms"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="package">Package *</Label>
+              <Select value={formData.package} onValueChange={(value) => setFormData({ ...formData, package: value })}>
+                <SelectTrigger data-testid="select-package">
+                  <SelectValue placeholder="Select a package" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Basic">Basic - $29/month</SelectItem>
+                  <SelectItem value="Premium">Premium - $59/month</SelectItem>
+                  <SelectItem value="Elite">Elite - $99/month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="allergies">Allergies & Dietary Restrictions</Label>
