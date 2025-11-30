@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Users, Video, Zap } from "lucide-react";
+import { Calendar, Clock, Video, Zap } from "lucide-react";
 
 interface LiveSessionCardProps {
   title: string;
@@ -9,8 +9,8 @@ interface LiveSessionCardProps {
   date: string;
   time: string;
   duration: string;
-  participants: number;
-  maxParticipants: number;
+  participants?: number;
+  maxParticipants?: number;
   status: "upcoming" | "live" | "completed";
   onJoin?: () => void;
 }
@@ -21,14 +21,10 @@ export function LiveSessionCard({
   date,
   time,
   duration,
-  participants,
-  maxParticipants,
   status,
   onJoin,
 }: LiveSessionCardProps) {
   const isLive = status === "live";
-  const isUpcoming = status === "upcoming";
-  const spotsFilled = Math.round((participants / maxParticipants) * 100);
 
   return (
     <Card 
@@ -96,32 +92,6 @@ export function LiveSessionCard({
           </div>
         </div>
 
-        {/* Participants Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground" data-testid="text-participants">
-                {participants}/{maxParticipants} participants
-              </span>
-            </div>
-            <span className="text-xs font-semibold text-muted-foreground">{spotsFilled}%</span>
-          </div>
-          {/* Progress bar */}
-          <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-            <div 
-              className={`h-full transition-all ${
-                spotsFilled > 80 
-                  ? "bg-gradient-to-r from-orange-500 to-red-500" 
-                  : spotsFilled > 50 
-                  ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                  : "bg-gradient-to-r from-blue-500 to-cyan-500"
-              }`}
-              style={{ width: `${spotsFilled}%` }}
-            />
-          </div>
-        </div>
-
         {/* Join Button */}
         {status !== "completed" && (
           <Button
@@ -134,7 +104,7 @@ export function LiveSessionCard({
             data-testid="button-join-session"
           >
             <Video className="h-4 w-4 mr-2" />
-            {isLive ? "Join Live Now" : "Reserve Spot"}
+            {isLive ? "Join Live Now" : "Join Now"}
           </Button>
         )}
       </CardContent>
