@@ -190,6 +190,21 @@ export default function ClientDashboard() {
     refetchInterval: 30000,
   });
 
+  const { data: goalsData = [] } = useQuery<any[]>({
+    queryKey: ['/api/goals', clientId],
+    queryFn: async () => {
+      if (!clientId) return [];
+      const res = await fetch(`/api/goals?clientId=${clientId}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    },
+    enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 30000,
+  });
+
   const { data: upcomingSessions = [] } = useQuery<any[]>({
     queryKey: [`/api/clients/${clientId}/upcoming-sessions`],
     enabled: !!clientId,
@@ -350,10 +365,11 @@ export default function ClientDashboard() {
 
   const nextSessionInfo = getNextSession();
 
-  // Calculate weight goal progress from logged weight measurements
-  const currentWeight = weightData?.current || progress.currentWeight || 0;
-  const targetWeight = weightData?.goal || progress.targetWeight || 0;
-  const initialWeight = weightData?.initial || progress.initialWeight || 0;
+  // Calculate weight goal progress from goals API or logged weight measurements
+  const weightGoal = goalsData?.find((g: any) => g.goalType === 'weight' && g.status === 'active');
+  const currentWeight = weightGoal?.currentValue || weightData?.current || progress.currentWeight || 0;
+  const targetWeight = weightGoal?.targetValue || weightData?.goal || progress.targetWeight || 0;
+  const initialWeight = weightData?.initial || progress.initialWeight || currentWeight;
   const weightProgress = targetWeight && initialWeight ? 
     Math.round(((initialWeight - currentWeight) / (initialWeight - targetWeight)) * 100) : 0;
 

@@ -4877,9 +4877,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Goal routes
   app.get("/api/goals", authenticateToken, async (req, res) => {
     try {
-      const clientId = req.user?.clientId;
+      const queryClientId = req.query.clientId as string;
+      const userClientId = req.user?.clientId;
+      const userRole = req.user?.role;
+      
+      // Admins and trainers can access any client's goals
+      // Clients can only access their own goals
+      let clientId: string | undefined;
+      
+      if (userRole === 'admin' || userRole === 'trainer') {
+        clientId = queryClientId || userClientId;
+      } else {
+        // For clients, use their own clientId or verify query matches their own
+        clientId = userClientId;
+        if (queryClientId && queryClientId !== userClientId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
       if (!clientId) {
-        return res.status(400).json({ message: "Client ID not found in authentication" });
+        return res.status(400).json({ message: "Client ID is required" });
       }
       
       const goals = await storage.getClientGoals(clientId);
