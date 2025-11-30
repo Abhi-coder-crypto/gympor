@@ -384,11 +384,12 @@ export function DietTemplateList({ isTrainer = false, trainerId = '' }: { isTrai
     Object.entries(formData.meals).forEach(([day, dayMeals]) => {
       mealsObject[day] = {};
       dayMeals.forEach((meal) => {
-        // Aggregate calories and macros from dishes - ensure values are numbers
-        const totalCalories = meal.dishes.reduce((sum, dish) => sum + ((dish.calories as number) || 0), 0);
-        const totalProtein = meal.dishes.reduce((sum, dish) => sum + ((dish.protein as number) || 0), 0);
-        const totalCarbs = meal.dishes.reduce((sum, dish) => sum + ((dish.carbs as number) || 0), 0);
-        const totalFats = meal.dishes.reduce((sum, dish) => sum + ((dish.fats as number) || 0), 0);
+        // RECALCULATE calories from macros to ensure accuracy (protein*4 + carbs*4 + fats*9)
+        const totalProtein = meal.dishes.reduce((sum, dish) => sum + (Number(dish.protein) || 0), 0);
+        const totalCarbs = meal.dishes.reduce((sum, dish) => sum + (Number(dish.carbs) || 0), 0);
+        const totalFats = meal.dishes.reduce((sum, dish) => sum + (Number(dish.fats) || 0), 0);
+        // Recalculate calories from macros - this is the source of truth
+        const totalCalories = Math.round((totalProtein * 4) + (totalCarbs * 4) + (totalFats * 9));
         
         mealsObject[day][meal.type] = {
           name: meal.dishes.map(d => d.name).filter(Boolean).join(', ') || `${meal.type} meal`,
