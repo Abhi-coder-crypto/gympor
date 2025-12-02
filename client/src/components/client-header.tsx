@@ -13,6 +13,7 @@ import { useLocation } from "wouter";
 import { useLanguage } from "@/lib/language-context";
 import { queryClient } from "@/lib/queryClient";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import logoImage from "@assets/TWWLOGO_1763965276890.png";
 import { TrainerContactDropdown } from "@/components/trainer-contact-dialog";
 
@@ -21,13 +22,20 @@ interface ClientHeaderProps {
   packageName?: string;
 }
 
-export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
+export function ClientHeader({ currentPage, packageName: packageNameProp }: ClientHeaderProps) {
   const [, setLocation] = useLocation();
   const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
+  // Fetch user data from backend for current package info
+  const { data: userData } = useQuery<any>({
+    queryKey: ["/api/auth/me"],
+  });
+  
+  const packageName = userData?.client?.packageId?.name || userData?.client?.packageName || packageNameProp || "";
+  
   // Check if client has Pro or Elite package
-  const packageLower = packageName?.toLowerCase() || "";
+  const packageLower = packageName.toLowerCase();
   const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
   const isElite = packageLower.includes("elite");
   const isProOrElite = !!(packageName && (isPro || isElite));

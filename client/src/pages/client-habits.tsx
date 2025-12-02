@@ -14,18 +14,22 @@ export default function ClientHabits() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [clientId, setClientId] = useState<string | null>(null);
-  const [packageName, setPackageName] = useState("");
+
+  // Fetch user and client data from backend
+  const { data: userData } = useQuery<any>({
+    queryKey: ["/api/auth/me"],
+  });
+
+  const client = userData?.client;
+  const packageName = client?.packageId?.name || client?.packageName || "";
 
   useEffect(() => {
-    const id = localStorage.getItem("clientId");
-    const pkg = localStorage.getItem("packageName");
-    if (!id) {
+    if (!client && userData !== undefined) {
       setLocation("/client-access");
-    } else {
-      setClientId(id);
-      setPackageName(pkg || "");
+    } else if (client?._id) {
+      setClientId(client._id);
     }
-  }, [setLocation]);
+  }, [client, userData, setLocation]);
 
   // Check if client has Pro or Elite package
   const packageLower = packageName.toLowerCase();
