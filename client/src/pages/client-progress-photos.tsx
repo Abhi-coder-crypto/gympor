@@ -165,17 +165,67 @@ export default function ClientProgressPhotos() {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="photoUrl">Photo URL *</Label>
-                    <Input
-                      id="photoUrl"
-                      placeholder="Enter photo URL..."
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      data-testid="input-photo-url"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Upload your photo to an image hosting service and paste the URL here
-                    </p>
+                    <Label htmlFor="photoUrl">Photo *</Label>
+                    <div
+                      className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.style.borderColor = "hsl(var(--primary))";
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.style.borderColor = "hsl(var(--muted-foreground) / 0.5)";
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.style.borderColor = "hsl(var(--muted-foreground) / 0.5)";
+                        const files = e.dataTransfer.files;
+                        if (files.length > 0) {
+                          const file = files[0];
+                          if (file.type.startsWith("image/")) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              setPhotoUrl(event.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          } else {
+                            toast({
+                              title: "Invalid file",
+                              description: "Please drop an image file",
+                              variant: "destructive",
+                            });
+                          }
+                        }
+                      }}
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              setPhotoUrl(event.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      {photoUrl ? (
+                        <div className="space-y-2">
+                          <img src={photoUrl} alt="Preview" className="max-h-48 mx-auto rounded" />
+                          <p className="text-sm text-muted-foreground">Photo selected - click to change</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                          <p className="font-medium">Drag and drop your photo here</p>
+                          <p className="text-sm text-muted-foreground">or click to browse</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
