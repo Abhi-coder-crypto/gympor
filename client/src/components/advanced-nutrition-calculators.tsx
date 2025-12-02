@@ -490,14 +490,14 @@ export function AdvancedNutritionCalculators() {
 
         {results && (
           <div className="grid md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="hover-elevate">
               <CardHeader>
                 <CardTitle>Body Mass Index (BMI)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="text-4xl font-bold font-display">{results.bmi}</div>
-                  <Badge className={getBMIColor(results.bmiCategory)}>{results.bmiCategory}</Badge>
+                <div className="text-center space-y-4 p-4">
+                  <div className="text-6xl font-bold font-display text-primary">{results.bmi}</div>
+                  <Badge className={getBMIColor(results.bmiCategory)} data-testid="badge-bmi-category">{results.bmiCategory}</Badge>
                   <p className="text-sm text-muted-foreground">
                     Normal range: 18.5 - 24.9
                   </p>
@@ -505,16 +505,16 @@ export function AdvancedNutritionCalculators() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover-elevate">
               <CardHeader>
                 <CardTitle>Ideal Weight Range</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="text-4xl font-bold font-display">
+                <div className="text-center space-y-4 p-4">
+                  <div className="text-6xl font-bold font-display text-chart-3">
                     {results.idealWeight.min.toFixed(1)} - {results.idealWeight.max.toFixed(1)}
                   </div>
-                  <p className="text-sm text-muted-foreground">kg</p>
+                  <p className="text-lg text-muted-foreground">kg</p>
                   <p className="text-sm text-muted-foreground">
                     Based on BMI 18.5-24.9
                   </p>
@@ -522,14 +522,14 @@ export function AdvancedNutritionCalculators() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover-elevate">
               <CardHeader>
                 <CardTitle>Basal Metabolic Rate (BMR)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="text-4xl font-bold font-display">{results.bmr}</div>
-                  <p className="text-sm text-muted-foreground">calories/day at rest</p>
+                <div className="text-center space-y-4 p-4">
+                  <div className="text-6xl font-bold font-display text-chart-2">{results.bmr}</div>
+                  <p className="text-lg text-muted-foreground">calories/day at rest</p>
                   <p className="text-xs text-muted-foreground">
                     Calories your body burns at rest
                   </p>
@@ -537,14 +537,14 @@ export function AdvancedNutritionCalculators() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover-elevate">
               <CardHeader>
                 <CardTitle>Total Daily Energy Expenditure (TDEE)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="text-4xl font-bold font-display">{results.tdee}</div>
-                  <p className="text-sm text-muted-foreground">calories/day</p>
+                <div className="text-center space-y-4 p-4">
+                  <div className="text-6xl font-bold font-display text-chart-1">{results.tdee}</div>
+                  <p className="text-lg text-muted-foreground">calories/day</p>
                   <p className="text-xs text-muted-foreground">
                     Total calories burned daily with activity
                   </p>
@@ -642,38 +642,38 @@ export function AdvancedNutritionCalculators() {
 
         {bodyFatResult && (
           <div className="grid md:grid-cols-3 gap-6">
-            <Card>
+            <Card className="hover-elevate border-primary/50">
               <CardHeader>
                 <CardTitle>Body Fat Percentage</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="text-4xl font-bold font-display">{bodyFatResult.percentage}%</div>
-                  <Badge className={bodyFatResult.color}>{bodyFatResult.category}</Badge>
+                <div className="text-center space-y-4 p-6">
+                  <div className="text-7xl font-bold font-display text-primary">{bodyFatResult.percentage}%</div>
+                  <Badge className={bodyFatResult.color} data-testid="badge-bf-category">{bodyFatResult.category}</Badge>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover-elevate">
               <CardHeader>
                 <CardTitle>Lean Body Mass</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="text-4xl font-bold font-display text-chart-3">{bodyFatResult.leanMass}</div>
-                  <p className="text-sm text-muted-foreground">kg</p>
+                <div className="text-center space-y-4 p-6">
+                  <div className="text-6xl font-bold font-display text-chart-3">{bodyFatResult.leanMass}</div>
+                  <p className="text-lg text-muted-foreground">kg</p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover-elevate">
               <CardHeader>
                 <CardTitle>Fat Mass</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center space-y-3">
-                  <div className="text-4xl font-bold font-display text-chart-1">{bodyFatResult.fatMass}</div>
-                  <p className="text-sm text-muted-foreground">kg</p>
+                <div className="text-center space-y-4 p-6">
+                  <div className="text-6xl font-bold font-display text-chart-1">{bodyFatResult.fatMass}</div>
+                  <p className="text-lg text-muted-foreground">kg</p>
                 </div>
               </CardContent>
             </Card>
@@ -714,7 +714,7 @@ export function AdvancedNutritionCalculators() {
         </Card>
 
         {macroResults && (
-          <Card className="border-primary/50">
+          <Card className="border-primary/50 hover-elevate">
             <CardHeader>
               <CardTitle>Recommended Macro Distribution</CardTitle>
               <CardDescription>
@@ -723,21 +723,21 @@ export function AdvancedNutritionCalculators() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-accent/50 rounded-md">
-                  <div className="text-3xl font-bold font-display text-primary">{macroResults.calories}</div>
-                  <p className="text-sm text-muted-foreground mt-1">Total Calories</p>
+                <div className="text-center p-6 bg-accent/50 rounded-md">
+                  <div className="text-5xl font-bold font-display text-primary">{macroResults.calories}</div>
+                  <p className="text-lg text-muted-foreground mt-2">Total Calories</p>
                 </div>
-                <div className="text-center p-4 bg-chart-1/10 rounded-md">
-                  <div className="text-3xl font-bold font-display text-chart-1">{macroResults.protein.grams}g</div>
-                  <p className="text-sm text-muted-foreground mt-1">Protein ({macroResults.protein.percent}%)</p>
+                <div className="text-center p-6 bg-chart-1/10 rounded-md">
+                  <div className="text-5xl font-bold font-display text-chart-1">{macroResults.protein.grams}g</div>
+                  <p className="text-lg text-muted-foreground mt-2">Protein ({macroResults.protein.percent}%)</p>
                 </div>
-                <div className="text-center p-4 bg-chart-2/10 rounded-md">
-                  <div className="text-3xl font-bold font-display text-chart-2">{macroResults.carbs.grams}g</div>
-                  <p className="text-sm text-muted-foreground mt-1">Carbs ({macroResults.carbs.percent}%)</p>
+                <div className="text-center p-6 bg-chart-2/10 rounded-md">
+                  <div className="text-5xl font-bold font-display text-chart-2">{macroResults.carbs.grams}g</div>
+                  <p className="text-lg text-muted-foreground mt-2">Carbs ({macroResults.carbs.percent}%)</p>
                 </div>
-                <div className="text-center p-4 bg-chart-3/10 rounded-md">
-                  <div className="text-3xl font-bold font-display text-chart-3">{macroResults.fats.grams}g</div>
-                  <p className="text-sm text-muted-foreground mt-1">Fats ({macroResults.fats.percent}%)</p>
+                <div className="text-center p-6 bg-chart-3/10 rounded-md">
+                  <div className="text-5xl font-bold font-display text-chart-3">{macroResults.fats.grams}g</div>
+                  <p className="text-lg text-muted-foreground mt-2">Fats ({macroResults.fats.percent}%)</p>
                 </div>
               </div>
             </CardContent>
@@ -779,23 +779,23 @@ export function AdvancedNutritionCalculators() {
         </Card>
 
         {proteinResult && (
-          <Card className="border-primary/50">
+          <Card className="border-primary/50 hover-elevate">
             <CardHeader>
               <CardTitle>Daily Protein Requirements</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-chart-1/10 rounded-md">
-                  <div className="text-4xl font-bold font-display text-chart-1">{proteinResult.grams}g</div>
-                  <p className="text-sm text-muted-foreground mt-1">Total Protein/Day</p>
+                <div className="text-center p-6 bg-chart-1/10 rounded-md">
+                  <div className="text-6xl font-bold font-display text-chart-1">{proteinResult.grams}g</div>
+                  <p className="text-lg text-muted-foreground mt-2">Total Protein/Day</p>
                 </div>
-                <div className="text-center p-4 bg-accent/50 rounded-md">
-                  <div className="text-4xl font-bold font-display">{proteinResult.calories}</div>
-                  <p className="text-sm text-muted-foreground mt-1">Calories from Protein</p>
+                <div className="text-center p-6 bg-accent/50 rounded-md">
+                  <div className="text-6xl font-bold font-display">{proteinResult.calories}</div>
+                  <p className="text-lg text-muted-foreground mt-2">Calories from Protein</p>
                 </div>
-                <div className="text-center p-4 bg-chart-2/10 rounded-md">
-                  <div className="text-4xl font-bold font-display text-chart-2">{proteinResult.perMeal}g</div>
-                  <p className="text-sm text-muted-foreground mt-1">Per Meal (4 meals)</p>
+                <div className="text-center p-6 bg-chart-2/10 rounded-md">
+                  <div className="text-6xl font-bold font-display text-chart-2">{proteinResult.perMeal}g</div>
+                  <p className="text-lg text-muted-foreground mt-2">Per Meal (4 meals)</p>
                 </div>
               </div>
             </CardContent>
@@ -1033,27 +1033,27 @@ export function AdvancedNutritionCalculators() {
         </Card>
 
         {hydrationResult && (
-          <Card className="border-primary/50">
+          <Card className="border-primary/50 hover-elevate">
             <CardHeader>
               <CardTitle>Daily Water Intake Recommendations</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-500/10 rounded-md">
-                  <div className="text-4xl font-bold font-display text-blue-500">{hydrationResult.liters}L</div>
-                  <p className="text-sm text-muted-foreground mt-1">Liters per day</p>
+                <div className="text-center p-6 bg-blue-500/10 rounded-md">
+                  <div className="text-6xl font-bold font-display text-blue-500">{hydrationResult.liters}L</div>
+                  <p className="text-lg text-muted-foreground mt-2">Liters per day</p>
                 </div>
-                <div className="text-center p-4 bg-accent/50 rounded-md">
-                  <div className="text-4xl font-bold font-display">{hydrationResult.glasses}</div>
-                  <p className="text-sm text-muted-foreground mt-1">Glasses (250ml)</p>
+                <div className="text-center p-6 bg-accent/50 rounded-md">
+                  <div className="text-6xl font-bold font-display">{hydrationResult.glasses}</div>
+                  <p className="text-lg text-muted-foreground mt-2">Glasses (250ml)</p>
                 </div>
-                <div className="text-center p-4 bg-chart-2/10 rounded-md">
-                  <div className="text-4xl font-bold font-display text-chart-2">{hydrationResult.ounces}</div>
-                  <p className="text-sm text-muted-foreground mt-1">Fluid Ounces</p>
+                <div className="text-center p-6 bg-chart-2/10 rounded-md">
+                  <div className="text-6xl font-bold font-display text-chart-2">{hydrationResult.ounces}</div>
+                  <p className="text-lg text-muted-foreground mt-2">Fluid Ounces</p>
                 </div>
-                <div className="text-center p-4 bg-chart-3/10 rounded-md">
-                  <div className="text-4xl font-bold font-display text-chart-3">{hydrationResult.perHour}</div>
-                  <p className="text-sm text-muted-foreground mt-1">L/hour (awake)</p>
+                <div className="text-center p-6 bg-chart-3/10 rounded-md">
+                  <div className="text-6xl font-bold font-display text-chart-3">{hydrationResult.perHour}</div>
+                  <p className="text-lg text-muted-foreground mt-2">L/hour (awake)</p>
                 </div>
               </div>
             </CardContent>
