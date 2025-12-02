@@ -567,6 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For client users, include the clientId in the response for frontend use
       if (user.role === 'client' && clientId) {
         userWithoutPassword.clientId = clientId;
+        console.log(`[AUTH] Returning clientId for ${user.email}: ${clientId}`);
       }
       
       res.json({
@@ -6384,9 +6385,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/habits/client/:clientId', authenticateToken, async (req, res) => {
     try {
       const { clientId } = req.params;
+      console.log(`[HABITS] Fetching habits for clientId: ${clientId}`);
       const habits = await Habit.find({ clientId: new mongoose.Types.ObjectId(clientId) }).sort({ createdAt: -1 });
+      console.log(`[HABITS] Found ${habits.length} habits for clientId: ${clientId}`);
       res.json(habits);
     } catch (error: any) {
+      console.error(`[HABITS] Error fetching habits for ${clientId}:`, error.message);
       res.status(500).json({ message: error.message });
     }
   });
