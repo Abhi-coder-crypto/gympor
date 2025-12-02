@@ -16,7 +16,7 @@ export default function ClientHabits() {
   const [clientId, setClientId] = useState<string | null>(null);
 
   // Fetch user and client data from backend
-  const { data: userData } = useQuery<any>({
+  const { data: userData, isLoading } = useQuery<any>({
     queryKey: ["/api/auth/me"],
   });
 
@@ -24,12 +24,13 @@ export default function ClientHabits() {
   const packageName = client?.packageId?.name || client?.packageName || "";
 
   useEffect(() => {
-    if (!client && userData !== undefined) {
+    // Only redirect if data has finished loading and there's no client
+    if (!isLoading && userData && !client) {
       setLocation("/client-access");
     } else if (client?._id) {
       setClientId(client._id);
     }
-  }, [client, userData, setLocation]);
+  }, [client, isLoading, userData, setLocation]);
 
   // Check if client has Pro or Elite package
   const packageLower = packageName.toLowerCase();
@@ -37,10 +38,21 @@ export default function ClientHabits() {
   const isElite = packageLower.includes("elite");
   const isProOrElite = !!(packageName && (isPro || isElite));
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ClientHeader currentPage="habits" packageName={packageName} />
+        <div className="max-w-6xl mx-auto p-4 md:p-6 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isProOrElite) {
     return (
       <div className="min-h-screen bg-background">
-        <ClientHeader currentPage="dashboard" packageName={packageName} />
+        <ClientHeader currentPage="habits" packageName={packageName} />
         <div className="max-w-6xl mx-auto p-4 md:p-6">
           <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
             <CardContent className="pt-6">
