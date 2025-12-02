@@ -20,7 +20,20 @@ export default function ClientHabits() {
   });
 
   const client = userData?.client;
+  const user = userData?.user;
   const packageName = client?.packageId?.name || client?.packageName || "";
+
+  // Redirect admin/trainer users
+  useEffect(() => {
+    if (!isLoading && !client && user?.role === "admin") {
+      toast({
+        title: "Admin Access",
+        description: "Please log in as a client to view habits",
+        variant: "destructive",
+      });
+      setLocation("/");
+    }
+  }, [isLoading, client, user?.role, setLocation, toast]);
 
   useEffect(() => {
     if (client?._id) {
@@ -41,7 +54,7 @@ export default function ClientHabits() {
   });
 
   // Show loading only for initial user/client load
-  if (isLoading || !client) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <ClientHeader currentPage="habits" packageName={packageName} />
@@ -50,6 +63,32 @@ export default function ClientHabits() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading habits...</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If no client data, show error
+  if (!client) {
+    return (
+      <div className="min-h-screen bg-background">
+        <ClientHeader currentPage="habits" packageName={packageName} />
+        <div className="max-w-6xl mx-auto p-4 md:p-6">
+          <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold text-red-900 dark:text-red-100">
+                    Client Access Required
+                  </p>
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    Please log in as a client to view habits.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
