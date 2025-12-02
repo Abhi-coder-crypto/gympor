@@ -76,7 +76,10 @@ export default function ClientHabits() {
     queryKey: ["/api/habits/client", clientId],
     queryFn: async () => {
       if (!clientId) return [];
-      const response = await fetch(`/api/habits/client/${clientId}`);
+      const token = sessionStorage.getItem("clientToken");
+      const response = await fetch(`/api/habits/client/${clientId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!response.ok) throw new Error("Failed to fetch habits");
       return response.json();
     },
