@@ -82,7 +82,7 @@ export default function TrainerHabits() {
   });
 
   // Get all habits for trainer
-  const { data: habits = [] } = useQuery<any[]>({
+  const { data: habits = [], refetch: refetchHabits } = useQuery<any[]>({
     queryKey: ["/api/trainers", trainerId, "habits"],
     queryFn: async () => {
       const token = sessionStorage.getItem("trainerToken");
@@ -93,10 +93,12 @@ export default function TrainerHabits() {
       return response.json();
     },
     enabled: !!trainerId,
+    staleTime: 0,
+    refetchInterval: 8000,
   });
 
   // Get logs for a habit
-  const { data: habitLogs = [] } = useQuery<any[]>({
+  const { data: habitLogs = [], refetch: refetchLogs } = useQuery<any[]>({
     queryKey: ["/api/habits", viewingHabitId, "logs"],
     queryFn: async () => {
       const response = await fetch(`/api/habits/${viewingHabitId}/logs`);
@@ -104,6 +106,8 @@ export default function TrainerHabits() {
       return response.json();
     },
     enabled: !!viewingHabitId,
+    staleTime: 0,
+    refetchInterval: 5000,
   });
 
   // Create habit mutation

@@ -588,12 +588,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Authentication required" });
       }
 
-      if (!req.user.clientId) {
-        return res.status(404).json({ message: "Client not found" });
+      // Look up client by user email instead of relying on clientId from token
+      const user = await storage.getUserById(req.user.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
 
-      const client = await storage.getClient(req.user.clientId.toString());
-      if (!client || !client.trainerId) {
+      const client = await Client.findOne({ email: user.email }).select('trainerId');
+      if (!client) {
+        return res.status(404).json({ message: "Client profile not found" });
+      }
+
+      if (!client.trainerId) {
         return res.status(404).json({ message: "No trainer assigned" });
       }
 
@@ -608,6 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: trainer.email || "",
       });
     } catch (error: any) {
+      console.error('[TRAINER CONTACT] Error:', error.message);
       res.status(500).json({ message: error.message });
     }
   });

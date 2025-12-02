@@ -5,12 +5,13 @@ import { ClientHeader } from "@/components/client-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Flame, TrendingUp } from "lucide-react";
 import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 
 export default function ClientHabits() {
   const { toast } = useToast();
   const [clientId, setClientId] = useState<string | null>(null);
+  const [habitLogs, setHabitLogs] = useState<Record<string, boolean>>({});
 
   // Fetch user data
   const { data: userData } = useQuery<any>({
@@ -28,7 +29,7 @@ export default function ClientHabits() {
   }, [user?.clientId]);
 
   // Fetch habits with proper authentication
-  const { data: habits = [], isLoading } = useQuery<any[]>({
+  const { data: habits = [], isLoading, refetch: refetchHabits } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
     queryFn: async () => {
       if (!clientId) {
@@ -48,7 +49,40 @@ export default function ClientHabits() {
     },
     enabled: !!clientId,
     staleTime: 0,
-    refetchInterval: 30000,
+    refetchInterval: 10000,
+  });
+
+  // Fetch habit logs for today to check completion status
+  const { data: logsData = [] } = useQuery<any[]>({
+    queryKey: ["/api/habits/logs", clientId],
+    queryFn: async () => {
+      if (!clientId || habits.length === 0) return [];
+      try {
+        const logs: Record<string, boolean> = {};
+        const today = new Date().toDateString();
+        
+        // Fetch logs for each habit
+        for (const habit of habits) {
+          try {
+            const res = await apiRequest("GET", `/api/habits/${habit._id}/logs`);
+            const data = await res.json();
+            const todayLog = data?.find((log: any) => new Date(log.date).toDateString() === today);
+            logs[habit._id] = todayLog?.completed || false;
+          } catch (err) {
+            logs[habit._id] = false;
+          }
+        }
+        
+        setHabitLogs(logs);
+        return [];
+      } catch (error: any) {
+        console.error('Failed to fetch logs:', error.message);
+        return [];
+      }
+    },
+    enabled: !!clientId && habits.length > 0,
+    staleTime: 0,
+    refetchInterval: 10000,
   });
 
   // Mark habit done mutation
@@ -60,8 +94,15 @@ export default function ClientHabits() {
         date: today,
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["habits", clientId] });
+    onSuccess: (_, { habitId }) => {
+      // Update local state immediately
+      setHabitLogs(prev => ({
+        ...prev,
+        [habitId]: !prev[habitId],
+      }));
+      // Invalidate and refetch the correct query keys
+      queryClient.invalidateQueries({ queryKey: ["/api/habits/client", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/habits/logs", clientId] });
       toast({
         title: "Success",
         description: "Habit status updated",
@@ -83,36 +124,43 @@ export default function ClientHabits() {
     });
   };
 
-  const completedCount = habits.filter(h => h.completed).length;
+  const completedCount = Object.values(habitLogs).filter(Boolean).length;
   const totalCount = habits.length;
+
+  const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-background">
       <ClientHeader currentPage="habits" packageName={packageName} />
 
-      <div className="max-w-2xl mx-auto p-4 md:p-6">
+      <div className="max-w-3xl mx-auto p-4 md:p-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Habits</h1>
-          <p className="text-muted-foreground">Track your daily habits assigned by your trainer</p>
+        <div className="mb-10">
+          <h1 className="text-4xl font-bold mb-3">My Habits</h1>
+          <p className="text-lg text-muted-foreground">Track your daily habits assigned by your trainer</p>
         </div>
 
         {/* Progress Summary */}
         {habits.length > 0 && (
-          <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-            <CardContent className="pt-6">
+          <Card className="mb-8 border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 overflow-hidden">
+            <CardContent className="pt-8 pb-8">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Today's Progress</p>
-                  <p className="text-3xl font-bold">
-                    {completedCount}/{totalCount}
-                  </p>
+                  <p className="text-sm font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Today's Progress</p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-5xl font-bold text-primary">{completedCount}/{totalCount}</p>
+                    <span className="text-lg text-muted-foreground">habits</span>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-green-600">
-                    {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
-                  </p>
-                  <p className="text-sm text-muted-foreground">Complete</p>
+                  <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white dark:bg-slate-900 shadow-md">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+                        {progressPercentage}%
+                      </p>
+                      <p className="text-xs font-semibold text-muted-foreground mt-1">Complete</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -122,43 +170,62 @@ export default function ClientHabits() {
         {/* Habits List */}
         {isLoading ? (
           <Card>
-            <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">Loading your habits...</p>
+            <CardContent className="pt-12 pb-12 text-center">
+              <div className="inline-flex flex-col items-center gap-3">
+                <div className="w-8 h-8 rounded-full border-4 border-muted-foreground/20 border-t-primary animate-spin"></div>
+                <p className="text-muted-foreground">Loading your habits...</p>
+              </div>
             </CardContent>
           </Card>
         ) : habits.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6 text-center">
+          <Card className="border-dashed">
+            <CardContent className="pt-12 pb-12 text-center">
+              <Flame className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-muted-foreground">
                 No habits assigned yet. Contact your trainer to get started.
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {habits.map((habit: any) => {
-              const isCompleted = habit.completed || false;
+              const isCompleted = habitLogs[habit._id] || false;
 
               return (
-                <Card key={habit._id} className={isCompleted ? "border-green-200 bg-green-50 dark:bg-green-950/20" : ""} data-testid={`card-habit-${habit._id}`}>
-                  <CardContent className="pt-6">
+                <Card 
+                  key={habit._id} 
+                  className={`transition-all duration-300 cursor-pointer hover-elevate ${
+                    isCompleted 
+                      ? "border-green-200 dark:border-green-800 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 shadow-sm" 
+                      : "hover:shadow-md"
+                  }`} 
+                  data-testid={`card-habit-${habit._id}`}
+                >
+                  <CardContent className="p-5">
                     <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <p className="font-semibold text-lg">{habit.name}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-lg truncate">{habit.name}</p>
+                          {isCompleted && <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />}
+                        </div>
                         {habit.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{habit.description}</p>
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{habit.description}</p>
                         )}
-                        <Badge className="mt-2">{habit.frequency}</Badge>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="secondary" className="text-xs capitalize">{habit.frequency}</Badge>
+                        </div>
                       </div>
                       <Button
                         onClick={() => toggleHabit(habit._id, isCompleted)}
                         disabled={markHabitMutation.isPending}
                         variant={isCompleted ? "default" : "outline"}
-                        className="gap-2 whitespace-nowrap"
+                        className={`gap-2 whitespace-nowrap flex-shrink-0 transition-all ${
+                          isCompleted ? "bg-green-600 hover:bg-green-700 dark:bg-green-700" : ""
+                        }`}
                         data-testid={`button-mark-habit-${habit._id}`}
                       >
                         <CheckCircle2 className={`h-4 w-4 ${isCompleted ? "" : "opacity-50"}`} />
-                        {isCompleted ? "Done Today" : "Mark Today Done"}
+                        {isCompleted ? "Done" : "Mark Done"}
                       </Button>
                     </div>
                   </CardContent>
