@@ -35,6 +35,12 @@ export default function ClientHabits() {
   const isElite = packageLower.includes("elite");
   const isProOrElite = !!(packageName && (isPro || isElite));
 
+  // Get habits for client - define before loading check
+  const { data: habits = [], isLoading: habitsLoading } = useQuery<any[]>({
+    queryKey: ["/api/habits/client", clientId],
+    enabled: !!clientId && isProOrElite,
+  });
+
   if (isLoading || habitsLoading || !client) {
     return (
       <div className="min-h-screen bg-background">
@@ -70,12 +76,6 @@ export default function ClientHabits() {
       </div>
     );
   }
-
-  // Get habits for client - use direct endpoint without manual token handling
-  const { data: habits = [], isLoading: habitsLoading } = useQuery<any[]>({
-    queryKey: ["/api/habits/client", clientId],
-    enabled: !!clientId && isProOrElite,
-  });
 
   // Get today's logs - lazy fetch when needed
   const { data: todayLogs = [] } = useQuery<any[]>({
@@ -154,7 +154,7 @@ export default function ClientHabits() {
 
   return (
     <div className="min-h-screen bg-background">
-      <ClientHeader currentPage="dashboard" packageName={packageName} />
+      <ClientHeader currentPage="habits" packageName={packageName} />
 
       <div className="max-w-2xl mx-auto p-4 md:p-6">
         {/* Header */}
