@@ -20,20 +20,7 @@ export default function ClientHabits() {
   });
 
   const client = userData?.client;
-  const user = userData?.user;
   const packageName = client?.packageId?.name || client?.packageName || "";
-
-  // Redirect admin/trainer users
-  useEffect(() => {
-    if (!isLoading && !client && user?.role === "admin") {
-      toast({
-        title: "Admin Access",
-        description: "Please log in as a client to view habits",
-        variant: "destructive",
-      });
-      setLocation("/");
-    }
-  }, [isLoading, client, user?.role, setLocation, toast]);
 
   useEffect(() => {
     if (client?._id) {
