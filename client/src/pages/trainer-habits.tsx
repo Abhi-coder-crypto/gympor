@@ -140,10 +140,13 @@ export default function TrainerHabits() {
     mutationFn: async (habitId: string) => {
       return apiRequest("DELETE", `/api/habits/${habitId}`, {});
     },
-    onSuccess: () => {
+    onSuccess: (_, habitId) => {
+      // Find the habit to get its clientId for cache invalidation
+      const deletedHabit = habits.find((h: any) => h._id === habitId);
       queryClient.invalidateQueries({ queryKey: ["/api/trainers", trainerId, "habits"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/client/habits"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/habits"] });
+      if (deletedHabit?.clientId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/habits/client", deletedHabit.clientId] });
+      }
       toast({
         title: "Success",
         description: "Habit deleted successfully",

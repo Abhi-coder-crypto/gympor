@@ -6387,9 +6387,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/habits/client/:clientId', authenticateToken, async (req, res) => {
     try {
       const { clientId } = req.params;
-      console.log(`[HABITS] Fetching habits for clientId: ${clientId}`);
-      const habits = await Habit.find({ clientId: new mongoose.Types.ObjectId(clientId) }).sort({ createdAt: -1 });
+      console.log(`[HABITS] Fetching habits for clientId: ${clientId}, type: ${typeof clientId}`);
+      
+      // Try to convert to ObjectId, but also handle string comparison
+      let query: any = {};
+      try {
+        query.clientId = new mongoose.Types.ObjectId(clientId);
+      } catch (err) {
+        // If conversion fails, try string comparison
+        query.clientId = clientId;
+      }
+      
+      const habits = await Habit.find(query).sort({ createdAt: -1 }).lean();
+      console.log(`[HABITS] Query: ${JSON.stringify(query)}`);
       console.log(`[HABITS] Found ${habits.length} habits for clientId: ${clientId}`);
+      if (habits.length > 0) {
+        console.log(`[HABITS] Sample habit:`, habits[0]);
+      }
       res.json(habits);
     } catch (error: any) {
       console.error(`[HABITS] Error fetching habits for ${clientId}:`, error.message);
