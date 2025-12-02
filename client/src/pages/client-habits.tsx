@@ -35,7 +35,7 @@ export default function ClientHabits() {
   const isElite = packageLower.includes("elite");
   const isProOrElite = !!(packageName && (isPro || isElite));
 
-  if (isLoading || !client) {
+  if (isLoading || habitsLoading || !client) {
     return (
       <div className="min-h-screen bg-background">
         <ClientHeader currentPage="habits" packageName={packageName} />
@@ -71,24 +71,15 @@ export default function ClientHabits() {
     );
   }
 
-  // Get habits for client
-  const { data: habits = [] } = useQuery<any[]>({
+  // Get habits for client - use direct endpoint without manual token handling
+  const { data: habits = [], isLoading: habitsLoading } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
-    queryFn: async () => {
-      if (!clientId) return [];
-      const token = sessionStorage.getItem("clientToken");
-      const response = await fetch(`/api/habits/client/${clientId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!response.ok) throw new Error("Failed to fetch habits");
-      return response.json();
-    },
     enabled: !!clientId && isProOrElite,
   });
 
-  // Get today's logs
+  // Get today's logs - lazy fetch when needed
   const { data: todayLogs = [] } = useQuery<any[]>({
-    queryKey: ["/api/habits", "today", clientId],
+    queryKey: ["/api/habits/today", clientId],
     queryFn: async () => {
       if (!clientId || habits.length === 0) return [];
       
@@ -96,23 +87,28 @@ export default function ClientHabits() {
       const logs: any[] = [];
 
       for (const habit of habits) {
-        const response = await fetch(`/api/habits/${habit._id}/logs`);
-        if (response.ok) {
-          const habitLogs = await response.json();
-          const todayLog = habitLogs.find(
-            (l: any) => new Date(l.date).toDateString() === today
-          );
-          if (todayLog) {
-            logs.push(todayLog);
-          } else {
-            // Create empty log for today
-            logs.push({
-              habitId: habit._id,
-              date: new Date(),
-              completed: false,
-              _id: `temp-${habit._id}`,
-            });
+        try {
+          const response = await fetch(`/api/habits/${habit._id}/logs`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` }
+          });
+          if (response.ok) {
+            const habitLogs = await response.json();
+            const todayLog = habitLogs.find(
+              (l: any) => new Date(l.date).toDateString() === today
+            );
+            if (todayLog) {
+              logs.push(todayLog);
+            } else {
+              logs.push({
+                habitId: habit._id,
+                date: new Date(),
+                completed: false,
+                _id: `temp-${habit._id}`,
+              });
+            }
           }
+        } catch (err) {
+          console.error("Error fetching logs:", err);
         }
       }
       return logs;
@@ -130,7 +126,7 @@ export default function ClientHabits() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/habits", "today", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/habits/today", clientId] });
       queryClient.invalidateQueries({ queryKey: ["/api/habits/client", clientId] });
       toast({
         title: "Success",
