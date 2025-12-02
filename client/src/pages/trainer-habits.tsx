@@ -111,9 +111,9 @@ export default function TrainerHabits() {
     mutationFn: async (data: any) => {
       return apiRequest("POST", "/api/habits", data);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/trainers", trainerId, "habits"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/habits/client"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/habits/client", variables.clientId] });
       queryClient.invalidateQueries({ queryKey: ["/api/client/trainer-contact"] });
       setIsAddDialogOpen(false);
       setSelectedClient("");
