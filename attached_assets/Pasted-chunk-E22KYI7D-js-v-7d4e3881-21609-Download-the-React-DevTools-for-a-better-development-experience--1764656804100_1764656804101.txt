@@ -1,0 +1,30 @@
+chunk-E22KYI7D.js?v=7d4e3881:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+client:745 WebSocket connection to 'wss://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev:24678/?token=rbdJWjKih0zH' failed: 
+createConnection @ client:745
+client:772 [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+connect @ client:772
+client:809 [vite] Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:423:30)
+error @ client:809
+client:423 Uncaught (in promise) Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:423:30)
+/api/habits:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+trainer-habits.tsx:128 Habit creation error: Error: 500: {"message":"Habit validation failed: trainerId: Path `trainerId` is required."}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:44:3)
+onError @ trainer-habits.tsx:128
+/api/habits:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+trainer-habits.tsx:128 Habit creation error: Error: 500: {"message":"Habit validation failed: trainerId: Path `trainerId` is required."}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:44:3)
+onError @ trainer-habits.tsx:128
+/api/habits:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+trainer-habits.tsx:128 Habit creation error: Error: 500: {"message":"Habit validation failed: trainerId: Path `trainerId` is required."}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:44:3)
+onError @ trainer-habits.tsx:128
+/api/habits:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+trainer-habits.tsx:128 Habit creation error: Error: 500: {"message":"Habit validation failed: trainerId: Path `trainerId` is required."}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:44:3)
+onError @ trainer-habits.tsx:128

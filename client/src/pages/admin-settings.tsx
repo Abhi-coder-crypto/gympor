@@ -18,6 +18,8 @@ import {
   Check,
 } from "lucide-react";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminSettings() {
   const style = { "--sidebar-width": "16rem" };
@@ -26,6 +28,31 @@ export default function AdminSettings() {
   const [gymEmail, setGymEmail] = useState("admin@fitpro.com");
   const [gymPhone, setGymPhone] = useState("+91 1234567890");
   const [gymAddress, setGymAddress] = useState("123 Fitness Street, Mumbai, India");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const saveSettingsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/admin/settings", {
+        gymName,
+        gymEmail,
+        gymPhone,
+        gymAddress,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Admin settings saved successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save settings",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Define the 4 packages with their respective pricing for 4, 8, and 12 weeks
   const packages = [
@@ -80,10 +107,9 @@ export default function AdminSettings() {
   ];
 
   const handleSaveGeneralSettings = () => {
-    toast({
-      title: "Success",
-      description: "Admin settings saved successfully",
-    });
+    setIsSaving(true);
+    saveSettingsMutation.mutate();
+    setIsSaving(false);
   };
 
   return (
