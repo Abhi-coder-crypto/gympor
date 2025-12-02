@@ -28,49 +28,43 @@ export default function ClientHabits() {
     }
   }, [client?._id]);
 
-  // Check if client has Pro or Elite package
-  const packageLower = packageName.toLowerCase();
-  const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
-  const isElite = packageLower.includes("elite");
-  const isProOrElite = !!(packageName && (isPro || isElite));
-
-  // Get habits for client - always enable query when clientId is available
-  const { data: habits = [] } = useQuery<any[]>({
+  // Get habits for client
+  const { data: habits = [], isLoading: habitsLoading, error: habitsError } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
     enabled: !!clientId,
   });
 
-  // Show loading only for initial auth load
-  if (isLoading || !client) {
+  // Show loading only for initial auth load or when habits are loading
+  if (isLoading || !client || (habitsLoading && habits.length === 0)) {
     return (
       <div className="min-h-screen bg-background">
         <ClientHeader currentPage="habits" packageName={packageName} />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Loading your habits...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Show upgrade message if not Pro or Elite and no habits
-  if (!isProOrElite && habits.length === 0) {
+  // Show error if habits query failed
+  if (habitsError) {
     return (
       <div className="min-h-screen bg-background">
         <ClientHeader currentPage="habits" packageName={packageName} />
-        <div className="max-w-6xl mx-auto p-4 md:p-6">
-          <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+        <div className="max-w-2xl mx-auto p-4 md:p-6">
+          <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-amber-900 dark:text-amber-100">
-                    Upgrade to Pro or Elite
+                  <p className="font-semibold text-red-900 dark:text-red-100">
+                    Error Loading Habits
                   </p>
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Habit tracking is available for Pro and Elite package clients. Contact your trainer to upgrade.
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    Failed to load your habits. Please refresh or contact support.
                   </p>
                 </div>
               </div>
@@ -81,7 +75,7 @@ export default function ClientHabits() {
     );
   }
 
-  // Get today's logs - disable this query, use habits directly
+  // Get today's logs
   const todayLogs = habits.map((habit: any) => ({
     habitId: habit._id,
     date: new Date(),
