@@ -35,11 +35,16 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: false,
-    hmr: false,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+    },
     allowedHosts: true,
     fs: {
       strict: true,
       deny: ["**/.*"],
     },
+    middlewareMode: true,
   },
 });
