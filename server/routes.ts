@@ -4711,13 +4711,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Progress Tracking - Weight
   app.get("/api/progress/weight", authenticateToken, async (req, res) => {
     try {
-      const clientId = String(req.user?.clientId);
-      if (!clientId) {
+      const clientId = req.user?.clientId || req.user?._id;
+      if (!clientId || String(clientId) === "undefined" || String(clientId) === "null") {
         return res.status(400).json({ message: "Client ID not found in authentication" });
       }
       
-      const history = await storage.getClientWeightHistory(clientId);
-      const goal = await storage.getClientWeightGoal(clientId);
+      const history = await storage.getClientWeightHistory(String(clientId));
+      const goal = await storage.getClientWeightGoal(String(clientId));
       
       res.json({
         current: history[0] || null,
@@ -4726,7 +4726,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         history,
       });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      console.error("Weight progress error:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch weight data" });
     }
   });
 
