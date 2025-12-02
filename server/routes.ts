@@ -6383,8 +6383,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/trainers/:trainerId/habits', authenticateToken, async (req, res) => {
     try {
       const { trainerId } = req.params;
-      const habits = await Habit.find({ trainerId }).populate('clientId', 'name').sort({ createdAt: -1 });
-      res.json(habits);
+      const habits = await Habit.find({ trainerId }).sort({ createdAt: -1 });
+      // Return habits with clientId as plain field (not populated)
+      const habitsData = habits.map((h: any) => {
+        const obj = h.toObject ? h.toObject() : h;
+        return {
+          ...obj,
+          clientId: obj.clientId, // Keep clientId as string/ObjectId
+        };
+      });
+      res.json(habitsData);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

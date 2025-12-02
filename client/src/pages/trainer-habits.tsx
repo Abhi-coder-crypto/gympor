@@ -113,7 +113,8 @@ export default function TrainerHabits() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/trainers", trainerId, "habits"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/client/habits"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/habits/client"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/client/trainer-contact"] });
       setIsAddDialogOpen(false);
       setSelectedClient("");
       setHabitName("");
@@ -212,17 +213,17 @@ export default function TrainerHabits() {
                 </div>
 
                 {/* Habits by Client */}
-                {allClients.length === 0 ? (
+                {eligibleClients.length === 0 ? (
                   <Card>
                     <CardContent className="pt-6 text-center">
                       <p className="text-muted-foreground">
-                        No clients assigned to you yet
+                        No Pro/Elite clients assigned to you yet
                       </p>
                     </CardContent>
                   </Card>
                 ) : (
-                  allClients.map((client: any) => {
-                    const clientHabits = habits.filter((h: any) => h.clientId === client._id);
+                  eligibleClients.map((client: any) => {
+                    const clientHabits = habits.filter((h: any) => h.clientId?.toString() === client._id?.toString());
                     return (
                       <Card key={client._id}>
                         <CardHeader>
