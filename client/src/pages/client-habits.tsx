@@ -61,19 +61,9 @@ export default function ClientHabits() {
     fetchHabits();
   }, [clientId]);
 
-  // Show loading only for initial auth load
-  if (isLoading || !client) {
-    return (
-      <div className="min-h-screen bg-background">
-        <ClientHeader currentPage="habits" packageName={packageName} />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
+  // If not authenticated yet, show empty page (don't wait for loading)
+  if (!client) {
+    return null;
   }
 
   // Get today's logs
