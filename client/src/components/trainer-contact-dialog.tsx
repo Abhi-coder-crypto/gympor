@@ -26,10 +26,19 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
   const isBasicsOrPlus = packageLower.includes("fit plus") || packageLower.includes("basics");
   const hasTrainerAccess = isPro || isElite || isBasicsOrPlus;
 
-  const { data: trainerInfo, isLoading } = useQuery<TrainerInfo>({
+  const { data: trainerInfo, isLoading, refetch } = useQuery<TrainerInfo>({
     queryKey: ["/api/client/trainer-contact"],
     enabled: hasTrainerAccess && open,
+    staleTime: 0,
+    gcTime: 0,
   });
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen && hasTrainerAccess) {
+      setTimeout(() => refetch(), 100);
+    }
+  };
 
   const getNextAvailableTime = () => {
     if (!trainerInfo?.availability) return "Check availability with trainer";
@@ -78,14 +87,14 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setOpen(true)}
+        onClick={() => handleOpenChange(true)}
         data-testid="button-trainer-contact"
         title="Contact your trainer"
       >
         <Phone className="h-5 w-5" />
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -189,7 +198,7 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
           )}
 
           <div className="pt-4">
-            <Button variant="outline" onClick={() => setOpen(false)} className="w-full">
+            <Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full">
               Close
             </Button>
           </div>
