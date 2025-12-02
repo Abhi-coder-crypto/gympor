@@ -74,6 +74,12 @@ export default function ClientHabits() {
   // Get habits for client
   const { data: habits = [] } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
+    queryFn: async () => {
+      if (!clientId) return [];
+      const response = await fetch(`/api/habits/client/${clientId}`);
+      if (!response.ok) throw new Error("Failed to fetch habits");
+      return response.json();
+    },
     enabled: !!clientId && isProOrElite,
   });
 
