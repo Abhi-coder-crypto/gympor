@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
-import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function ClientHabits() {
   const { toast } = useToast();
@@ -26,10 +26,26 @@ export default function ClientHabits() {
     }
   }, [client?._id]);
 
-  // Fetch habits using default query function with proper auth headers
+  // Fetch habits with explicit URL and logging
   const { data: habits = [] } = useQuery<any[]>({
-    queryKey: [`/api/habits/client/${clientId}`],
-    queryFn: getQueryFn({ on401: "throw" }),
+    queryKey: ["habits", clientId],
+    queryFn: async () => {
+      if (!clientId) return [];
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/habits/client/${clientId}`, {
+        headers: { 
+          'Authorization': `Bearer ${token || ''}`,
+          'Content-Type': 'application/json'
+        },
+      });
+      if (!res.ok) {
+        console.error('Failed to fetch habits:', res.status, res.statusText);
+        return [];
+      }
+      const data = await res.json();
+      console.log('Habits fetched:', data);
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 30000,
@@ -45,7 +61,7 @@ export default function ClientHabits() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/habits/client/${clientId}`] });
+      queryClient.invalidateQueries({ queryKey: ["habits", clientId] });
       toast({
         title: "Success",
         description: "Habit status updated",
