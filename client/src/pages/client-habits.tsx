@@ -5,13 +5,12 @@ import { ClientHeader } from "@/components/client-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Flame, TrendingUp } from "lucide-react";
-import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
+import { CheckCircle2, Flame } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function ClientHabits() {
   const { toast } = useToast();
   const [clientId, setClientId] = useState<string | null>(null);
-  const [habitLogs, setHabitLogs] = useState<Record<string, boolean>>({});
 
   // Fetch user data
   const { data: userData } = useQuery<any>({
@@ -29,7 +28,7 @@ export default function ClientHabits() {
   }, [user?.clientId]);
 
   // Fetch habits with proper authentication
-  const { data: habits = [], isLoading, refetch: refetchHabits } = useQuery<any[]>({
+  const { data: habits = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
     queryFn: async () => {
       if (!clientId) {
@@ -49,40 +48,7 @@ export default function ClientHabits() {
     },
     enabled: !!clientId,
     staleTime: 0,
-    refetchInterval: 10000,
-  });
-
-  // Fetch habit logs for today to check completion status
-  const { data: logsData = [] } = useQuery<any[]>({
-    queryKey: ["/api/habits/logs", clientId],
-    queryFn: async () => {
-      if (!clientId || habits.length === 0) return [];
-      try {
-        const logs: Record<string, boolean> = {};
-        const today = new Date().toDateString();
-        
-        // Fetch logs for each habit
-        for (const habit of habits) {
-          try {
-            const res = await apiRequest("GET", `/api/habits/${habit._id}/logs`);
-            const data = await res.json();
-            const todayLog = data?.find((log: any) => new Date(log.date).toDateString() === today);
-            logs[habit._id] = todayLog?.completed || false;
-          } catch (err) {
-            logs[habit._id] = false;
-          }
-        }
-        
-        setHabitLogs(logs);
-        return [];
-      } catch (error: any) {
-        console.error('Failed to fetch logs:', error.message);
-        return [];
-      }
-    },
-    enabled: !!clientId && habits.length > 0,
-    staleTime: 0,
-    refetchInterval: 10000,
+    refetchInterval: 8000,
   });
 
   // Mark habit done mutation
@@ -94,15 +60,9 @@ export default function ClientHabits() {
         date: today,
       });
     },
-    onSuccess: (_, { habitId }) => {
-      // Update local state immediately
-      setHabitLogs(prev => ({
-        ...prev,
-        [habitId]: !prev[habitId],
-      }));
-      // Invalidate and refetch the correct query keys
+    onSuccess: () => {
+      // Refetch to get updated habit state
       queryClient.invalidateQueries({ queryKey: ["/api/habits/client", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/habits/logs", clientId] });
       toast({
         title: "Success",
         description: "Habit status updated",
@@ -124,9 +84,8 @@ export default function ClientHabits() {
     });
   };
 
-  const completedCount = Object.values(habitLogs).filter(Boolean).length;
+  const completedCount = habits.filter(h => h.completed).length;
   const totalCount = habits.length;
-
   const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
@@ -189,7 +148,7 @@ export default function ClientHabits() {
         ) : (
           <div className="space-y-3">
             {habits.map((habit: any) => {
-              const isCompleted = habitLogs[habit._id] || false;
+              const isCompleted = habit.completed || false;
 
               return (
                 <Card 
