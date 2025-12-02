@@ -558,6 +558,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return user data without password
       const { password: _, ...userWithoutPassword } = user.toObject();
+      
+      // For client users, include the clientId in the response for frontend use
+      if (user.role === 'client' && user.clientId) {
+        userWithoutPassword.clientId = user.clientId;
+      }
+      
       res.json({
         user: userWithoutPassword,
         client: client,

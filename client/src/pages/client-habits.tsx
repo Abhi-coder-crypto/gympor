@@ -21,11 +21,11 @@ export default function ClientHabits() {
   const packageName = user?.packageId?.name || user?.packageName || "";
 
   useEffect(() => {
-    if (user?._id) {
-      console.log('Setting clientId:', user._id);
-      setClientId(user._id);
+    if (user?.clientId) {
+      console.log('Setting clientId:', user.clientId);
+      setClientId(user.clientId);
     }
-  }, [user?._id]);
+  }, [user?.clientId]);
 
   // Fetch habits with explicit URL and logging
   const { data: habits = [] } = useQuery<any[]>({
