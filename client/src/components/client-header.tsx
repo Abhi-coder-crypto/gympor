@@ -27,7 +27,10 @@ export function ClientHeader({ currentPage, packageName }: ClientHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Check if client has Pro or Elite package
-  const isProOrElite = !!(packageName && (packageName.toLowerCase().includes('pro') || packageName.toLowerCase().includes('elite')));
+  const packageLower = packageName?.toLowerCase() || "";
+  const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
+  const isElite = packageLower.includes("elite");
+  const isProOrElite = !!(packageName && (isPro || isElite));
 
 
   const [location] = useLocation();
