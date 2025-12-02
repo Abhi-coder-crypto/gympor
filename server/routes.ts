@@ -6087,8 +6087,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied. You can only access your own clients." });
       }
       
-      const clients = await storage.getTrainerClients(req.params.trainerId);
-      res.json(clients);
+      const allClients = await storage.getTrainerClients(req.params.trainerId);
+      
+      // Filter for Pro/Elite clients only (they have access to habit tracking)
+      const filteredClients = allClients.filter((client: any) => {
+        const packageName = client.packageId?.name || client.packageName || "";
+        const packageLower = packageName.toLowerCase();
+        const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
+        const isElite = packageLower.includes("elite");
+        return isPro || isElite;
+      });
+      
+      res.json(filteredClients);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -6338,11 +6348,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/habits', authenticateToken, async (req, res) => {
     try {
       const { clientId, name, description, frequency = 'daily' } = req.body;
-      const user = (req as any).user;
+      const trainerId = (req as any).user?.userId || (req as any).user?._id;
+      
+      if (!trainerId) {
+        return res.status(401).json({ message: "Trainer not authenticated" });
+      }
       
       const habit = await Habit.create({
         clientId,
-        trainerId: user._id,
+        trainerId,
         name,
         description,
         frequency,
