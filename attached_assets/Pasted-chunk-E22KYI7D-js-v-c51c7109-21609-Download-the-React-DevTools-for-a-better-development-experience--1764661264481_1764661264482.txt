@@ -1,0 +1,38 @@
+chunk-E22KYI7D.js?v=c51c7109:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+client-dashboard.tsx:188 [ClientDashboard] clientId: null
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+/api/progress/weight:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+react_jsx-dev-runtime.js?v=c51c7109:64 Warning: Each child in a list should have a unique "key" prop.
+
+Check the render method of `ContinueWatching`. See https://reactjs.org/link/warning-keys for more information.
+    at VideoCard (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/src/components/continue-watching.tsx:6:22)
+    at ContinueWatching (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/src/components/continue-watching.tsx:114:36)
+    at div
+    at div
+    at div
+    at main
+    at div
+    at ClientDashboard (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/src/pages/client-dashboard.tsx:97:27)
+    at Route (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c51c7109:322:16)
+    at Switch (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c51c7109:378:17)
+    at Router
+    at Provider (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-M7N4426V.js?v=c51c7109:37:15)
+    at TooltipProvider (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=c51c7109:64:5)
+    at LanguageProvider (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/src/lib/language-context.tsx:840:36)
+    at QueryClientProvider (https://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=c51c7109:2747:3)
+    at App
+printWarning @ react_jsx-dev-runtime.js?v=c51c7109:64
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(1)
+client-dashboard.tsx:188 [ClientDashboard] clientId: null
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(1)
+/api/progress/weight:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+/api/my-sessions:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)

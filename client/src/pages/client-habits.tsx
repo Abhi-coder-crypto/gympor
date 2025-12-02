@@ -28,48 +28,49 @@ export default function ClientHabits() {
     }
   }, [client?._id]);
 
-  // Get habits for client
-  const { data: habits = [], isLoading: habitsLoading, error: habitsError } = useQuery<any[]>({
-    queryKey: ["/api/habits/client", clientId],
-    enabled: !!clientId,
-  });
+  // Get habits for client - directly use fetch instead of query issues
+  const [habits, setHabits] = useState<any[]>([]);
+  const [habitsLoading, setHabitsLoading] = useState(false);
+  const [habitsError, setHabitsError] = useState<any>(null);
 
-  // Show loading only for initial auth load or when habits are loading
-  if (isLoading || !client || (habitsLoading && habits.length === 0)) {
+  useEffect(() => {
+    if (!clientId) return;
+    
+    const fetchHabits = async () => {
+      setHabitsLoading(true);
+      setHabitsError(null);
+      try {
+        const response = await fetch(`/api/habits/client/${clientId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setHabits(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch habits:', error);
+        setHabitsError(error);
+      } finally {
+        setHabitsLoading(false);
+      }
+    };
+
+    fetchHabits();
+  }, [clientId]);
+
+  // Show loading only for initial auth load
+  if (isLoading || !client) {
     return (
       <div className="min-h-screen bg-background">
         <ClientHeader currentPage="habits" packageName={packageName} />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading your habits...</p>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error if habits query failed
-  if (habitsError) {
-    return (
-      <div className="min-h-screen bg-background">
-        <ClientHeader currentPage="habits" packageName={packageName} />
-        <div className="max-w-2xl mx-auto p-4 md:p-6">
-          <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-red-900 dark:text-red-100">
-                    Error Loading Habits
-                  </p>
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    Failed to load your habits. Please refresh or contact support.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     );
