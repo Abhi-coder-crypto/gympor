@@ -1,5 +1,4 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ClientHeader } from "@/components/client-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,46 +9,55 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function ClientHabits() {
   const { toast } = useToast();
-  const [clientId, setClientId] = useState<string | null>(null);
 
   // Fetch user data
-  const { data: userData } = useQuery<any>({
+  const { data: userData, isLoading: userLoading } = useQuery<any>({
     queryKey: ["/api/auth/me"],
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const user = userData?.user;
-  const packageName = user?.packageId?.name || user?.packageName || "";
+  const client = userData?.client;
+  const packageName = user?.packageId?.name || user?.packageName || client?.packageId?.name || "";
+  
+  // Get clientId from user object or client object
+  const clientId = user?.clientId || client?._id;
+  
+  console.log('[ClientHabits] User data:', { 
+    userId: user?._id, 
+    clientId, 
+    role: user?.role,
+    hasClient: !!client 
+  });
 
-  useEffect(() => {
-    if (user?.clientId) {
-      console.log('Setting clientId:', user.clientId);
-      setClientId(user.clientId);
-    }
-  }, [user?.clientId]);
-
-  // Fetch habits with proper authentication
-  const { data: habits = [], isLoading } = useQuery<any[]>({
+  // Fetch habits with proper authentication - use clientId directly
+  const { data: habits = [], isLoading: habitsLoading, refetch: refetchHabits } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
     queryFn: async () => {
       if (!clientId) {
-        console.log('No clientId available, skipping habits fetch');
+        console.log('[ClientHabits] No clientId available, skipping habits fetch');
         return [];
       }
-      console.log('Fetching habits for clientId:', clientId);
+      console.log('[ClientHabits] Fetching habits for clientId:', clientId);
       try {
         const res = await apiRequest("GET", `/api/habits/client/${clientId}`);
         const data = await res.json();
-        console.log('Habits fetched successfully:', Array.isArray(data) ? data.length : 0, 'habits');
+        console.log('[ClientHabits] Habits fetched:', Array.isArray(data) ? data.length : 0, 'habits', data);
         return Array.isArray(data) ? data : [];
       } catch (error: any) {
-        console.error('Failed to fetch habits:', error.message);
+        console.error('[ClientHabits] Failed to fetch habits:', error.message);
         return [];
       }
     },
     enabled: !!clientId,
     staleTime: 0,
-    refetchInterval: 8000,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+  
+  const isLoading = userLoading || (!!clientId && habitsLoading);
 
   // Mark habit done mutation
   const markHabitMutation = useMutation({
@@ -62,7 +70,11 @@ export default function ClientHabits() {
     },
     onSuccess: () => {
       // Refetch to get updated habit state
-      queryClient.invalidateQueries({ queryKey: ["/api/habits/client", clientId] });
+      if (clientId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/habits/client", clientId] });
+      }
+      // Also refetch immediately
+      refetchHabits();
       toast({
         title: "Success",
         description: "Habit status updated",
