@@ -26,8 +26,6 @@ export default function AdminSettings() {
   const [gymEmail, setGymEmail] = useState("admin@fitpro.com");
   const [gymPhone, setGymPhone] = useState("+91 1234567890");
   const [gymAddress, setGymAddress] = useState("123 Fitness Street, Mumbai, India");
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
 
   // Define the 4 packages with their respective pricing for 4, 8, and 12 weeks
   const packages = [
@@ -172,38 +170,6 @@ export default function AdminSettings() {
                               onChange={(e) => setGymAddress(e.target.value)}
                               placeholder="Enter gym address"
                               data-testid="input-gym-address"
-                            />
-                          </div>
-                        </div>
-
-                        <Separator />
-
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-medium">Notification Preferences</h3>
-                          
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <Label htmlFor="emailNotifications">Email Notifications</Label>
-                              <p className="text-sm text-muted-foreground">Send automated email notifications to clients</p>
-                            </div>
-                            <Switch
-                              id="emailNotifications"
-                              checked={emailNotifications}
-                              onCheckedChange={setEmailNotifications}
-                              data-testid="switch-email-notifications"
-                            />
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <Label htmlFor="smsNotifications">SMS Notifications</Label>
-                              <p className="text-sm text-muted-foreground">Send SMS reminders to clients</p>
-                            </div>
-                            <Switch
-                              id="smsNotifications"
-                              checked={smsNotifications}
-                              onCheckedChange={setSmsNotifications}
-                              data-testid="switch-sms-notifications"
                             />
                           </div>
                         </div>
