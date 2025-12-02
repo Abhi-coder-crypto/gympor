@@ -30,6 +30,14 @@ export default function ClientHabits() {
   // Fetch habits using same pattern as diet/workout plans
   const { data: habits = [] } = useQuery<any[]>({
     queryKey: [`/api/habits/client/${clientId}`],
+    queryFn: async () => {
+      if (!clientId) return [];
+      const res = await fetch(`/api/habits/client/${clientId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
+      });
+      if (!res.ok) return [];
+      return await res.json();
+    },
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 30000,
