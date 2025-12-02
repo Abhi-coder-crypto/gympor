@@ -17,14 +17,15 @@ export default function ClientHabits() {
     queryKey: ["/api/auth/me"],
   });
 
-  const client = userData?.client;
-  const packageName = client?.packageId?.name || client?.packageName || "";
+  const user = userData?.user;
+  const packageName = user?.packageId?.name || user?.packageName || "";
 
   useEffect(() => {
-    if (client?._id) {
-      setClientId(client._id);
+    if (user?._id) {
+      console.log('Setting clientId:', user._id);
+      setClientId(user._id);
     }
-  }, [client?._id]);
+  }, [user?._id]);
 
   // Fetch habits with explicit URL and logging
   const { data: habits = [] } = useQuery<any[]>({
