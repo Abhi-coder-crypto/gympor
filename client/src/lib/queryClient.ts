@@ -16,8 +16,8 @@ function getAuthHeaders(role?: 'admin' | 'trainer') {
   } else if (role === 'trainer') {
     token = sessionStorage.getItem('trainerToken');
   } else {
-    // Default: try tokens in order (trainer, then admin for backward compat)
-    token = sessionStorage.getItem('trainerToken') || sessionStorage.getItem('adminToken');
+    // Default: try tokens in order (client token in localStorage, then trainer/admin in sessionStorage)
+    token = localStorage.getItem('token') || sessionStorage.getItem('trainerToken') || sessionStorage.getItem('adminToken');
   }
   
   if (token) {

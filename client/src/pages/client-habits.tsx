@@ -1,13 +1,12 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { ClientHeader } from "@/components/client-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 
 export default function ClientHabits() {
   const { toast } = useToast();
@@ -27,17 +26,10 @@ export default function ClientHabits() {
     }
   }, [client?._id]);
 
-  // Fetch habits using same pattern as diet/workout plans
+  // Fetch habits using default query function with proper auth headers
   const { data: habits = [] } = useQuery<any[]>({
     queryKey: [`/api/habits/client/${clientId}`],
-    queryFn: async () => {
-      if (!clientId) return [];
-      const res = await fetch(`/api/habits/client/${clientId}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` }
-      });
-      if (!res.ok) return [];
-      return await res.json();
-    },
+    queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!clientId,
     staleTime: 0,
     refetchInterval: 30000,
