@@ -1,0 +1,29 @@
+chunk-E22KYI7D.js?v=c51c7109:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+client-dashboard.tsx:188 [ClientDashboard] clientId: null
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+/api/progress/weight:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+client:745 WebSocket connection to 'wss://d2bb7f94-52cc-455c-98a1-659ef339fafa-00-2xgm53xkqmmlq.pike.replit.dev:24678/?token=MAvfW7sRqMxp' failed: 
+createConnection @ client:745
+client:772 [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+connect @ client:772
+client:809 [vite] Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:423:30)
+error @ client:809
+client:423 Uncaught (in promise) Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:423:30)
+client-video-library.tsx:59 [ClientVideoLibrary] clientId: null
+client-video-library.tsx:60 [ClientVideoLibrary] assignedVideosData: Array(0)
+client-video-library.tsx:61 [ClientVideoLibrary] isLoading: false
+client-video-library.tsx:59 [ClientVideoLibrary] clientId: 69202b504ab4a0b2fb0e5e77
+client-video-library.tsx:60 [ClientVideoLibrary] assignedVideosData: Array(0)
+client-video-library.tsx:61 [ClientVideoLibrary] isLoading: false
+client-dashboard.tsx:188 [ClientDashboard] clientId: null
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+/api/progress/weight:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+/api/progress/weight:1  Failed to load resource: the server responded with a status of 400 (Bad Request)

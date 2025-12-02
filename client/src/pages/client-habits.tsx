@@ -6,7 +6,6 @@ import { ClientHeader } from "@/components/client-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MobileNavigation } from "@/components/mobile-navigation";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
@@ -35,23 +34,28 @@ export default function ClientHabits() {
   const isElite = packageLower.includes("elite");
   const isProOrElite = !!(packageName && (isPro || isElite));
 
-  // Get habits for client - define before loading check
-  const { data: habits = [], isLoading: habitsLoading } = useQuery<any[]>({
+  // Get habits for client
+  const { data: habits = [] } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
     enabled: !!clientId && isProOrElite,
   });
 
+  // Show loading only for initial user/client load
   if (isLoading || !client) {
     return (
       <div className="min-h-screen bg-background">
         <ClientHeader currentPage="habits" packageName={packageName} />
-        <div className="max-w-6xl mx-auto p-4 md:p-6 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading habits...</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Show upgrade message if not Pro or Elite
   if (!isProOrElite) {
     return (
       <div className="min-h-screen bg-background">
@@ -119,17 +123,6 @@ export default function ClientHabits() {
 
   const completedCount = todayLogs.filter((l: any) => l.completed).length;
   const totalCount = habits.length;
-
-  if (habitsLoading && habits.length === 0) {
-    return (
-      <div className="min-h-screen bg-background">
-        <ClientHeader currentPage="habits" packageName={packageName} />
-        <div className="max-w-2xl mx-auto p-4 md:p-6 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
