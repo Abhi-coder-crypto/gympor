@@ -6373,7 +6373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/habits/client/:clientId', authenticateToken, async (req, res) => {
     try {
       const { clientId } = req.params;
-      const habits = await Habit.find({ clientId }).sort({ createdAt: -1 });
+      const habits = await Habit.find({ clientId: new mongoose.Types.ObjectId(clientId) }).sort({ createdAt: -1 });
       res.json(habits);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -6384,7 +6384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/trainers/:trainerId/habits', authenticateToken, async (req, res) => {
     try {
       const { trainerId } = req.params;
-      const habits = await Habit.find({ trainerId }).sort({ createdAt: -1 });
+      const habits = await Habit.find({ trainerId: new mongoose.Types.ObjectId(trainerId) }).sort({ createdAt: -1 });
       // Return habits with clientId as plain field (not populated)
       const habitsData = habits.map((h: any) => {
         const obj = h.toObject ? h.toObject() : h;
