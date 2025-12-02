@@ -6390,7 +6390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get habits for a client
+  // Get habits for a client (includes today's completion status)
   app.get('/api/habits/client/:clientId', authenticateToken, async (req, res) => {
     try {
       const { clientId } = req.params;
@@ -6408,12 +6408,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const habits = await Habit.find(query).sort({ createdAt: -1 }).lean();
       console.log(`[HABITS] Query: ${JSON.stringify(query)}`);
       console.log(`[HABITS] Found ${habits.length} habits for clientId: ${clientId}`);
-      if (habits.length > 0) {
-        console.log(`[HABITS] Sample habit:`, habits[0]);
-      }
-      res.json(habits);
+      
+      // Get today's date range for checking completion status
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+      
+      // Fetch today's logs for all habits
+      const habitIds = habits.map((h: any) => h._id);
+      const todayLogs = await HabitLog.find({
+        habitId: { $in: habitIds },
+        date: { $gte: startOfDay, $lte: endOfDay },
+        completed: true
+      }).lean();
+      
+      // Create a Set of completed habit IDs for quick lookup
+      const completedHabitIds = new Set(todayLogs.map((log: any) => log.habitId.toString()));
+      
+      // Add completed status to each habit
+      const habitsWithStatus = habits.map((habit: any) => ({
+        ...habit,
+        completed: completedHabitIds.has(habit._id.toString())
+      }));
+      
+      console.log(`[HABITS] Habits with completion status:`, habitsWithStatus.map((h: any) => ({ name: h.name, completed: h.completed })));
+      res.json(habitsWithStatus);
     } catch (error: any) {
-      console.error(`[HABITS] Error fetching habits for ${clientId}:`, error.message);
+      console.error(`[HABITS] Error fetching habits:`, error.message);
       res.status(500).json({ message: error.message });
     }
   });
@@ -6457,29 +6478,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const habit = await Habit.findById(habitId);
       if (!habit) return res.status(404).json({ message: 'Habit not found' });
       
-      // Check if log already exists for this date
+      // Get the date range for the given date (start and end of day)
+      const inputDate = new Date(date);
+      const startOfDay = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate(), 0, 0, 0, 0);
+      const endOfDay = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate(), 23, 59, 59, 999);
+      
+      console.log(`[HABIT_LOG] Checking for existing log: habitId=${habitId}, date range: ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
+      
+      // Check if log already exists for this date using date range
       const existingLog = await HabitLog.findOne({
-        habitId,
-        date: new Date(date).toDateString(),
+        habitId: new mongoose.Types.ObjectId(habitId),
+        date: { $gte: startOfDay, $lte: endOfDay }
       });
       
       if (existingLog) {
+        console.log(`[HABIT_LOG] Found existing log: ${existingLog._id}, completed: ${existingLog.completed}`);
+        // Update existing log
         existingLog.completed = completed;
         existingLog.notes = notes;
         await existingLog.save();
-        return res.json(existingLog);
+        return res.json({ ...existingLog.toObject(), alreadyExisted: true });
       }
       
+      console.log(`[HABIT_LOG] Creating new log for habitId=${habitId}`);
       const log = await HabitLog.create({
-        habitId,
+        habitId: new mongoose.Types.ObjectId(habitId),
         clientId: habit.clientId,
-        date: new Date(date),
+        date: startOfDay, // Store at start of day for consistency
         completed,
         notes,
       });
       
       res.json(log);
     } catch (error: any) {
+      console.error(`[HABIT_LOG] Error:`, error.message);
       res.status(500).json({ message: error.message });
     }
   });
