@@ -28,7 +28,10 @@ export default function ClientHabits() {
   }, [setLocation]);
 
   // Check if client has Pro or Elite package
-  const isProOrElite = !!(packageName && (packageName.includes("Pro") || packageName.includes("Elite")));
+  const packageLower = packageName.toLowerCase();
+  const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
+  const isElite = packageLower.includes("elite");
+  const isProOrElite = !!(packageName && (isPro || isElite));
 
   if (!isProOrElite) {
     return (
