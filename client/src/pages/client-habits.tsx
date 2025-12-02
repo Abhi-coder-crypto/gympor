@@ -28,10 +28,14 @@ export default function ClientHabits() {
   }, [user?.clientId]);
 
   // Fetch habits with explicit URL and logging
-  const { data: habits = [] } = useQuery<any[]>({
+  const { data: habits = [], isLoading } = useQuery<any[]>({
     queryKey: ["habits", clientId],
     queryFn: async () => {
-      if (!clientId) return [];
+      if (!clientId) {
+        console.log('No clientId available, skipping habits fetch');
+        return [];
+      }
+      console.log('Fetching habits for clientId:', clientId);
       const token = localStorage.getItem('token');
       const res = await fetch(`/api/habits/client/${clientId}`, {
         headers: { 
@@ -44,7 +48,7 @@ export default function ClientHabits() {
         return [];
       }
       const data = await res.json();
-      console.log('Habits fetched:', data);
+      console.log('Habits fetched successfully:', data.length, 'habits');
       return Array.isArray(data) ? data : [];
     },
     enabled: !!clientId,
@@ -121,7 +125,13 @@ export default function ClientHabits() {
         )}
 
         {/* Habits List */}
-        {habits.length === 0 ? (
+        {isLoading ? (
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <p className="text-muted-foreground">Loading your habits...</p>
+            </CardContent>
+          </Card>
+        ) : habits.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
               <p className="text-muted-foreground">

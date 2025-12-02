@@ -555,9 +555,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let clientId = null;
       if (user.role === 'client') {
         // Look up client by email to get the client profile ID
-        client = await Client.findOne({ email: user.email });
+        client = await Client.findOne({ email: user.email }).populate('packageId');
         if (client) {
           clientId = client._id.toString();
+          console.log(`[AUTH] Client found: ${client.name}, clientId: ${clientId}, package: ${client.packageId?.name}`);
+        } else {
+          console.log(`[AUTH] No client found for email: ${user.email}`);
         }
       }
       
@@ -567,7 +570,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For client users, include the clientId in the response for frontend use
       if (user.role === 'client' && clientId) {
         userWithoutPassword.clientId = clientId;
-        console.log(`[AUTH] Returning clientId for ${user.email}: ${clientId}`);
       }
       
       res.json({
