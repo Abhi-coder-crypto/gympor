@@ -24,13 +24,10 @@ export default function ClientHabits() {
   const packageName = client?.packageId?.name || client?.packageName || "";
 
   useEffect(() => {
-    // Only redirect if data has finished loading and there's no client
-    if (!isLoading && userData && !client) {
-      setLocation("/client-access");
-    } else if (client?._id) {
+    if (client?._id) {
       setClientId(client._id);
     }
-  }, [client, isLoading, userData, setLocation]);
+  }, [client?._id]);
 
   // Check if client has Pro or Elite package
   const packageLower = packageName.toLowerCase();
@@ -38,7 +35,7 @@ export default function ClientHabits() {
   const isElite = packageLower.includes("elite");
   const isProOrElite = !!(packageName && (isPro || isElite));
 
-  if (isLoading) {
+  if (isLoading || !client) {
     return (
       <div className="min-h-screen bg-background">
         <ClientHeader currentPage="habits" packageName={packageName} />
@@ -77,13 +74,7 @@ export default function ClientHabits() {
   // Get habits for client
   const { data: habits = [] } = useQuery<any[]>({
     queryKey: ["/api/habits/client", clientId],
-    queryFn: async () => {
-      if (!clientId) return [];
-      const response = await fetch(`/api/habits/client/${clientId}`);
-      if (!response.ok) return [];
-      return response.json();
-    },
-    enabled: !!clientId,
+    enabled: !!clientId && isProOrElite,
   });
 
   // Get today's logs
