@@ -20,6 +20,8 @@ import {
   Bookmark,
   BookmarkCheck,
   TrendingUp,
+  CheckCircle,
+  Flame,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -70,6 +72,30 @@ export default function ClientVideos() {
     queryKey: [`/api/clients/${clientId}/bookmarks`],
     enabled: !!clientId,
   });
+
+  // Fetch completed videos with calories data
+  const { data: caloriesData } = useQuery<{
+    totalCalories: number;
+    totalVideosCompleted: number;
+    completedVideos: Array<{ videoId: string; caloriesBurned: number; completedAt: string }>;
+  }>({
+    queryKey: ['/api/clients', clientId, 'calories-burned', 'all'],
+    queryFn: async () => {
+      if (!clientId) return { totalCalories: 0, totalVideosCompleted: 0, completedVideos: [] };
+      const res = await fetch(`/api/clients/${clientId}/calories-burned?period=all`, {
+        credentials: 'include',
+      });
+      if (!res.ok) return { totalCalories: 0, totalVideosCompleted: 0, completedVideos: [] };
+      return await res.json();
+    },
+    enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 5000,
+  });
+
+  const completedVideoIds = useMemo(() => {
+    return new Set(caloriesData?.completedVideos?.map(v => v.videoId) || []);
+  }, [caloriesData]);
 
   const bookmarkMutation = useMutation({
     mutationFn: async ({ videoId, isBookmarked }: { videoId: string; isBookmarked: boolean }) => {
@@ -143,6 +169,9 @@ export default function ClientVideos() {
 
   const VideoCard = ({ video, showProgress = false, progress = 0 }: any) => {
     const isBookmarked = isVideoBookmarked(video._id);
+    const isCompleted = completedVideoIds.has(video._id);
+    const completedVideo = caloriesData?.completedVideos?.find(v => v.videoId === video._id);
+    const caloriesBurned = completedVideo?.caloriesBurned || 0;
     
     return (
       <Card className="overflow-hidden hover-elevate" data-testid={`card-video-${video._id}`}>
@@ -165,6 +194,12 @@ export default function ClientVideos() {
               <Play className="h-6 w-6" />
             </Button>
           </div>
+          {isCompleted && (
+            <div className="absolute top-2 left-2 bg-emerald-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs font-medium" data-testid={`badge-completed-${video._id}`}>
+              <CheckCircle className="h-3 w-3" />
+              Completed
+            </div>
+          )}
           <Button
             size="icon"
             variant="ghost"
@@ -181,10 +216,13 @@ export default function ClientVideos() {
               <Bookmark className="h-4 w-4" />
             )}
           </Button>
-          {showProgress && progress > 0 && (
+          {showProgress && progress > 0 && !isCompleted && (
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-background/50">
               <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
             </div>
+          )}
+          {isCompleted && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500" />
           )}
         </div>
         <CardContent className="p-4">
@@ -198,6 +236,12 @@ export default function ClientVideos() {
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 {video.duration} min
+              </div>
+            )}
+            {isCompleted && caloriesBurned > 0 && (
+              <div className="flex items-center gap-1 text-sm text-emerald-600 dark:text-emerald-400">
+                <Flame className="h-3 w-3" />
+                {caloriesBurned} kcal
               </div>
             )}
           </div>
