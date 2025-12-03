@@ -16,8 +16,19 @@ function getAuthHeaders(role?: 'admin' | 'trainer') {
   } else if (role === 'trainer') {
     token = sessionStorage.getItem('trainerToken');
   } else {
-    // Default: try tokens in order (client token in localStorage, then trainer/admin in sessionStorage)
-    token = localStorage.getItem('token') || sessionStorage.getItem('trainerToken') || sessionStorage.getItem('adminToken');
+    // Smart token detection based on current URL path
+    const currentPath = window.location.pathname;
+    
+    if (currentPath.startsWith('/admin')) {
+      // On admin pages, prioritize admin token
+      token = sessionStorage.getItem('adminToken') || sessionStorage.getItem('trainerToken') || localStorage.getItem('token');
+    } else if (currentPath.startsWith('/trainer')) {
+      // On trainer pages, prioritize trainer token
+      token = sessionStorage.getItem('trainerToken') || sessionStorage.getItem('adminToken') || localStorage.getItem('token');
+    } else {
+      // On client/other pages, prioritize client token
+      token = localStorage.getItem('token') || sessionStorage.getItem('trainerToken') || sessionStorage.getItem('adminToken');
+    }
   }
   
   if (token) {
