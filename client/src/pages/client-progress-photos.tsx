@@ -341,18 +341,6 @@ export default function ClientProgressPhotos() {
                         e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23f3f4f6' width='400' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EImage not found%3C/text%3E%3C/svg%3E";
                       }}
                     />
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="absolute top-2 right-2 z-10 h-7 w-7 shadow-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(photo._id);
-                      }}
-                      data-testid={`button-delete-${photo._id}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white">
                       <p className="text-xs font-medium">
                         {format(new Date(photo.uploadedAt), 'MMM dd, yyyy')}
@@ -385,6 +373,19 @@ export default function ClientProgressPhotos() {
                         </p>
                       </div>
                     )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="w-full mt-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(photo._id);
+                      }}
+                      data-testid={`button-delete-${photo._id}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                      Delete
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
