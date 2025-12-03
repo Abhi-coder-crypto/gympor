@@ -10,19 +10,30 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 export default function ClientHabits() {
   const { toast } = useToast();
 
-  // Fetch user data
+  // Fetch user data with proper authentication
   const { data: userData, isLoading: userLoading } = useQuery<any>({
-    queryKey: ["/api/auth/me"],
+    queryKey: ["/api/auth/me", "client"],
+    queryFn: async () => {
+      try {
+        const res = await apiRequest("GET", "/api/auth/me");
+        return await res.json();
+      } catch (error: any) {
+        console.error('[ClientHabits] Failed to fetch user data:', error.message);
+        return null;
+      }
+    },
     staleTime: 0,
     refetchOnMount: true,
+    retry: false,
   });
 
   const user = userData?.user;
   const client = userData?.client;
   const packageName = user?.packageId?.name || user?.packageName || client?.packageId?.name || "";
   
-  // Get clientId from user object or client object
-  const clientId = user?.clientId || client?._id;
+  // Get clientId from user object or client object - also check localStorage as fallback
+  const storedClientId = typeof window !== 'undefined' ? localStorage.getItem('clientId') : null;
+  const clientId = user?.clientId || client?._id || storedClientId;
   
   console.log('[ClientHabits] User data:', { 
     userId: user?._id, 

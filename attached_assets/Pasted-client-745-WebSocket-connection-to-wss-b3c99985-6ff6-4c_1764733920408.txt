@@ -1,0 +1,48 @@
+client:745 WebSocket connection to 'wss://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev:24678/?token=hTpmQWmlyi6X' failed: 
+createConnection @ client:745
+client:772 [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+connect @ client:772
+client:809 [vite] Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:423:30)
+error @ client:809
+client:423 Uncaught (in promise) Error: WebSocket closed without opened.
+    at WebSocket.<anonymous> (client:423:30)
+chunk-E22KYI7D.js?v=c51c7109:21609 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+client-habits.tsx:27 [ClientHabits] User data: Object
+client-habits.tsx:27 [ClientHabits] User data: Object
+client-dashboard.tsx:188 [ClientDashboard] clientId: null
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+/api/progress/weight:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(0)
+client-dashboard.tsx:188 [ClientDashboard] clientId: 69202b504ab4a0b2fb0e5e77
+client-dashboard.tsx:189 [ClientDashboard] assignedVideos: Array(1)
+react_jsx-dev-runtime.js?v=c51c7109:64 Warning: Each child in a list should have a unique "key" prop.
+
+Check the render method of `ContinueWatching`. See https://reactjs.org/link/warning-keys for more information.
+    at VideoCard (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/src/components/continue-watching.tsx:6:22)
+    at ContinueWatching (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/src/components/continue-watching.tsx:114:36)
+    at div
+    at div
+    at div
+    at main
+    at div
+    at ClientDashboard (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/src/pages/client-dashboard.tsx:97:27)
+    at Route (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c51c7109:322:16)
+    at Switch (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c51c7109:378:17)
+    at Router
+    at Provider (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-M7N4426V.js?v=c51c7109:37:15)
+    at TooltipProvider (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=c51c7109:64:5)
+    at LanguageProvider (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/src/lib/language-context.tsx:840:36)
+    at QueryClientProvider (https://b3c99985-6ff6-4c08-ab10-e6c0bad8f08e-00-1o5c5j6xov7gp.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=c51c7109:2747:3)
+    at App
+printWarning @ react_jsx-dev-runtime.js?v=c51c7109:64
+client-habits.tsx:27 [ClientHabits] User data: Object
