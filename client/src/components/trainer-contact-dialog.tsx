@@ -83,7 +83,14 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
       const subject = `Question from FitPro Client`;
       const body = `Hi ${trainerInfo.name},\n\nI have a question about my training program.\n\nBest regards`;
       const mailtoUrl = `mailto:${trainerInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.open(mailtoUrl, '_blank');
+      
+      // Create a temporary link and click it - this works better across browsers
+      const link = document.createElement('a');
+      link.href = mailtoUrl;
+      link.target = '_self';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
