@@ -28,6 +28,11 @@ export default function ClientAccess() {
     },
     onSuccess: (data) => {
       const { user, client, token } = data;
+      
+      // Clear any existing tokens from both storage types to prevent cross-role leakage
+      localStorage.clear();
+      sessionStorage.clear();
+      
       localStorage.setItem('userId', user._id);
       localStorage.setItem('userEmail', user.email);
       localStorage.setItem('userRole', user.role);

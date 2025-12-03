@@ -36,11 +36,13 @@ export default function TrainerLogin() {
         throw new Error(data.message || 'Login failed');
       }
 
+      // Clear any existing tokens from both storage types to prevent cross-role leakage
+      localStorage.clear();
+      sessionStorage.clear();
+      
       // Store token in sessionStorage for this tab
       if (data.token) {
         sessionStorage.setItem('trainerToken', data.token);
-        // Clear admin token if it exists
-        sessionStorage.removeItem('adminToken');
       }
 
       toast({

@@ -197,6 +197,7 @@ export function ClientHeader({ currentPage, packageName: packageNameProp }: Clie
               size="icon" 
               onClick={() => {
                 localStorage.clear();
+                sessionStorage.clear();
                 setLocation("/");
               }} 
               data-testid="button-logout"
@@ -224,6 +225,7 @@ export function ClientHeader({ currentPage, packageName: packageNameProp }: Clie
               size="icon" 
               onClick={() => {
                 localStorage.clear();
+                sessionStorage.clear();
                 setLocation("/");
               }} 
               data-testid="button-logout-mobile"
