@@ -14,12 +14,18 @@ export default function ClientHabits() {
   const { data: userData, isLoading: userLoading } = useQuery<any>({
     queryKey: ["/api/auth/me"],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token');
+      }
       const res = await apiRequest("GET", "/api/auth/me");
       return await res.json();
     },
-    staleTime: 0,
+    staleTime: 60000, // Keep user data fresh for 1 minute
+    gcTime: 300000, // Keep in cache for 5 minutes
     refetchOnMount: true,
-    retry: 1,
+    retry: 3, // Retry 3 times on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
   const user = userData?.user;
@@ -51,20 +57,18 @@ export default function ClientHabits() {
         return [];
       }
       console.log('[ClientHabits] Fetching habits for clientId:', clientId);
-      try {
-        const res = await apiRequest("GET", `/api/habits/client/${clientId}`);
-        const data = await res.json();
-        console.log('[ClientHabits] Habits fetched:', Array.isArray(data) ? data.length : 0, 'habits', data);
-        return Array.isArray(data) ? data : [];
-      } catch (error: any) {
-        console.error('[ClientHabits] Failed to fetch habits:', error.message);
-        return [];
-      }
+      const res = await apiRequest("GET", `/api/habits/client/${clientId}`);
+      const data = await res.json();
+      console.log('[ClientHabits] Habits fetched:', Array.isArray(data) ? data.length : 0, 'habits', data);
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!clientId,
-    staleTime: 30000, // Data is fresh for 30 seconds
+    staleTime: 60000, // Data is fresh for 1 minute
+    gcTime: 300000, // Keep in cache for 5 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    retry: 3, // Retry 3 times on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
   
   const isLoading = userLoading || (!!clientId && habitsLoading);

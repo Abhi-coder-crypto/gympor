@@ -28,15 +28,17 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
 
   const { data: trainerInfo, isLoading, refetch } = useQuery<TrainerInfo>({
     queryKey: ["/api/client/trainer-contact"],
-    enabled: hasTrainerAccess && open,
-    staleTime: 0,
-    gcTime: 0,
+    enabled: hasTrainerAccess,
+    staleTime: 300000, // Keep data fresh for 5 minutes
+    gcTime: 600000, // Keep in cache for 10 minutes
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    if (newOpen && hasTrainerAccess) {
-      setTimeout(() => refetch(), 100);
+    if (newOpen && hasTrainerAccess && !trainerInfo) {
+      refetch();
     }
   };
 
