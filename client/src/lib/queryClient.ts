@@ -39,6 +39,7 @@ export async function apiRequest(
       ...getAuthHeaders()
     },
     body: data ? JSON.stringify(data) : undefined,
+    credentials: 'include', // Include cookies for HTTP-only auth
   });
 
   await throwIfResNotOk(res);
@@ -52,7 +53,8 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey.join("/") as string, {
-      headers: getAuthHeaders()
+      headers: getAuthHeaders(),
+      credentials: 'include', // Include cookies for HTTP-only auth
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

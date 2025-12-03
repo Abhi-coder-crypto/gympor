@@ -248,6 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Login successful",
         user: userWithoutPassword,
         client: client,
+        token: accessToken, // Return token in response for frontend storage
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });

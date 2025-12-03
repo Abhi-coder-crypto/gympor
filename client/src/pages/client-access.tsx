@@ -27,11 +27,16 @@ export default function ClientAccess() {
       return response.json();
     },
     onSuccess: (data) => {
-      const { user, client } = data;
+      const { user, client, token } = data;
       localStorage.setItem('userId', user._id);
       localStorage.setItem('userEmail', user.email);
       localStorage.setItem('userRole', user.role);
       localStorage.setItem('userName', user.name);
+      
+      // Store the JWT token for API authentication
+      if (token) {
+        localStorage.setItem('token', token);
+      }
       
       if (client) {
         localStorage.setItem('clientId', client._id);
