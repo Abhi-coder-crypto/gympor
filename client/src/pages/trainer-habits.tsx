@@ -101,7 +101,11 @@ export default function TrainerHabits() {
   const { data: habitLogs = [], refetch: refetchLogs } = useQuery<any[]>({
     queryKey: ["/api/habits", viewingHabitId, "logs"],
     queryFn: async () => {
-      const response = await fetch(`/api/habits/${viewingHabitId}/logs`);
+      const token = sessionStorage.getItem("trainerToken");
+      const response = await fetch(`/api/habits/${viewingHabitId}/logs`, {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+      });
       if (!response.ok) throw new Error("Failed to fetch logs");
       return response.json();
     },
@@ -256,11 +260,22 @@ export default function TrainerHabits() {
                                 return (
                                   <div
                                     key={habit._id}
-                                    className="border rounded-lg p-4 space-y-3"
+                                    className={`border rounded-lg p-4 space-y-3 ${
+                                      habit.completedToday 
+                                        ? "border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-950/20" 
+                                        : ""
+                                    }`}
                                   >
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1">
-                                        <p className="font-semibold">{habit.name}</p>
+                                        <div className="flex items-center gap-2">
+                                          <p className="font-semibold">{habit.name}</p>
+                                          {habit.completedToday && (
+                                            <Badge variant="default" className="bg-green-600 text-white">
+                                              Done Today
+                                            </Badge>
+                                          )}
+                                        </div>
                                         {habit.description && (
                                           <p className="text-sm text-muted-foreground">
                                             {habit.description}
@@ -288,7 +303,7 @@ export default function TrainerHabits() {
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <CheckCircle className="h-4 w-4 text-green-600" />
+                                      <CheckCircle className={`h-4 w-4 ${habit.completedToday ? "text-green-600" : "text-muted-foreground"}`} />
                                       <span className="text-sm text-muted-foreground">
                                         {completionRate}% completion rate
                                       </span>

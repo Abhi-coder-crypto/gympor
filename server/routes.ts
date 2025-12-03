@@ -6445,14 +6445,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { trainerId } = req.params;
       const habits = await Habit.find({ trainerId: new mongoose.Types.ObjectId(trainerId) }).sort({ createdAt: -1 });
-      // Return habits with clientId as plain field (not populated)
+      
+      // Get today's date range
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      
+      // Get today's logs for all habits
+      const habitIds = habits.map((h: any) => h._id);
+      const todayLogs = await HabitLog.find({
+        habitId: { $in: habitIds },
+        date: { $gte: startOfDay, $lte: endOfDay }
+      }).lean();
+      
+      // Create a map of habit completion status and log details
+      const logsMap = new Map();
+      todayLogs.forEach((log: any) => {
+        logsMap.set(log.habitId.toString(), log);
+      });
+      
+      // Return habits with today's completion status
       const habitsData = habits.map((h: any) => {
         const obj = h.toObject ? h.toObject() : h;
+        const todayLog = logsMap.get(obj._id.toString());
         return {
           ...obj,
-          clientId: obj.clientId, // Keep clientId as string/ObjectId
+          clientId: obj.clientId,
+          completedToday: todayLog?.completed || false,
+          todayLogDate: todayLog?.date || null,
         };
       });
+      
+      console.log(`[TRAINER_HABITS] Found ${habits.length} habits for trainer ${trainerId}, ${todayLogs.length} logs today`);
       res.json(habitsData);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
