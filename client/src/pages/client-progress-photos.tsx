@@ -49,10 +49,13 @@ export default function ClientProgressPhotos() {
     }
   }, [setLocation]);
 
-  const { data: photos = [], isLoading } = useQuery<ProgressPhoto[]>({
+  const { data: photosData, isLoading } = useQuery<ProgressPhoto[] | null>({
     queryKey: ['/api/clients', clientId, 'progress-photos'],
     enabled: !!clientId,
   });
+  
+  // Handle null data (from 401) gracefully
+  const photos = photosData ?? [];
 
   const uploadMutation = useMutation({
     mutationFn: async (data: { photoUrl: string; description?: string; weight?: number }) => {
@@ -326,14 +329,14 @@ export default function ClientProgressPhotos() {
               Loading progress photos...
             </div>
           ) : sortedPhotos.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {sortedPhotos.map((photo) => (
-                <Card key={photo._id} className="overflow-hidden hover-elevate transition-all" data-testid={`card-photo-${photo._id}`}>
-                  <div className="relative aspect-square bg-muted overflow-hidden group">
+                <Card key={photo._id} className="overflow-visible hover-elevate transition-all max-w-[200px]" data-testid={`card-photo-${photo._id}`}>
+                  <div className="relative aspect-[3/4] bg-muted rounded-t-md overflow-hidden">
                     <img
                       src={photo.photoUrl}
                       alt={photo.description || "Progress photo"}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23f3f4f6' width='400' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='24' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EImage not found%3C/text%3E%3C/svg%3E";
                       }}
@@ -341,40 +344,43 @@ export default function ClientProgressPhotos() {
                     <Button
                       size="icon"
                       variant="destructive"
-                      className="absolute top-3 right-3"
-                      onClick={() => handleDelete(photo._id)}
+                      className="absolute top-2 right-2 z-10 h-7 w-7 shadow-lg"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(photo._id);
+                      }}
                       data-testid={`button-delete-${photo._id}`}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white">
                       <p className="text-xs font-medium">
                         {format(new Date(photo.uploadedAt), 'MMM dd, yyyy')}
                       </p>
                     </div>
                   </div>
-                  <CardContent className="p-5 space-y-4">
-                    <div className="space-y-2">
+                  <CardContent className="p-3 space-y-2">
+                    <div className="space-y-1.5">
                       {photo.weight && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Weight</span>
-                          <Badge className="bg-chart-2/20 text-chart-2 border-chart-2/30 gap-1">
-                            <Weight className="h-3 w-3" />
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Weight</span>
+                          <Badge className="bg-chart-2/20 text-chart-2 border-chart-2/30 gap-0.5 text-[10px] px-1.5 py-0">
+                            <Weight className="h-2.5 w-2.5" />
                             {photo.weight} lbs
                           </Badge>
                         </div>
                       )}
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Date</span>
-                        <Badge variant="outline" className="gap-1">
-                          <Calendar className="h-3 w-3" />
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Date</span>
+                        <Badge variant="outline" className="gap-0.5 text-[10px] px-1.5 py-0">
+                          <Calendar className="h-2.5 w-2.5" />
                           {format(new Date(photo.uploadedAt), 'MMM dd')}
                         </Badge>
                       </div>
                     </div>
                     {photo.description && (
-                      <div className="pt-2 border-t">
-                        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                      <div className="pt-1.5 border-t">
+                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
                           {photo.description}
                         </p>
                       </div>
