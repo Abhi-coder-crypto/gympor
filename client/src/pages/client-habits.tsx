@@ -62,8 +62,7 @@ export default function ClientHabits() {
       }
     },
     enabled: !!clientId,
-    staleTime: 0,
-    refetchInterval: 5000, // Refetch every 5 seconds
+    staleTime: 30000, // Data is fresh for 30 seconds
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
