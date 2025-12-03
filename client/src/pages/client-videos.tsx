@@ -38,7 +38,7 @@ export default function ClientVideos() {
   const [selectedIntensity, setSelectedIntensity] = useState("All");
   const [selectedDuration, setSelectedDuration] = useState("All");
   const [selectedTrainer, setSelectedTrainer] = useState("All");
-  const [playingVideo, setPlayingVideo] = useState<{ url: string; title: string } | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<{ url: string; title: string; id: string } | null>(null);
 
   useEffect(() => {
     const id = localStorage.getItem('clientId');
@@ -188,7 +188,12 @@ export default function ClientVideos() {
             <Button 
               size="icon" 
               className="h-12 w-12 rounded-full" 
-              onClick={() => setPlayingVideo({ url: `/api/videos/${video._id}/stream`, title: video.title })}
+              onClick={() => {
+                const videoUrl = video.hasVideoData 
+                  ? `/api/videos/${video._id}/stream`
+                  : (video.url || `/api/videos/${video._id}/stream`);
+                setPlayingVideo({ url: videoUrl, title: video.title, id: video._id });
+              }}
               data-testid={`button-play-${video._id}`}
             >
               <Play className="h-6 w-6" />
@@ -266,7 +271,7 @@ export default function ClientVideos() {
         onClose={() => setPlayingVideo(null)}
         videoUrl={playingVideo?.url || ""}
         videoTitle={playingVideo?.title || ""}
-        videoId={playingVideo?.url?.split('/')[3] || ""}
+        videoId={playingVideo?.id || ""}
       />
 
       <main className="flex-1 py-8">

@@ -2272,12 +2272,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stream video from MongoDB
+  // Stream video from MongoDB or redirect to external URL
   app.get("/api/videos/:id/stream", async (req, res) => {
     try {
       const video = await storage.getVideo(req.params.id);
-      if (!video || !video.videoData) {
+      if (!video) {
         return res.status(404).json({ message: "Video not found" });
+      }
+
+      // If video has external URL and no stored data, redirect to external URL
+      if (!video.videoData && video.url) {
+        return res.redirect(video.url);
+      }
+
+      // If no video data and no URL, return error with info
+      if (!video.videoData) {
+        return res.status(404).json({ 
+          message: "Video file not available", 
+          hasUrl: !!video.url,
+          url: video.url || null
+        });
       }
 
       const range = req.headers.range;

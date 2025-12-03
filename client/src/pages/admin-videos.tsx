@@ -84,7 +84,12 @@ export default function AdminVideos() {
   };
 
   const handlePlayVideo = (video: Video) => {
-    setPlayingVideo({ url: `/api/videos/${video._id}/stream`, title: video.title, id: video._id });
+    // If video has stored data, use the streaming endpoint
+    // Otherwise, use the external URL if available
+    const videoUrl = video.hasVideoData 
+      ? `/api/videos/${video._id}/stream`
+      : (video.url || `/api/videos/${video._id}/stream`);
+    setPlayingVideo({ url: videoUrl, title: video.title, id: video._id });
   };
 
   const handleDelete = (videoId: string) => {

@@ -9,6 +9,29 @@ interface VideoPlayerModalProps {
   videoId: string;
 }
 
+function getYouTubeVideoId(url: string): string | null {
+  if (!url) return null;
+  
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+function isYouTubeUrl(url: string): boolean {
+  return url.includes('youtube.com') || url.includes('youtu.be');
+}
+
+function isVimeoUrl(url: string): boolean {
+  return url.includes('vimeo.com');
+}
+
+function getVimeoVideoId(url: string): string | null {
+  if (!url) return null;
+  const regExp = /vimeo\.com\/(\d+)/;
+  const match = url.match(regExp);
+  return match ? match[1] : null;
+}
+
 export function VideoPlayerModal({ 
   isOpen, 
   onClose, 
@@ -20,9 +43,13 @@ export function VideoPlayerModal({
   const saveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const savedTimeRef = useRef<number>(0);
 
-  // Load saved progress when modal opens
+  const youtubeId = isYouTubeUrl(videoUrl) ? getYouTubeVideoId(videoUrl) : null;
+  const vimeoId = isVimeoUrl(videoUrl) ? getVimeoVideoId(videoUrl) : null;
+  const isEmbeddedVideo = !!youtubeId || !!vimeoId;
+
+  // Load saved progress when modal opens (only for non-embedded videos)
   useEffect(() => {
-    if (!isOpen || !videoId) return;
+    if (!isOpen || !videoId || isEmbeddedVideo) return;
 
     console.log('Loading progress for videoId:', videoId);
     
@@ -36,7 +63,6 @@ export function VideoPlayerModal({
         if (data?.watchedDuration > 0) {
           savedTimeRef.current = data.watchedDuration;
           console.log('Saved time to ref:', data.watchedDuration);
-          // Try to set it immediately if video is ready
           if (videoRef.current && videoRef.current.readyState >= 1) {
             videoRef.current.currentTime = data.watchedDuration;
             console.log('Immediately set video to', data.watchedDuration);
@@ -49,7 +75,6 @@ export function VideoPlayerModal({
 
     loadAndSetProgress();
 
-    // Also handle canplay event to ensure we set time even if video is already loading
     const handleCanPlay = () => {
       if (savedTimeRef.current > 0 && videoRef.current) {
         videoRef.current.currentTime = savedTimeRef.current;
@@ -75,15 +100,14 @@ export function VideoPlayerModal({
         videoRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
       }
     };
-  }, [isOpen, videoId]);
+  }, [isOpen, videoId, isEmbeddedVideo]);
 
-  // Save progress periodically - save every 3 seconds regardless of pause state
+  // Save progress periodically (only for non-embedded videos)
   useEffect(() => {
-    if (!isOpen || !videoRef.current || !videoId) return;
+    if (!isOpen || !videoRef.current || !videoId || isEmbeddedVideo) return;
 
     const video = videoRef.current;
 
-    // Save progress immediately on first timeupdate (when duration is available)
     const saveProgress = async () => {
       if (video.duration > 0) {
         try {
@@ -107,16 +131,13 @@ export function VideoPlayerModal({
       }
     };
 
-    // Save on first play event
     const handlePlay = async () => {
       console.log('Video started playing, saving initial progress');
       await saveProgress();
     };
 
-    // Save every 3 seconds (always, regardless of pause state)
     saveIntervalRef.current = setInterval(saveProgress, 3000);
 
-    // Save on video end
     const handleEnded = async () => {
       console.log('Video ended, saving final progress:', video.currentTime, '/', video.duration);
       await saveProgress();
@@ -130,7 +151,7 @@ export function VideoPlayerModal({
       video.removeEventListener('ended', handleEnded);
       if (saveIntervalRef.current) clearInterval(saveIntervalRef.current);
     };
-  }, [isOpen, videoId]);
+  }, [isOpen, videoId, isEmbeddedVideo]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -140,17 +161,39 @@ export function VideoPlayerModal({
         </DialogHeader>
         
         <div className="w-full bg-black flex items-center justify-center relative">
-          <video
-            ref={videoRef}
-            controls
-            autoPlay
-            className="w-full h-auto max-h-[calc(90vh-80px)] object-contain"
-            data-testid="video-element"
-            controlsList="nodownload"
-          >
-            <source src={videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          {youtubeId ? (
+            <iframe
+              className="w-full aspect-video max-h-[calc(90vh-80px)]"
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
+              title={videoTitle}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              data-testid="youtube-embed"
+            />
+          ) : vimeoId ? (
+            <iframe
+              className="w-full aspect-video max-h-[calc(90vh-80px)]"
+              src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1`}
+              title={videoTitle}
+              frameBorder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              data-testid="vimeo-embed"
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              controls
+              autoPlay
+              className="w-full h-auto max-h-[calc(90vh-80px)] object-contain"
+              data-testid="video-element"
+              controlsList="nodownload"
+            >
+              <source src={videoUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          )}
         </div>
       </DialogContent>
     </Dialog>

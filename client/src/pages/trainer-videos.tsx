@@ -170,7 +170,12 @@ export default function TrainerVideos() {
                                     <Button 
                                       size="icon" 
                                       className="h-12 w-12 rounded-full"
-                                      onClick={() => setPlayingVideo({ url: `/api/videos/${video._id || video.id}/stream`, title: video.title, id: video._id || video.id })}
+                                      onClick={() => {
+                                        const videoUrl = video.hasVideoData 
+                                          ? `/api/videos/${video._id || video.id}/stream`
+                                          : (video.url || `/api/videos/${video._id || video.id}/stream`);
+                                        setPlayingVideo({ url: videoUrl, title: video.title, id: video._id || video.id });
+                                      }}
                                       data-testid={`button-play-${video._id || video.id}`}
                                     >
                                       <Play className="h-6 w-6" />

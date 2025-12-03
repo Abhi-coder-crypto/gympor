@@ -239,7 +239,12 @@ export default function ClientVideoLibrary() {
                 <Card
                   key={video._id}
                   className="hover-elevate overflow-hidden cursor-pointer transition-all group"
-                  onClick={() => setPlayingVideo({ url: `/api/videos/${video._id}/stream`, title: video.title, id: video._id })}
+                  onClick={() => {
+                    const videoUrl = video.hasVideoData 
+                      ? `/api/videos/${video._id}/stream`
+                      : (video.url || `/api/videos/${video._id}/stream`);
+                    setPlayingVideo({ url: videoUrl, title: video.title, id: video._id });
+                  }}
                   data-testid={`video-card-${video._id}`}
                 >
                   <div className="relative aspect-video bg-muted overflow-hidden">
