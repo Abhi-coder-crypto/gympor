@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { PaymentHistory, Invoice, Refund, PaymentReminder, VideoProgress, LiveSession, WorkoutPlan, DietPlan, Habit, HabitLog, WorkoutLog, Client, Achievement, Video, User } from "./models";
+import { PaymentHistory, Invoice, Refund, PaymentReminder, VideoProgress, LiveSession, WorkoutPlan, DietPlan, Habit, HabitLog, WorkoutLog, Client, Achievement, Video } from "./models";
 import mongoose from "mongoose";
 import { hashPassword, comparePassword, validateEmail, validatePassword } from "./utils/auth";
 import { generateAccessToken, generateRefreshToken } from "./utils/jwt";
