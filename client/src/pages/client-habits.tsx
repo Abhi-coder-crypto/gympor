@@ -10,36 +10,36 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 export default function ClientHabits() {
   const { toast } = useToast();
 
-  // Fetch user data with proper authentication
+  // Fetch user data with proper authentication - use apiRequest to send JWT token
   const { data: userData, isLoading: userLoading } = useQuery<any>({
-    queryKey: ["/api/auth/me", "client"],
+    queryKey: ["/api/auth/me"],
     queryFn: async () => {
-      try {
-        const res = await apiRequest("GET", "/api/auth/me");
-        return await res.json();
-      } catch (error: any) {
-        console.error('[ClientHabits] Failed to fetch user data:', error.message);
-        return null;
-      }
+      const res = await apiRequest("GET", "/api/auth/me");
+      return await res.json();
     },
     staleTime: 0,
     refetchOnMount: true,
-    retry: false,
+    retry: 1,
   });
 
   const user = userData?.user;
   const client = userData?.client;
   const packageName = user?.packageId?.name || user?.packageName || client?.packageId?.name || "";
   
-  // Get clientId from user object or client object - also check localStorage as fallback
-  const storedClientId = typeof window !== 'undefined' ? localStorage.getItem('clientId') : null;
-  const clientId = user?.clientId || client?._id || storedClientId;
+  // Get clientId from user object or client object
+  const clientId = user?.clientId || client?._id;
   
-  console.log('[ClientHabits] User data:', { 
+  // Debug logging
+  const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  console.log('[ClientHabits] Auth check:', { 
+    hasToken: !!storedToken,
+    tokenLength: storedToken?.length,
     userId: user?._id, 
     clientId, 
     role: user?.role,
-    hasClient: !!client 
+    hasClient: !!client,
+    userDataLoading: userLoading,
+    userDataExists: !!userData
   });
 
   // Fetch habits with proper authentication - use clientId directly
