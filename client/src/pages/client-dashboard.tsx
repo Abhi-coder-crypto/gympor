@@ -218,6 +218,26 @@ export default function ClientDashboard() {
     refetchInterval: 30000,
   });
 
+  // Fetch calories burned from completed videos only
+  const { data: caloriesBurnedData } = useQuery<{
+    totalCalories: number;
+    totalVideosCompleted: number;
+    totalMinutesWatched: number;
+  }>({
+    queryKey: ['/api/clients', clientId, 'calories-burned'],
+    queryFn: async () => {
+      if (!clientId) return { totalCalories: 0, totalVideosCompleted: 0, totalMinutesWatched: 0 };
+      const res = await fetch(`/api/clients/${clientId}/calories-burned?period=week`, {
+        credentials: 'include',
+      });
+      if (!res.ok) return { totalCalories: 0, totalVideosCompleted: 0, totalMinutesWatched: 0 };
+      return await res.json();
+    },
+    enabled: !!clientId,
+    staleTime: 0,
+    refetchInterval: 5000, // Refresh frequently for real-time updates
+  });
+
   const { data: upcomingSessions = [] } = useQuery<any[]>({
     queryKey: [`/api/clients/${clientId}/upcoming-sessions`],
     enabled: !!clientId,
@@ -396,15 +416,9 @@ export default function ClientDashboard() {
   const weightProgress = targetWeight && initialWeight ? 
     Math.round(((initialWeight - currentWeight) / (initialWeight - targetWeight)) * 100) : 0;
 
-  // Calculate total calories from assigned videos based on client weight
-  const clientWeightKg = currentWeight ? parseFloat(currentWeight.toString()) : 70;
-  const videoCalories = (assignedVideos || []).reduce((total: number, video: any) => {
-    const caloriePerMinute = parseFloat(video.caloriePerMinute || 0);
-    const duration = video.duration || 0;
-    const weightMultiplier = clientWeightKg / 70;
-    const videoCal = caloriePerMinute * duration * weightMultiplier;
-    return total + videoCal;
-  }, 0);
+  // Use calories from completed videos only (from API)
+  const videoCalories = caloriesBurnedData?.totalCalories || 0;
+  const completedVideosCount = caloriesBurnedData?.totalVideosCompleted || 0;
 
   // Calculate workout compliance percentage
   const workoutCompliancePercent = assignedWorkoutCount > 0 
