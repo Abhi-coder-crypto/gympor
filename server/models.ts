@@ -269,7 +269,10 @@ export interface IVideoProgress extends Document {
   totalDuration: number;
   lastWatchedAt: Date;
   completed: boolean;
-  clientId?: string; // Deprecated but kept for backwards compatibility
+  completedAt?: Date;
+  caloriesBurned?: number;
+  clientWeightAtCompletion?: number;
+  clientId?: string;
 }
 
 export interface IVideoBookmark extends Document {

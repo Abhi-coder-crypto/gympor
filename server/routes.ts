@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { PaymentHistory, Invoice, Refund, PaymentReminder, VideoProgress, LiveSession, WorkoutPlan, DietPlan, Habit, HabitLog, WorkoutLog, Client, Achievement } from "./models";
+import { PaymentHistory, Invoice, Refund, PaymentReminder, VideoProgress, LiveSession, WorkoutPlan, DietPlan, Habit, HabitLog, WorkoutLog, Client, Achievement, Video, User } from "./models";
 import mongoose from "mongoose";
 import { hashPassword, comparePassword, validateEmail, validatePassword } from "./utils/auth";
 import { generateAccessToken, generateRefreshToken } from "./utils/jwt";
@@ -2625,6 +2625,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error('Error fetching calories burned:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Mark video as complete with button click (for client dashboard)
+  app.post("/api/clients/:clientId/videos/:videoId/complete", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
+    try {
+      const { clientId, videoId } = req.params;
+      const userId = (req as any).user?.userId;
+      
+      console.log(`[VideoComplete] Marking video ${videoId} as complete for client ${clientId}`);
+      
+      const clientObjectId = new mongoose.Types.ObjectId(clientId);
+      const videoObjectId = new mongoose.Types.ObjectId(videoId);
+      const userObjectId = userId ? new mongoose.Types.ObjectId(userId) : clientObjectId;
+      
+      // Check if already completed
+      const existingProgress = await VideoProgress.findOne({
+        $or: [
+          { userId: userObjectId, videoId: videoObjectId },
+          { clientId: clientObjectId, videoId: videoObjectId }
+        ]
+      });
+      
+      if (existingProgress?.completed) {
+        return res.json({
+          success: true,
+          alreadyCompleted: true,
+          caloriesBurned: existingProgress.caloriesBurned,
+          completedAt: existingProgress.completedAt
+        });
+      }
+      
+      // Get video details for calorie calculation
+      const video = await Video.findById(videoObjectId);
+      if (!video) {
+        return res.status(404).json({ message: "Video not found" });
+      }
+      
+      const caloriePerMinute = video.caloriePerMinute || 0;
+      const videoDuration = video.duration || 30; // default 30 minutes
+      
+      // Get client's current weight
+      const client = await Client.findById(clientObjectId);
+      const clientWeight = client?.weight || 70; // default 70kg
+      
+      // Calculate calories: caloriePerMinute × duration × (weight/70)
+      const weightMultiplier = clientWeight / 70;
+      const caloriesBurned = Math.round(caloriePerMinute * videoDuration * weightMultiplier);
+      
+      console.log(`[VideoComplete] Calories: ${caloriePerMinute} cal/min × ${videoDuration} min × ${weightMultiplier.toFixed(2)} = ${caloriesBurned} cal`);
+      
+      // Upsert the progress record as completed
+      const progress = await VideoProgress.findOneAndUpdate(
+        { 
+          $or: [
+            { userId: userObjectId, videoId: videoObjectId },
+            { clientId: clientObjectId, videoId: videoObjectId }
+          ]
+        },
+        {
+          userId: userObjectId,
+          videoId: videoObjectId,
+          clientId: clientObjectId,
+          watchedDuration: videoDuration * 60, // Convert to seconds
+          totalDuration: videoDuration * 60,
+          completed: true,
+          completedAt: new Date(),
+          caloriesBurned,
+          clientWeightAtCompletion: clientWeight,
+          lastWatchedAt: new Date()
+        },
+        { upsert: true, new: true }
+      );
+      
+      // Increment video completions count
+      await Video.findByIdAndUpdate(videoObjectId, { $inc: { completions: 1 } });
+      
+      console.log(`[VideoComplete] Success! Burned ${caloriesBurned} calories`);
+      
+      res.json({
+        success: true,
+        caloriesBurned,
+        completedAt: progress.completedAt,
+        clientWeight
+      });
+    } catch (error: any) {
+      console.error('Error marking video complete:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get completion status for assigned videos
+  app.get("/api/clients/:clientId/videos/completion-status", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const userId = (req as any).user?.userId;
+      const clientObjectId = new mongoose.Types.ObjectId(clientId);
+      
+      // Build query to check both clientId and userId
+      const query: any = { completed: true };
+      if (userId) {
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        query.$or = [
+          { clientId: clientObjectId },
+          { userId: userObjectId }
+        ];
+      } else {
+        query.clientId = clientObjectId;
+      }
+      
+      // Get all completed videos for this client/user
+      const completedVideos = await VideoProgress.find(query);
+      
+      // Create a map of videoId -> completion data
+      const completionMap: Record<string, { completed: boolean; caloriesBurned: number; completedAt: Date }> = {};
+      completedVideos.forEach((vp: any) => {
+        const videoIdStr = vp.videoId.toString();
+        completionMap[videoIdStr] = {
+          completed: true,
+          caloriesBurned: vp.caloriesBurned || 0,
+          completedAt: vp.completedAt
+        };
+      });
+      
+      res.json(completionMap);
+    } catch (error: any) {
+      console.error('Error fetching completion status:', error);
       res.status(500).json({ message: error.message });
     }
   });

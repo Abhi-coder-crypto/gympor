@@ -530,6 +530,7 @@ export default function ClientDashboard() {
               <ContinueWatching 
                 videos={videos} 
                 onWatchAll={() => setLocation("/client/videos")}
+                clientId={clientId}
               />
             </div>
 
