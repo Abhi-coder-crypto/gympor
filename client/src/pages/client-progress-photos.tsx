@@ -341,7 +341,7 @@ export default function ClientProgressPhotos() {
                     <Button
                       size="icon"
                       variant="destructive"
-                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-3 right-3"
                       onClick={() => handleDelete(photo._id)}
                       data-testid={`button-delete-${photo._id}`}
                     >

@@ -82,15 +82,9 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
     if (trainerInfo?.email) {
       const subject = `Question from FitPro Client`;
       const body = `Hi ${trainerInfo.name},\n\nI have a question about my training program.\n\nBest regards`;
-      const mailtoUrl = `mailto:${trainerInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      
-      // Create a temporary link and click it - this works better across browsers
-      const link = document.createElement('a');
-      link.href = mailtoUrl;
-      link.target = '_self';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Open Gmail compose directly - if user is logged in, it will open their Gmail
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(trainerInfo.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.open(gmailUrl, '_blank');
     }
   };
 
