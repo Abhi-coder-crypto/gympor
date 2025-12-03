@@ -2461,13 +2461,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update video progress for current user with optional auth
   app.post("/api/video-progress/:videoId", optionalAuth, async (req, res) => {
     try {
-      console.log('POST /api/video-progress/:videoId');
-      console.log('User object:', (req as any).user);
-      console.log('Request body:', req.body);
       const userId = (req as any).user?.userId;
-      console.log('Extracted userId:', userId);
+      const clientIdFromToken = (req as any).user?.clientId;
+      
       if (!userId) {
-        console.log('No userId - returning empty progress');
         return res.json({ watchedDuration: 0, totalDuration: 0 });
       }
       
@@ -2475,8 +2472,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userObjectId = new mongoose.Types.ObjectId(userId);
       const videoObjectId = new mongoose.Types.ObjectId(req.params.videoId);
-      
-      console.log('Saving progress - userId:', userObjectId, 'videoId:', videoObjectId, 'duration:', watchedDuration);
       
       // Check if this is the first time watching (increment views)
       const existingProgress = await VideoProgress.findOne({ 
@@ -2487,23 +2482,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.incrementVideoViews(req.params.videoId);
       }
       
+      // Determine if video is completed (90%+ watched)
+      const isCompleted = totalDuration > 0 && watchedDuration >= totalDuration * 0.90;
+      const wasAlreadyCompleted = existingProgress?.completed || false;
+      
+      // Prepare update data
+      const updateData: any = { 
+        userId: userObjectId,
+        videoId: videoObjectId,
+        watchedDuration,
+        totalDuration,
+        lastWatchedAt: new Date(),
+        completed: isCompleted
+      };
+      
+      // If completing for the first time, calculate and lock in calories
+      if (isCompleted && !wasAlreadyCompleted) {
+        console.log('[VideoProgress] Video completed! Calculating calories...');
+        
+        // Get the video to get caloriePerMinute
+        const video = await Video.findById(videoObjectId);
+        const caloriePerMinute = video?.caloriePerMinute || 0;
+        const videoDuration = video?.duration || (totalDuration / 60); // duration in minutes
+        
+        // Get client's current weight
+        let clientWeight = 70; // default weight in kg
+        let clientObjectId = null;
+        
+        if (clientIdFromToken) {
+          clientObjectId = new mongoose.Types.ObjectId(clientIdFromToken);
+          const client = await Client.findById(clientObjectId);
+          if (client?.weight) {
+            clientWeight = client.weight;
+          }
+        } else {
+          // Try to find client by user email
+          const user = await User.findById(userObjectId);
+          if (user?.email) {
+            const client = await Client.findOne({ email: user.email });
+            if (client) {
+              clientObjectId = client._id;
+              if (client.weight) {
+                clientWeight = client.weight;
+              }
+            }
+          }
+        }
+        
+        // Calculate calories: caloriePerMinute × duration × (weight/70)
+        const weightMultiplier = clientWeight / 70;
+        const caloriesBurned = Math.round(caloriePerMinute * videoDuration * weightMultiplier);
+        
+        console.log(`[VideoProgress] Calories: ${caloriePerMinute} cal/min × ${videoDuration} min × ${weightMultiplier.toFixed(2)} = ${caloriesBurned} cal`);
+        
+        updateData.completed = true;
+        updateData.completedAt = new Date();
+        updateData.caloriesBurned = caloriesBurned;
+        updateData.clientWeightAtCompletion = clientWeight;
+        if (clientObjectId) {
+          updateData.clientId = clientObjectId;
+        }
+        
+        // Increment video completions count
+        await Video.findByIdAndUpdate(videoObjectId, { $inc: { completions: 1 } });
+      }
+      
       // Upsert the progress record
       const progress = await VideoProgress.findOneAndUpdate(
         { userId: userObjectId, videoId: videoObjectId },
-        { 
-          userId: userObjectId,
-          videoId: videoObjectId,
-          watchedDuration,
-          totalDuration,
-          lastWatchedAt: new Date(),
-          completed: totalDuration > 0 && watchedDuration >= totalDuration * 0.95
-        },
+        updateData,
         { upsert: true, new: true }
       );
-      console.log('Progress saved successfully:', progress);
+      
       res.json(progress);
     } catch (error: any) {
       console.error('Error in POST /api/video-progress:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get total calories burned from completed videos for a client
+  app.get("/api/clients/:clientId/calories-burned", authenticateToken, requireOwnershipOrAdmin, async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const { period } = req.query; // 'today', 'week', 'month', 'all'
+      
+      // Build date filter
+      let dateFilter: any = {};
+      const now = new Date();
+      
+      if (period === 'today') {
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        dateFilter = { completedAt: { $gte: startOfDay } };
+      } else if (period === 'week') {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - 7);
+        dateFilter = { completedAt: { $gte: startOfWeek } };
+      } else if (period === 'month') {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        dateFilter = { completedAt: { $gte: startOfMonth } };
+      }
+      
+      // Find all completed video progress for this client
+      const completedVideos = await VideoProgress.find({
+        clientId: new mongoose.Types.ObjectId(clientId),
+        completed: true,
+        ...dateFilter
+      }).populate('videoId');
+      
+      // Calculate totals
+      const totalCalories = completedVideos.reduce((sum, vp: any) => sum + (vp.caloriesBurned || 0), 0);
+      const totalVideosCompleted = completedVideos.length;
+      const totalMinutesWatched = completedVideos.reduce((sum, vp: any) => {
+        return sum + (vp.videoId?.duration || Math.round(vp.totalDuration / 60) || 0);
+      }, 0);
+      
+      res.json({
+        totalCalories,
+        totalVideosCompleted,
+        totalMinutesWatched,
+        completedVideos: completedVideos.map((vp: any) => ({
+          videoId: vp.videoId?._id,
+          videoTitle: vp.videoId?.title,
+          caloriesBurned: vp.caloriesBurned,
+          completedAt: vp.completedAt,
+          duration: vp.videoId?.duration
+        }))
+      });
+    } catch (error: any) {
+      console.error('Error fetching calories burned:', error);
       res.status(500).json({ message: error.message });
     }
   });

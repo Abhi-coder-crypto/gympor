@@ -639,13 +639,17 @@ const WorkoutLogSchema = new Schema({
 const VideoProgressSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   videoId: { type: Schema.Types.ObjectId, ref: 'Video', required: true },
+  clientId: { type: Schema.Types.ObjectId, ref: 'Client' },
   watchedDuration: { type: Number, required: true, default: 0 },
   totalDuration: { type: Number, required: true },
   lastWatchedAt: { type: Date, default: Date.now },
   completed: { type: Boolean, default: false },
-  clientId: { type: Schema.Types.ObjectId, ref: 'Client' }, // Deprecated
+  completedAt: { type: Date }, // When the video was marked as completed
+  caloriesBurned: { type: Number, default: 0 }, // Calories calculated at completion (locked in)
+  clientWeightAtCompletion: { type: Number }, // Client's weight when completed (for record)
 });
 VideoProgressSchema.index({ userId: 1, videoId: 1 }, { unique: true });
+VideoProgressSchema.index({ clientId: 1, completed: 1 }); // For querying completed videos by client
 
 const VideoBookmarkSchema = new Schema({
   clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true },
