@@ -198,19 +198,27 @@ export default function ClientHabits() {
                         )}
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary" className="text-xs capitalize">{habit.frequency}</Badge>
+                          {isCompleted && (
+                            <span className="text-xs text-green-600 dark:text-green-400">
+                              Done for today
+                            </span>
+                          )}
                         </div>
                       </div>
                       <Button
-                        onClick={() => toggleHabit(habit._id, isCompleted)}
-                        disabled={markHabitMutation.isPending}
+                        onClick={() => !isCompleted && toggleHabit(habit._id, false)}
+                        disabled={markHabitMutation.isPending || isCompleted}
                         variant={isCompleted ? "default" : "outline"}
                         className={`gap-2 whitespace-nowrap flex-shrink-0 transition-all ${
-                          isCompleted ? "bg-green-600 hover:bg-green-700 dark:bg-green-700" : ""
+                          isCompleted 
+                            ? "bg-green-600 dark:bg-green-700 cursor-not-allowed opacity-90" 
+                            : ""
                         }`}
                         data-testid={`button-mark-habit-${habit._id}`}
+                        title={isCompleted ? "You've completed this habit for today. It will reset tomorrow." : "Click to mark this habit as done"}
                       >
                         <CheckCircle2 className={`h-4 w-4 ${isCompleted ? "" : "opacity-50"}`} />
-                        {isCompleted ? "Done" : "Mark Done"}
+                        {isCompleted ? "Completed" : "Mark Done"}
                       </Button>
                     </div>
                   </CardContent>
