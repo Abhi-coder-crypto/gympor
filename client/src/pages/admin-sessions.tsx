@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin-sidebar";
@@ -81,6 +81,22 @@ export default function AdminSessions() {
 
   const selectedMeetingType = form.watch("meetingType");
 
+  // Auto-set packagePlan to elite_athlete when meeting type is one_to_one
+  // This useEffect ensures form value is updated and revalidated when meeting type changes
+  useEffect(() => {
+    if (selectedMeetingType === "one_to_one") {
+      form.setValue("packagePlan", "elite_athlete", { shouldValidate: true });
+      form.setValue("maxCapacity", 1);
+    } else if (selectedMeetingType === "group") {
+      // Only reset to fit_basic if current value is elite_athlete (from switching from 1:1)
+      const currentPackage = form.getValues("packagePlan");
+      if (currentPackage === "elite_athlete") {
+        form.setValue("packagePlan", "fit_basic", { shouldValidate: true });
+      }
+      form.setValue("maxCapacity", 10);
+    }
+  }, [selectedMeetingType, form]);
+  
   const { data: sessions = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/sessions"],
   });
