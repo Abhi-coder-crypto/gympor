@@ -28,9 +28,10 @@ const SESSION_STATUSES = ["upcoming", "live", "completed", "cancelled"];
 
 const sessionSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  meetingType: z.literal("group").default("group"),
-  packagePlan: z.enum(["fit_basic", "pro_transformation"], { required_error: "Package plan is required" }),
+  meetingType: z.enum(["group", "one_to_one"], { required_error: "Meeting type is required" }),
+  packagePlan: z.enum(["fit_basic", "pro_transformation", "elite_athlete"], { required_error: "Package plan is required" }),
   trainerId: z.string().optional(),
+  clientId: z.string().optional(),
   scheduledAt: z.string().min(1, "Date and time are required"),
   duration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
   maxCapacity: z.coerce.number().min(1, "Capacity must be at least 1").default(10),
@@ -59,13 +60,14 @@ export default function AdminSessions() {
       meetingType: "group",
       packagePlan: "fit_basic",
       trainerId: "",
+      clientId: "",
       scheduledAt: "",
       duration: 60,
       maxCapacity: 10,
     },
   });
 
-  // Admin can only create group meetings with fixed capacity of 10
+  const selectedMeetingType = form.watch("meetingType");
 
   const { data: sessions = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/sessions"],
@@ -90,6 +92,7 @@ export default function AdminSessions() {
         meetingType: data.meetingType,
         packagePlan: data.packagePlan,
         trainerId: data.trainerId || undefined,
+        clientId: data.meetingType === "one_to_one" ? data.clientId : undefined,
         scheduledAt: new Date(data.scheduledAt),
         duration: data.duration,
         maxCapacity: data.meetingType === "group" ? 10 : 1,
@@ -569,32 +572,73 @@ export default function AdminSessions() {
                 )}
               />
 
-              {/* Admin can only create group meetings - meeting type is fixed */}
-              <div className="p-3 rounded-md bg-muted">
-                <p className="text-sm text-muted-foreground mb-1">Meeting Type</p>
-                <p className="font-medium" data-testid="text-meeting-type">Group Meeting (Batch of 10 clients)</p>
-                <p className="text-xs text-muted-foreground mt-1">Note: 1:1 personal training sessions are created by trainers for Elite Athlete clients</p>
-              </div>
+              <FormField
+                control={form.control}
+                name="meetingType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meeting Type</FormLabel>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      if (value === "one_to_one") {
+                        form.setValue("packagePlan", "elite_athlete");
+                        form.setValue("maxCapacity", 1);
+                      } else {
+                        form.setValue("packagePlan", "fit_basic");
+                        form.setValue("maxCapacity", 10);
+                      }
+                    }} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-meeting-type">
+                          <SelectValue placeholder="Select meeting type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="group">Group Meeting (Batch of 10)</SelectItem>
+                        <SelectItem value="one_to_one">1:1 Personal Training</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {selectedMeetingType === "one_to_one" 
+                        ? "1:1 sessions are for Elite Athlete clients only"
+                        : "Group meetings can accommodate up to 10 clients per batch"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
                 name="packagePlan"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Target Package (for client filtering)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <FormLabel>Target Package</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={selectedMeetingType === "one_to_one"}
+                    >
                       <FormControl>
                         <SelectTrigger data-testid="select-package-plan">
                           <SelectValue placeholder="Select plan" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="fit_basic">Fit Basic</SelectItem>
-                        <SelectItem value="pro_transformation">Pro Transformation</SelectItem>
+                        {selectedMeetingType === "one_to_one" ? (
+                          <SelectItem value="elite_athlete">Elite Athlete</SelectItem>
+                        ) : (
+                          <>
+                            <SelectItem value="fit_basic">Fit Basic</SelectItem>
+                            <SelectItem value="pro_transformation">Pro Transformation</SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Only clients with this package can be assigned to this group session
+                      {selectedMeetingType === "one_to_one" 
+                        ? "1:1 sessions are automatically set to Elite Athlete"
+                        : "Only clients with this package can be assigned to this group session"}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -606,7 +650,7 @@ export default function AdminSessions() {
                 name="trainerId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Assign Trainer (Optional)</FormLabel>
+                    <FormLabel>Assign Trainer {selectedMeetingType === "one_to_one" ? "(Required)" : "(Optional)"}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-trainer">
@@ -625,6 +669,42 @@ export default function AdminSessions() {
                   </FormItem>
                 )}
               />
+
+              {selectedMeetingType === "one_to_one" && (
+                <FormField
+                  control={form.control}
+                  name="clientId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Select Client (Elite Athlete)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-client">
+                            <SelectValue placeholder="Select Elite Athlete client" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {clients
+                            .filter((client: any) => {
+                              const pkg = client.packageId;
+                              const pkgName = typeof pkg === 'object' ? pkg?.name : '';
+                              return pkgName?.toLowerCase().includes('elite');
+                            })
+                            .map((client: any) => (
+                              <SelectItem key={client._id} value={client._id}>
+                                {client.name} - {client.email}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Only Elite Athlete clients can be assigned to 1:1 sessions
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -666,7 +746,7 @@ export default function AdminSessions() {
                 name="maxCapacity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Max Capacity (Batch of 10)</FormLabel>
+                    <FormLabel>Max Capacity {selectedMeetingType === "group" ? "(Batch of 10)" : "(1:1)"}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -676,7 +756,9 @@ export default function AdminSessions() {
                       />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
-                      Group meetings have a fixed capacity of 10 clients per batch
+                      {selectedMeetingType === "group" 
+                        ? "Group meetings have a fixed capacity of 10 clients per batch" 
+                        : "1:1 sessions are for individual personal training"}
                     </p>
                     <FormMessage />
                   </FormItem>

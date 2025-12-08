@@ -309,6 +309,7 @@ export interface ITrainer extends Document {
   name: string;
   email: string;
   phone?: string;
+  whatsappNumber?: string;
   specialty?: string;
   bio?: string;
   profilePhoto?: string;
@@ -334,6 +335,7 @@ const TrainerSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   phone: String,
+  whatsappNumber: String,
   specialty: String,
   bio: String,
   profilePhoto: String,
@@ -927,6 +929,7 @@ export interface ISystemSettings extends Document {
     secondaryColor: string;
     tagline?: string;
   };
+  whatsappCommunityLink?: string;
   emailTemplates?: {
     welcome?: {
       subject: string;
@@ -1067,6 +1070,7 @@ const SystemSettingsSchema = new Schema({
     secondaryColor: { type: String, default: '#8b5cf6' },
     tagline: String,
   },
+  whatsappCommunityLink: { type: String, default: '' },
   emailTemplates: {
     welcome: {
       subject: { type: String, default: 'Welcome to {{gymName}}!' },

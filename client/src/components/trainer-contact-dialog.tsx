@@ -1,15 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Phone, Clock, MessageCircle, AlertCircle, Mail } from "lucide-react";
+import { Phone, Clock, MessageCircle, AlertCircle, Mail, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { SiWhatsapp } from "react-icons/si";
 
 interface TrainerInfo {
   name: string;
   phone: string;
+  whatsappNumber?: string;
   email: string;
   availability?: { [key: string]: { start: string; end: string } };
   specialty?: string;
+}
+
+interface SystemSettings {
+  whatsappCommunityLink?: string;
+  branding?: {
+    gymName?: string;
+  };
 }
 
 interface TrainerContactDropdownProps {
@@ -23,8 +32,9 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
   const packageLower = packageName?.toLowerCase() || "";
   const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
   const isElite = packageLower.includes("elite");
-  const isBasicsOrPlus = packageLower.includes("fit plus") || packageLower.includes("basics");
-  const hasTrainerAccess = isPro || isElite || isBasicsOrPlus;
+  const isFitBasic = packageLower.includes("fit basic") || packageLower.includes("basics") || packageLower.includes("fit plus");
+  const hasTrainerAccess = isPro || isElite || isFitBasic;
+  const hasWhatsAppCommunity = isPro || isElite;
 
   const { data: trainerInfo, isLoading, refetch } = useQuery<TrainerInfo>({
     queryKey: ["/api/client/trainer-contact"],
@@ -33,6 +43,12 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
     gcTime: 600000, // Keep in cache for 10 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
+  });
+
+  const { data: systemSettings } = useQuery<SystemSettings>({
+    queryKey: ["/api/settings"],
+    enabled: hasWhatsAppCommunity,
+    staleTime: 600000,
   });
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -63,11 +79,19 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
   };
 
   const openWhatsApp = () => {
-    if (trainerInfo?.phone) {
-      const cleanPhone = trainerInfo.phone.replace(/\D/g, "");
-      const message = `Hi ${trainerInfo.name}, I'd like to schedule a call with you.`;
+    // Prefer whatsappNumber over phone
+    const whatsappContact = trainerInfo?.whatsappNumber || trainerInfo?.phone;
+    if (whatsappContact) {
+      const cleanPhone = whatsappContact.replace(/\D/g, "");
+      const message = `Hi ${trainerInfo?.name}, I'd like to connect with you regarding my fitness training.`;
       const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
       window.open(url, "_blank");
+    }
+  };
+
+  const openWhatsAppCommunity = () => {
+    if (systemSettings?.whatsappCommunityLink) {
+      window.open(systemSettings.whatsappCommunityLink, "_blank");
     }
   };
 
@@ -149,35 +173,63 @@ export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerCon
                 </div>
               )}
 
-              {/* Phone Number & Options (Pro/Elite only) */}
-              {(isPro || isElite) && trainerInfo.phone && (
+              {/* WhatsApp Contact - Available for ALL packages with trainer */}
+              {(trainerInfo.whatsappNumber || trainerInfo.phone) && (
                 <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-4">
-                  <p className="text-xs text-muted-foreground mb-2 font-semibold">Phone</p>
+                  <p className="text-xs text-muted-foreground mb-2 font-semibold flex items-center gap-2">
+                    <SiWhatsapp className="h-4 w-4 text-green-500" />
+                    WhatsApp Contact
+                  </p>
                   <p className="text-sm font-mono font-bold text-green-600 dark:text-green-400 mb-3">
-                    {trainerInfo.phone}
+                    {trainerInfo.whatsappNumber || trainerInfo.phone}
                   </p>
                   <div className="flex gap-2">
                     <Button
-                      onClick={handleCall}
-                      size="sm"
-                      variant="default"
-                      className="flex-1 gap-2"
-                      data-testid="button-call"
-                    >
-                      <Phone className="h-3.5 w-3.5" />
-                      Call
-                    </Button>
-                    <Button
                       onClick={openWhatsApp}
                       size="sm"
-                      variant="outline"
-                      className="flex-1 gap-2"
+                      variant="default"
+                      className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
                       data-testid="button-whatsapp"
                     >
-                      <MessageCircle className="h-3.5 w-3.5" />
-                      WhatsApp
+                      <SiWhatsapp className="h-3.5 w-3.5" />
+                      Chat on WhatsApp
                     </Button>
+                    {(isPro || isElite) && (
+                      <Button
+                        onClick={handleCall}
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 gap-2"
+                        data-testid="button-call"
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                        Call
+                      </Button>
+                    )}
                   </div>
+                </div>
+              )}
+
+              {/* WhatsApp Community - Pro & Elite only */}
+              {hasWhatsAppCommunity && systemSettings?.whatsappCommunityLink && (
+                <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
+                  <p className="text-xs text-muted-foreground mb-2 font-semibold flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-500" />
+                    Gym Community
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Join our exclusive {systemSettings.branding?.gymName || 'FitPro'} WhatsApp community for tips, updates, and motivation!
+                  </p>
+                  <Button
+                    onClick={openWhatsAppCommunity}
+                    size="sm"
+                    variant="default"
+                    className="w-full gap-2 bg-blue-600 hover:bg-blue-700"
+                    data-testid="button-whatsapp-community"
+                  >
+                    <SiWhatsapp className="h-3.5 w-3.5" />
+                    Join Community Group
+                  </Button>
                 </div>
               )}
 

@@ -612,7 +612,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         name: trainer.name,
         phone: trainer.phone || "",
+        whatsappNumber: trainer.whatsappNumber || trainer.phone || "",
         email: trainer.email || "",
+        specialty: trainer.specialty || "",
+        availability: trainer.availability || {},
       });
     } catch (error: any) {
       console.error('[TRAINER CONTACT] Error:', error.message);
@@ -4127,13 +4130,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const sessionData = { ...req.body };
       
-      // Admins can ONLY create group sessions - reject 1:1 attempts
-      if (req.user?.role === 'admin' && sessionData.meetingType === 'one_to_one') {
-        return res.status(403).json({ 
-          message: "Admins cannot create 1:1 sessions. Only trainers can create personal training sessions for Elite Athlete clients." 
-        });
-      }
-      
       // Trainers can ONLY create 1:1 sessions for Elite clients
       if (req.user?.role === 'trainer') {
         sessionData.trainerId = req.user.userId;
@@ -4141,10 +4137,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionData.packagePlan = 'elite_athlete';
         sessionData.maxCapacity = 1;
       }
-      // If admin is creating, enforce group meeting settings
+      // Admin can create both group and 1:1 sessions
       else if (req.user?.role === 'admin') {
-        sessionData.meetingType = 'group';
-        sessionData.maxCapacity = 10;
+        if (sessionData.meetingType === 'one_to_one') {
+          // Enforce Elite-only for 1:1 sessions
+          sessionData.packagePlan = 'elite_athlete';
+          sessionData.maxCapacity = 1;
+          
+          // Validate that clientId is provided and is an Elite client
+          if (!sessionData.clientId) {
+            return res.status(400).json({ message: "Client is required for 1:1 sessions" });
+          }
+          
+          // Verify client is Elite Athlete
+          const client = await storage.getClient(sessionData.clientId);
+          if (!client) {
+            return res.status(400).json({ message: "Client not found" });
+          }
+          const clientPackage = client.packageId;
+          const packageName = typeof clientPackage === 'object' && clientPackage?.name 
+            ? clientPackage.name.toLowerCase() 
+            : '';
+          if (!packageName.includes('elite')) {
+            return res.status(400).json({ message: "1:1 sessions are only available for Elite Athlete clients" });
+          }
+          
+          // Require trainer for 1:1 sessions
+          if (!req.body.trainerId) {
+            return res.status(400).json({ message: "Trainer is required for 1:1 sessions" });
+          }
+        } else {
+          sessionData.meetingType = 'group';
+          sessionData.maxCapacity = 10;
+          // Group sessions can only be for Fit Basic or Pro Transformation
+          if (!['fit_basic', 'pro_transformation'].includes(sessionData.packagePlan)) {
+            sessionData.packagePlan = 'fit_basic';
+          }
+        }
         if (req.body.trainerId) {
           sessionData.trainerId = req.body.trainerId;
         }
