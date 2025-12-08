@@ -74,40 +74,47 @@ export default function AdminDashboard() {
     }
   });
 
-  const packageById = packages.reduce((map, pkg) => {
-    map[pkg._id] = pkg;
+  const packageById = (packages || []).reduce((map, pkg) => {
+    if (pkg && pkg._id) {
+      map[pkg._id] = pkg;
+    }
     return map;
   }, {} as Record<string, any>);
 
-  const clientsWithPackages = clients.map(client => {
-    const packageId = typeof client.packageId === 'object' ? client.packageId._id : client.packageId;
-    const pkg = packageById[packageId];
+  const clientsWithPackages = (clients || []).map(client => {
+    if (!client) return { packageData: null };
+    const packageId = client.packageId 
+      ? (typeof client.packageId === 'object' ? client.packageId?._id : client.packageId)
+      : null;
+    const pkg = packageId ? packageById[packageId] : null;
     return {
       ...client,
       packageData: pkg || null
     };
   });
 
-  const totalClients = clients.length;
-  const activeClients = clientsWithPackages.filter(c => c.packageData).length;
+  const totalClients = (clients || []).length;
+  const activeClients = clientsWithPackages.filter(c => c && c.packageData).length;
   
   const monthlyRevenue = clientsWithPackages.reduce((sum, client) => {
     return sum + (client.packageData?.price || 0);
   }, 0);
 
   // Filter to show only active/unique packages (remove duplicates)
-  const uniquePackages = packages.filter((pkg, index) => {
-    return packages.findIndex(p => p.name === pkg.name) === index;
+  const safePackages = packages || [];
+  const uniquePackages = safePackages.filter((pkg, index) => {
+    return pkg && safePackages.findIndex(p => p?.name === pkg.name) === index;
   });
 
   const recentClients = [...clientsWithPackages]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .filter(c => c && c.createdAt)
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
     .slice(0, 4)
     .map(client => ({
-      name: client.name,
-      package: client.packageData?.name || 'No Package',
-      joinedDate: new Date(client.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      status: client.packageData ? 'active' : 'inactive',
+      name: client?.name || 'Unknown',
+      package: client?.packageData?.name || 'No Package',
+      joinedDate: client?.createdAt ? new Date(client.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A',
+      status: client?.packageData ? 'active' : 'inactive',
     }));
 
   return (

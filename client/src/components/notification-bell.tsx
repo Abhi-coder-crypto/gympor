@@ -29,11 +29,13 @@ export function NotificationBell() {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: notifications = [] } = useQuery<Notification[]>({
+  const { data: notificationsData } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
     refetchInterval: 30000, // Auto-refresh every 30 seconds
   });
 
+  // Handle null/undefined data safely
+  const notifications = notificationsData || [];
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const markAsReadMutation = useMutation({
