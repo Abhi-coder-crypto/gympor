@@ -821,7 +821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   ]), async (req, res) => {
     try {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-      const { name, email, phone } = req.body;
+      const { name, email, phone, password } = req.body;
       const updateData: any = {};
       
       if (name) updateData.name = name;
@@ -832,6 +832,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updateData.email = email.toLowerCase();
       }
       if (phone !== undefined) updateData.phone = phone;
+      
+      // Handle password update - hash the new password if provided
+      if (password && password.trim() !== '') {
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+          return res.status(400).json({ message: passwordValidation.message || "Invalid password format" });
+        }
+        updateData.password = await hashPassword(password);
+        console.log('🔐 Password updated for trainer:', req.params.id);
+      }
       
       // Handle file uploads
       if (files?.profilePhoto) {
