@@ -4,10 +4,9 @@
  */
 
 const PACKAGE_FEATURES: Record<string, string[]> = {
-  'Fit Basics': ['workouts', 'diet', 'recorded_videos'],
-  'Fit Plus': ['recorded_videos', 'personalized_diet', 'weekly_checkins'],
-  'Pro Transformation': ['recorded_videos', 'personalized_diet', 'weekly_checkins', 'one_on_one_calls', 'habit_coaching'],
-  'Elite Athlete': ['recorded_videos', 'personalized_diet', 'weekly_checkins', 'one_on_one_calls', 'habit_coaching', 'performance_tracking', 'priority_support'],
+  'Fit Basic': ['recorded_videos', 'personalized_diet', 'weekly_checkins', 'live_group_training', 'whatsapp_support'],
+  'Pro Transformation': ['recorded_videos', 'personalized_diet', 'weekly_checkins', 'live_group_training', 'whatsapp_support', 'whatsapp_community', 'habit_coaching'],
+  'Elite Athlete': ['recorded_videos', 'personalized_diet', 'weekly_checkins', 'one_on_one_training', 'whatsapp_support', 'whatsapp_community', 'habit_coaching', 'performance_tracking', 'priority_support'],
 };
 
 export function hasFeature(packageName: string | null | undefined, feature: string): boolean {
@@ -37,7 +36,10 @@ export const FEATURE_LABELS: Record<string, string> = {
   'recorded_videos': 'Recorded Videos',
   'personalized_diet': 'Personalized Diet',
   'weekly_checkins': 'Weekly Check-ins',
-  'one_on_one_calls': '1-on-1 Calls',
+  'one_on_one_training': '1:1 Personal Training',
+  'live_group_training': 'Live Group Training',
+  'whatsapp_support': 'WhatsApp Support',
+  'whatsapp_community': 'WhatsApp Community',
   'habit_coaching': 'Habit Coaching',
   'performance_tracking': 'Performance Tracking',
   'priority_support': 'Priority Support',
@@ -49,7 +51,10 @@ export const FEATURE_DESCRIPTIONS: Record<string, string> = {
   'recorded_videos': 'Access to recorded training videos',
   'personalized_diet': 'Custom meal plans tailored to your goals',
   'weekly_checkins': 'Weekly progress check-in calls',
-  'one_on_one_calls': 'Weekly 1-on-1 coaching sessions',
+  'one_on_one_training': '1:1 Personal training sessions',
+  'live_group_training': 'Live group training sessions',
+  'whatsapp_support': 'Direct WhatsApp support for questions',
+  'whatsapp_community': 'Access to WhatsApp community group',
   'habit_coaching': 'Daily habit tracking and coaching',
   'performance_tracking': 'Advanced performance metrics and analytics',
   'priority_support': 'Priority customer support (24-48 hour response)',
@@ -61,7 +66,10 @@ export const ALL_FEATURES = [
   'recorded_videos',
   'personalized_diet', 
   'weekly_checkins',
-  'one_on_one_calls',
+  'one_on_one_training',
+  'live_group_training',
+  'whatsapp_support',
+  'whatsapp_community',
   'habit_coaching',
   'performance_tracking',
   'priority_support',

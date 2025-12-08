@@ -118,9 +118,9 @@ export function AddClientModal({ open, onOpenChange }: AddClientModalProps) {
                   <SelectValue placeholder="Select a package" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Basic">Basic - $29/month</SelectItem>
-                  <SelectItem value="Premium">Premium - $59/month</SelectItem>
-                  <SelectItem value="Elite">Elite - $99/month</SelectItem>
+                  <SelectItem value="Fit Basic">Fit Basic - ₹2500</SelectItem>
+                  <SelectItem value="Pro Transformation">Pro Transformation - ₹5000</SelectItem>
+                  <SelectItem value="Elite Athlete">Elite Athlete - ₹10000</SelectItem>
                 </SelectContent>
               </Select>
             </div>
