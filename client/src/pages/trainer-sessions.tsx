@@ -23,6 +23,7 @@ interface LiveSession {
   title: string;
   description?: string;
   sessionType: string;
+  meetingType?: 'group' | 'one_to_one';
   scheduledAt: string | Date;
   duration: number;
   meetingLink?: string;
@@ -209,10 +210,10 @@ export default function TrainerSessions() {
                                   </div>
                                   <div className="flex items-center gap-1.5">
                                     <Users className="h-3.5 w-3.5" />
-                                    <span>{session.currentCapacity || 0}/{session.maxCapacity || 10} participants</span>
+                                    <span>{session.currentCapacity || 0}/{session.maxCapacity} participants</span>
                                   </div>
                                   <Badge variant="default">
-                                    {session.sessionType || 'Group'}
+                                    {session.meetingType === 'one_to_one' ? '1:1' : (session.sessionType || 'Group')}
                                   </Badge>
                                 </div>
                               </div>

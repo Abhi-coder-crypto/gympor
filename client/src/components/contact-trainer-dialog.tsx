@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Phone, MessageCircle } from "lucide-react";
+import { Phone, MessageCircle, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
@@ -13,6 +13,8 @@ export function ContactTrainerDialog({ open, onOpenChange }: ContactTrainerDialo
   const [trainerPhone, setTrainerPhone] = useState<string | null>(null);
   const [trainerName, setTrainerName] = useState<string>("");
   const [hasTrainer, setHasTrainer] = useState(false);
+  const [whatsappCommunityLink, setWhatsappCommunityLink] = useState<string | null>(null);
+  const [isPremiumPackage, setIsPremiumPackage] = useState(false);
 
   const { data: authData } = useQuery<any>({
     queryKey: ["/api/auth/me"],
@@ -34,6 +36,11 @@ export function ContactTrainerDialog({ open, onOpenChange }: ContactTrainerDialo
     enabled: !!clientData?.trainerId && open,
   });
 
+  const { data: packageData } = useQuery<any>({
+    queryKey: ["/api/packages", clientData?.packageId],
+    enabled: !!clientData?.packageId && open,
+  });
+
   useEffect(() => {
     if (trainerData?.phone) {
       const formattedPhone = trainerData.phone.replace(/\D/g, "");
@@ -42,9 +49,27 @@ export function ContactTrainerDialog({ open, onOpenChange }: ContactTrainerDialo
     }
   }, [trainerData]);
 
+  useEffect(() => {
+    if (packageData) {
+      const packageName = packageData.name || '';
+      const isPremium = ['Pro Transformation', 'Elite Athlete / Fast Result'].includes(packageName);
+      setIsPremiumPackage(isPremium);
+      if (packageData.whatsappCommunityLink) {
+        setWhatsappCommunityLink(packageData.whatsappCommunityLink);
+      }
+    }
+  }, [packageData]);
+
   const handleCall = () => {
     if (trainerPhone) {
       window.location.href = `tel:+${trainerPhone}`;
+      onOpenChange(false);
+    }
+  };
+
+  const handleWhatsAppCommunity = () => {
+    if (whatsappCommunityLink) {
+      window.open(whatsappCommunityLink, "_blank");
       onOpenChange(false);
     }
   };
@@ -72,15 +97,27 @@ export function ContactTrainerDialog({ open, onOpenChange }: ContactTrainerDialo
                 Trainer Phone: <span className="font-semibold text-foreground">+{trainerPhone}</span>
               </p>
               <div className="flex gap-3">
-                <Button
-                  onClick={handleCall}
-                  className="flex-1 gap-2"
-                  size="lg"
-                  data-testid="button-call-trainer-dialog"
-                >
-                  <Phone className="h-4 w-4" />
-                  Call
-                </Button>
+                {isPremiumPackage && whatsappCommunityLink ? (
+                  <Button
+                    onClick={handleWhatsAppCommunity}
+                    className="flex-1 gap-2"
+                    size="lg"
+                    data-testid="button-whatsapp-community-dialog"
+                  >
+                    <Users className="h-4 w-4" />
+                    WhatsApp Community
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleCall}
+                    className="flex-1 gap-2"
+                    size="lg"
+                    data-testid="button-call-trainer-dialog"
+                  >
+                    <Phone className="h-4 w-4" />
+                    Call
+                  </Button>
+                )}
                 <Button
                   onClick={handleMessage}
                   variant="outline"

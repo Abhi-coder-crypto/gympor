@@ -320,62 +320,31 @@ export default function ClientDashboard() {
   const hasHabitTrackingAccess = ['Pro Transformation', 'Elite Athlete / Fast Result'].includes(packageName);
   const hasVideoAccess = true; // All packages have video access
   
-  // Calculate workout days - show green for days that have workouts ASSIGNED in the workout plan
+  // Calculate workout days - show green ONLY for days with actual workout logs this week
   const getWorkoutDaysFromAssignment = () => {
-    // Always show all 7 days (Mon-Sun)
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const fullDayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
     
-    // Get today's day of week (0 = Sunday, 1 = Monday, etc.)
     const today = new Date();
-    const todayDayIndex = today.getDay(); // 0-6 where 0 is Sunday
-    // Convert to our index (0 = Monday, 6 = Sunday)
+    const todayDayIndex = today.getDay();
     const todayIndex = todayDayIndex === 0 ? 6 : todayDayIndex - 1;
-    
-    // Check which days have workouts assigned in workout plans
-    const assignedDays = new Set<string>();
-    workoutPlans.forEach((plan: any) => {
-      if (plan.exercises && typeof plan.exercises === 'object') {
-        Object.keys(plan.exercises).forEach((dayKey: string) => {
-          // Normalize day name to lowercase
-          const normalizedDay = dayKey.toLowerCase().trim();
-          // Check if there are actual exercises for this day
-          const dayExercises = plan.exercises[dayKey];
-          if (dayExercises && (Array.isArray(dayExercises) ? dayExercises.length > 0 : Object.keys(dayExercises).length > 0)) {
-            assignedDays.add(normalizedDay);
-          }
-        });
-      }
-    });
     
     const days = [];
     for (let i = 0; i < dayNames.length; i++) {
-      const fullDayName = fullDayNames[i];
+      const dayDate = new Date(today);
+      dayDate.setDate(today.getDate() - todayIndex + i);
+      dayDate.setHours(0, 0, 0, 0);
       
-      // Day has workout assigned if it's in the assigned days set
-      const hasWorkoutAssigned = assignedDays.has(fullDayName);
-      
-      // Also check if there's a workout log for this day of the current week
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - todayIndex + i);
-      startOfWeek.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(startOfWeek);
+      const endOfDay = new Date(dayDate);
       endOfDay.setHours(23, 59, 59, 999);
       
       const hasWorkoutLog = (workoutLogs as any[]).some((log: any) => {
         const logDate = new Date(log.loggedAt);
-        return logDate >= startOfWeek && logDate <= endOfDay;
+        return logDate >= dayDate && logDate <= endOfDay;
       });
-      
-      // Mark as completed (green) if:
-      // 1. The day has a workout ASSIGNED in the workout plan, OR
-      // 2. There's a workout log for this day
-      const dayCompleted = hasWorkoutAssigned || hasWorkoutLog;
 
       days.push({
         day: dayNames[i],
-        completed: dayCompleted
+        completed: hasWorkoutLog
       });
     }
 

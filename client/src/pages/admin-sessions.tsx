@@ -397,7 +397,7 @@ export default function AdminSessions() {
                             data-testid={`button-assign-${session._id}`}
                           >
                             <UserPlus className="h-4 w-4 mr-1" />
-                            Assign ({session.currentCapacity}/10)
+                            Assign ({session.currentCapacity}/{session.maxCapacity})
                           </Button>
                           {session.status !== "cancelled" && (
                             <Button
@@ -534,7 +534,7 @@ export default function AdminSessions() {
                                   data-testid={`button-assign-${session._id}`}
                                 >
                                   <UserPlus className="h-4 w-4 mr-1" />
-                                  Assign ({session.currentCapacity}/10)
+                                  Assign ({session.currentCapacity}/{session.maxCapacity})
                                 </Button>
                                 {session.status !== "cancelled" && (
                                   <Button
