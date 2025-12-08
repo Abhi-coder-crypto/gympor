@@ -54,13 +54,13 @@ export default function AdminSettings() {
     },
   });
 
-  // Define the 4 packages with their respective pricing for 4, 8, and 12 weeks
+  // Define the 3 packages with their respective pricing for 4, 8, and 12 weeks
   const packages = [
     {
-      id: "fit-basics",
-      name: "Fit Basics",
-      description: "Diet + Workout + Recorded Sessions Access",
-      features: ["Diet Plan Access", "Workout Plan Access", "Recorded Sessions Access", "Email Support"],
+      id: "fit-basic",
+      name: "Fit Basic",
+      description: "Live Group Training + Personalized Diet + Weekly 1 Check-in + WhatsApp Support",
+      features: ["Live group training", "Personalized Diet", "Weekly 1 check-in", "WhatsApp support"],
       color: "bg-blue-500",
       weeks: [
         { duration: 4, price: 2500 },
@@ -69,34 +69,22 @@ export default function AdminSettings() {
       ]
     },
     {
-      id: "fit-plus",
-      name: "Fit Plus (Main Group Program)",
-      description: "Live Group Training + Personalized Diet + Weekly Check-in",
-      features: ["Live Group Training", "Personalized Diet Plan", "Weekly Check-in", "All Fit Basics Features"],
-      color: "bg-purple-500",
+      id: "pro-transformation",
+      name: "Pro Transformation",
+      description: "Live Group Training + Personalized Diet + Weekly 2 Check-ins + WhatsApp Support + WhatsApp Community",
+      features: ["Live group training", "Personalized Diet", "Weekly 2 check-ins", "WhatsApp support", "WhatsApp community"],
+      color: "bg-orange-500",
       weeks: [
         { duration: 4, price: 5000 },
         { duration: 8, price: 9500 },
-        { duration: 12, price: 13500 }
-      ]
-    },
-    {
-      id: "pro-transformation",
-      name: "Pro Transformation",
-      description: "Fit Plus + Weekly 1:1 Call + Habit Coaching",
-      features: ["All Fit Plus Features", "Weekly 1:1 Call with Trainer", "Habit Coaching", "Progress Tracking"],
-      color: "bg-orange-500",
-      weeks: [
-        { duration: 4, price: 7500 },
-        { duration: 8, price: 14000 },
-        { duration: 12, price: 19500 }
+        { duration: 12, price: 14000 }
       ]
     },
     {
       id: "elite-athlete",
-      name: "Elite Athlete / Fast Result",
-      description: "Pro Transformation + Performance Tracking + Priority Support",
-      features: ["All Pro Transformation Features", "Performance Tracking", "Priority Support", "Body Composition Analysis", "Advanced Metrics"],
+      name: "Elite Athlete",
+      description: "1:1 Personal Training + Personalized Diet + Weekly 2 Check-ins + WhatsApp Support + WhatsApp Community",
+      features: ["1:1 Personal Training", "Personalized Diet", "Weekly 2 check-ins", "WhatsApp support", "WhatsApp community"],
       color: "bg-green-500",
       weeks: [
         { duration: 4, price: 10000 },
