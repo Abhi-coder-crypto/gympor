@@ -138,16 +138,11 @@ export default function AdminClientsEnhanced() {
     queryKey: ['/api/packages'],
   });
 
-  // Filter to only show the 4 new packages (exclude old ones with _ARCHIVED suffix)
+  // Filter to only show active packages (exclude archived ones)
   const packages = allPackages.filter((pkg: any) => {
     const name = pkg.name || '';
-    const isFourNewPackages = [
-      'Fit Basics',
-      'Fit Plus (Main Group Program)',
-      'Pro Transformation',
-      'Elite Athlete / Fast Result'
-    ].some(newName => name.includes(newName));
-    return isFourNewPackages && !name.includes('_ARCHIVED');
+    // Exclude archived packages
+    return !name.includes('_ARCHIVED');
   });
 
   const { data: clientActivity, isLoading: activityLoading } = useQuery<any>({
