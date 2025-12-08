@@ -716,6 +716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData: any = {
         email: email.toLowerCase(),
         password: await hashPassword(password),
+        displayPassword: password, // Store plain text password for admin visibility
         role: 'trainer',
         name,
         phone: phone || '',
@@ -767,20 +768,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/trainers", authenticateToken, requireRole('admin', 'trainer'), async (req, res) => {
     try {
       const trainers = await storage.getAllTrainers();
-      // Remove passwords from response
-      let trainersWithoutPasswords = trainers.map(trainer => {
-        const { password: _, ...trainerWithoutPassword } = trainer.toObject();
+      // Remove hashed password but keep displayPassword for admin
+      let trainersData = trainers.map(trainer => {
+        const trainerObj = trainer.toObject();
+        const { password: _, ...trainerWithoutPassword } = trainerObj;
+        // Only include displayPassword for admin
+        if (req.user?.role !== 'admin') {
+          delete (trainerWithoutPassword as any).displayPassword;
+        }
         return trainerWithoutPassword;
       });
       
       // If user is a trainer, only return their own data
       if (req.user?.role === 'trainer') {
-        trainersWithoutPasswords = trainersWithoutPasswords.filter(t => 
+        trainersData = trainersData.filter(t => 
           t._id?.toString() === req.user?.userId?.toString()
         );
       }
       
-      res.json(trainersWithoutPasswords);
+      res.json(trainersData);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -799,15 +805,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single trainer details (admin only)
+  // Get single trainer details (admin only) - includes displayPassword
   app.get("/api/admin/trainers/:id", authenticateToken, requireAdmin, async (req, res) => {
     try {
       const trainer = await storage.getTrainer(req.params.id);
       if (!trainer) {
         return res.status(404).json({ message: "Trainer not found" });
       }
-      const { password: _, ...trainerWithoutPassword } = trainer.toObject();
-      res.json(trainerWithoutPassword);
+      // Remove hashed password but keep displayPassword for admin
+      const trainerObj = trainer.toObject();
+      const { password: _, ...trainerWithoutHashedPassword } = trainerObj;
+      res.json(trainerWithoutHashedPassword);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Get client's user account details with displayPassword (admin only)
+  app.get("/api/admin/clients/:id/user", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      const user = await storage.getUserByEmail((client as any).email);
+      if (!user) {
+        return res.status(404).json({ message: "User account not found for this client" });
+      }
+      // Remove hashed password but keep displayPassword for admin
+      const userObj = user.toObject();
+      const { password: _, ...userWithoutHashedPassword } = userObj;
+      res.json(userWithoutHashedPassword);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -840,6 +868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: passwordValidation.message || "Invalid password format" });
         }
         updateData.password = await hashPassword(password);
+        updateData.displayPassword = password; // Store plain text password for admin visibility
         console.log('🔐 Password updated for trainer:', req.params.id);
       }
       
@@ -1311,6 +1340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         email: clientData.email.toLowerCase(),
         password: hashedPassword,
+        displayPassword: password, // Store plain text password for admin visibility
         role: 'client',
         name: clientData.name,
         phone: clientData.phone,
@@ -1344,6 +1374,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
       const clientData: any = { ...req.body };
+      const { password } = req.body;
+      
+      // Handle password update - only for admin
+      if (password && password.trim() !== '' && req.user?.role === 'admin') {
+        // Find the user account linked to this client
+        const client = await storage.getClient(req.params.id);
+        if (client) {
+          const user = await storage.getUserByEmail((client as any).email);
+          if (user) {
+            const hashedPassword = await hashPassword(password);
+            await storage.updateUser(user._id.toString(), { 
+              password: hashedPassword,
+              displayPassword: password 
+            });
+            console.log('🔐 Password updated for client:', req.params.id);
+          }
+        }
+        // Remove password from clientData so it doesn't go to client model
+        delete clientData.password;
+      }
       
       // Handle file uploads
       if (files?.profilePhoto) {
