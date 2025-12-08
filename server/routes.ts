@@ -4126,14 +4126,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/sessions", authenticateToken, requireRole('admin', 'trainer'), async (req, res) => {
     try {
       const sessionData = { ...req.body };
-      // If trainer is creating, set trainerId automatically
+      
+      // Admins can ONLY create group sessions - reject 1:1 attempts
+      if (req.user?.role === 'admin' && sessionData.meetingType === 'one_to_one') {
+        return res.status(403).json({ 
+          message: "Admins cannot create 1:1 sessions. Only trainers can create personal training sessions for Elite Athlete clients." 
+        });
+      }
+      
+      // Trainers can ONLY create 1:1 sessions for Elite clients
       if (req.user?.role === 'trainer') {
         sessionData.trainerId = req.user.userId;
+        sessionData.meetingType = 'one_to_one';
+        sessionData.packagePlan = 'elite_athlete';
+        sessionData.maxCapacity = 1;
       }
-      // If admin is creating and passes trainerId in body, use it (allows trainer selection)
-      else if (req.user?.role === 'admin' && req.body.trainerId) {
-        sessionData.trainerId = req.body.trainerId;
+      // If admin is creating, enforce group meeting settings
+      else if (req.user?.role === 'admin') {
+        sessionData.meetingType = 'group';
+        sessionData.maxCapacity = 10;
+        if (req.body.trainerId) {
+          sessionData.trainerId = req.body.trainerId;
+        }
       }
+      
+      // For 1:1 sessions with clientId, add the client to the clients array
+      if (sessionData.clientId && sessionData.meetingType === 'one_to_one') {
+        sessionData.clients = [sessionData.clientId];
+        sessionData.currentCapacity = 1;
+        delete sessionData.clientId;
+      }
+      
       const session = await storage.createSession(sessionData);
       res.json(session);
     } catch (error: any) {

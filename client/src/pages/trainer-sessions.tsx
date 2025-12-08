@@ -38,9 +38,9 @@ const SESSION_TYPES = ["Power Yoga", "HIIT", "Cardio Bootcamp", "Strength Buildi
 
 const sessionSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  clientId: z.string().min(1, "Client is required"),
   scheduledAt: z.string().min(1, "Date and time are required"),
   duration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
-  maxCapacity: z.coerce.number().min(1, "Capacity must be at least 1"),
 });
 
 type SessionFormData = z.infer<typeof sessionSchema>;
@@ -57,9 +57,9 @@ export default function TrainerSessions() {
     resolver: zodResolver(sessionSchema),
     defaultValues: {
       title: "",
+      clientId: "",
       scheduledAt: "",
       duration: 60,
-      maxCapacity: 15,
     },
   });
 
@@ -75,12 +75,28 @@ export default function TrainerSessions() {
     enabled: !!trainerId
   });
 
+  const { data: assignedClients = [] } = useQuery<any[]>({
+    queryKey: ['/api/trainers', trainerId, 'clients'],
+    enabled: !!trainerId
+  });
+
+  const eliteClients = assignedClients.filter((client: any) => {
+    const packageName = client.packageId?.name || client.packageName || '';
+    return packageName === 'Elite Athlete';
+  });
+
   const createSessionMutation = useMutation({
     mutationFn: async (data: SessionFormData) => {
       return await apiRequest("POST", "/api/sessions", {
-        ...data,
+        title: data.title,
+        meetingType: "one_to_one",
+        packagePlan: "elite_athlete",
+        clientId: data.clientId,
         scheduledAt: new Date(data.scheduledAt),
-        currentCapacity: 0,
+        duration: data.duration,
+        maxCapacity: 1,
+        currentCapacity: 1,
+        status: "upcoming",
       });
     },
     onSuccess: () => {
@@ -262,6 +278,38 @@ export default function TrainerSessions() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="clientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Elite Client (1:1 Session)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-client">
+                          <SelectValue placeholder="Select an Elite Athlete client" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {eliteClients.length === 0 ? (
+                          <SelectItem value="none" disabled>No Elite Athlete clients assigned</SelectItem>
+                        ) : (
+                          eliteClients.map((client: any) => (
+                            <SelectItem key={client._id} value={client._id}>
+                              {client.name || client.email} - Elite Athlete
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      1:1 sessions can only be created for Elite Athlete clients
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -296,25 +344,6 @@ export default function TrainerSessions() {
                   )}
                 />
               </div>
-
-              <FormField
-                control={form.control}
-                name="maxCapacity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Max Capacity</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                        data-testid="input-max-capacity"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>

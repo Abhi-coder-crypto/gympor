@@ -188,7 +188,8 @@ export interface ILiveSession extends Document {
   title: string;
   description?: string;
   sessionType: string;
-  packagePlan: 'fitplus' | 'pro' | 'elite';
+  meetingType: 'group' | 'one_to_one';
+  packagePlan: 'fit_basic' | 'pro_transformation' | 'elite_athlete';
   packageId?: string | mongoose.Types.ObjectId;
   scheduledAt: Date;
   duration: number;
@@ -541,7 +542,8 @@ const LiveSessionSchema = new Schema({
   title: { type: String, required: true },
   description: String,
   sessionType: String,
-  packagePlan: { type: String, enum: ['fitplus', 'pro', 'elite'], required: true, default: 'fitplus' },
+  meetingType: { type: String, enum: ['group', 'one_to_one'], required: true, default: 'group' },
+  packagePlan: { type: String, enum: ['fit_basic', 'pro_transformation', 'elite_athlete'], required: true, default: 'fit_basic' },
   packageId: { type: Schema.Types.ObjectId, ref: 'Package' },
   scheduledAt: { type: Date, required: true },
   duration: { type: Number, required: true },
@@ -550,7 +552,7 @@ const LiveSessionSchema = new Schema({
   trainerName: String,
   trainerId: { type: Schema.Types.ObjectId, ref: 'User' },
   clients: [{ type: Schema.Types.ObjectId, ref: 'Client' }],
-  maxCapacity: { type: Number, default: 15, required: true },
+  maxCapacity: { type: Number, default: 10, required: true },
   currentCapacity: { type: Number, default: 0, required: true },
   status: { type: String, default: 'upcoming', required: true },
   isRecurring: { type: Boolean, default: false, required: true },

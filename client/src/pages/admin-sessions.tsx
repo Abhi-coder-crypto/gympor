@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,11 +28,12 @@ const SESSION_STATUSES = ["upcoming", "live", "completed", "cancelled"];
 
 const sessionSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  packagePlan: z.enum(["fitplus", "pro", "elite"], { required_error: "Package plan is required" }),
+  meetingType: z.literal("group").default("group"),
+  packagePlan: z.enum(["fit_basic", "pro_transformation"], { required_error: "Package plan is required" }),
   trainerId: z.string().optional(),
   scheduledAt: z.string().min(1, "Date and time are required"),
   duration: z.coerce.number().min(1, "Duration must be at least 1 minute"),
-  maxCapacity: z.coerce.number().min(1, "Capacity must be at least 1"),
+  maxCapacity: z.coerce.number().min(1, "Capacity must be at least 1").default(10),
 });
 
 type SessionFormData = z.infer<typeof sessionSchema>;
@@ -55,13 +56,16 @@ export default function AdminSessions() {
     resolver: zodResolver(sessionSchema),
     defaultValues: {
       title: "",
-      packagePlan: "fitplus",
+      meetingType: "group",
+      packagePlan: "fit_basic",
       trainerId: "",
       scheduledAt: "",
       duration: 60,
       maxCapacity: 10,
     },
   });
+
+  // Admin can only create group meetings with fixed capacity of 10
 
   const { data: sessions = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/sessions"],
@@ -83,11 +87,12 @@ export default function AdminSessions() {
     mutationFn: async (data: SessionFormData) => {
       return await apiRequest("POST", "/api/sessions", {
         title: data.title,
+        meetingType: data.meetingType,
         packagePlan: data.packagePlan,
         trainerId: data.trainerId || undefined,
         scheduledAt: new Date(data.scheduledAt),
         duration: data.duration,
-        maxCapacity: data.maxCapacity,
+        maxCapacity: data.meetingType === "group" ? 10 : 1,
         currentCapacity: 0,
         status: "upcoming",
       });
@@ -564,12 +569,19 @@ export default function AdminSessions() {
                 )}
               />
 
+              {/* Admin can only create group meetings - meeting type is fixed */}
+              <div className="p-3 rounded-md bg-muted">
+                <p className="text-sm text-muted-foreground mb-1">Meeting Type</p>
+                <p className="font-medium" data-testid="text-meeting-type">Group Meeting (Batch of 10 clients)</p>
+                <p className="text-xs text-muted-foreground mt-1">Note: 1:1 personal training sessions are created by trainers for Elite Athlete clients</p>
+              </div>
+
               <FormField
                 control={form.control}
                 name="packagePlan"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Package Plan</FormLabel>
+                    <FormLabel>Target Package (for client filtering)</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-package-plan">
@@ -577,11 +589,13 @@ export default function AdminSessions() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="fitplus">FitPlus</SelectItem>
-                        <SelectItem value="pro">Pro</SelectItem>
-                        <SelectItem value="elite">Elite</SelectItem>
+                        <SelectItem value="fit_basic">Fit Basic</SelectItem>
+                        <SelectItem value="pro_transformation">Pro Transformation</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormDescription>
+                      Only clients with this package can be assigned to this group session
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -652,15 +666,18 @@ export default function AdminSessions() {
                 name="maxCapacity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Max Capacity</FormLabel>
+                    <FormLabel>Max Capacity (Batch of 10)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        disabled={true}
                         data-testid="input-max-capacity"
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Group meetings have a fixed capacity of 10 clients per batch
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

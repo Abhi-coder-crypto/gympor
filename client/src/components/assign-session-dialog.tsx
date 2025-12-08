@@ -76,10 +76,13 @@ export function AssignSessionDialog({ open, onOpenChange, sessionId, sessionTitl
   const packageMatchesPlan = (packageName: string, plan: string): boolean => {
     const normalizedPkgName = packageName.toLowerCase();
     switch (plan.toLowerCase()) {
+      case 'fit_basic':
       case 'fitplus':
-        return normalizedPkgName.includes('fit plus');
+        return normalizedPkgName.includes('fit basic') || normalizedPkgName.includes('fit plus');
+      case 'pro_transformation':
       case 'pro':
         return normalizedPkgName.includes('pro transformation');
+      case 'elite_athlete':
       case 'elite':
         return normalizedPkgName.includes('elite');
       default:
@@ -105,8 +108,12 @@ export function AssignSessionDialog({ open, onOpenChange, sessionId, sessionTitl
       return packageMatchesPlan(packageName, packagePlan);
     }
     
-    // Fallback: show clients from Fit Plus and higher packages (excluding Fit Basics)
-    return packageName !== 'Fit Basics' && packageName !== '';
+    // Fallback: show clients from Fit Basic and higher packages
+    return packageName !== '' && (
+      packageName.toLowerCase().includes('fit basic') ||
+      packageName.toLowerCase().includes('pro transformation') ||
+      packageName.toLowerCase().includes('elite')
+    );
   });
 
   const assignedClientIds = new Set(sessionClients.map((client: any) => client._id));
