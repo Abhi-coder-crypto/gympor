@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,6 +48,8 @@ export default function ClientProgressPhotos() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [description, setDescription] = useState("");
   const [weight, setWeight] = useState("");
+  const [deletePhotoDialogOpen, setDeletePhotoDialogOpen] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -87,12 +99,20 @@ export default function ClientProgressPhotos() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/clients', clientId, 'progress-photos'] });
+      setDeletePhotoDialogOpen(false);
+      setPhotoToDelete(null);
       toast({
         title: "Photo deleted",
         description: "Progress photo has been removed.",
       });
     },
   });
+
+  const confirmDeletePhoto = () => {
+    if (photoToDelete && clientId) {
+      deleteMutation.mutate(photoToDelete);
+    }
+  };
 
   const handleUpload = () => {
     if (!photoUrl.trim()) {
@@ -122,9 +142,8 @@ export default function ClientProgressPhotos() {
       return;
     }
     
-    if (confirm("Are you sure you want to delete this progress photo?")) {
-      deleteMutation.mutate(photoId);
-    }
+    setPhotoToDelete(photoId);
+    setDeletePhotoDialogOpen(true);
   };
 
   const sortedPhotos = [...photos].sort((a, b) => 
@@ -410,6 +429,32 @@ export default function ClientProgressPhotos() {
           )}
         </div>
       </main>
+
+      {/* Delete Photo Confirmation Dialog */}
+      <AlertDialog open={deletePhotoDialogOpen} onOpenChange={(open) => {
+        setDeletePhotoDialogOpen(open);
+        if (!open) setPhotoToDelete(null);
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Progress Photo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this progress photo? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending} data-testid="button-cancel-delete-photo">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeletePhoto}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete-photo"
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -6,6 +6,16 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +61,8 @@ export default function AdminSessions() {
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
   const [cloneSessionData, setCloneSessionData] = useState<any>(null);
   const [cloneForm, setCloneForm] = useState({ scheduledAt: "" });
+  const [deleteSessionDialogOpen, setDeleteSessionDialogOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<SessionFormData>({
@@ -184,11 +196,19 @@ export default function AdminSessions() {
         );
       }});
       toast({ title: "Success", description: "Session deleted successfully" });
+      setDeleteSessionDialogOpen(false);
+      setSessionToDelete(null);
     },
     onError: (error: any) => {
       toast({ title: "Error", description: error.message || "Failed to delete session", variant: "destructive" });
     },
   });
+
+  const confirmDeleteSession = () => {
+    if (sessionToDelete) {
+      deleteSessionMutation.mutate(sessionToDelete);
+    }
+  };
 
   const onSubmit = (data: SessionFormData) => {
     createSessionMutation.mutate(data);
@@ -389,9 +409,8 @@ export default function AdminSessions() {
                             size="sm"
                             variant="destructive"
                             onClick={() => {
-                              if (confirm("Are you sure you want to permanently delete this session?")) {
-                                deleteSessionMutation.mutate(session._id);
-                              }
+                              setSessionToDelete(session._id);
+                              setDeleteSessionDialogOpen(true);
                             }}
                             data-testid={`button-delete-${session._id}`}
                           >
@@ -527,9 +546,8 @@ export default function AdminSessions() {
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => {
-                                    if (confirm("Are you sure you want to permanently delete this session?")) {
-                                      deleteSessionMutation.mutate(session._id);
-                                    }
+                                    setSessionToDelete(session._id);
+                                    setDeleteSessionDialogOpen(true);
                                   }}
                                   data-testid={`button-delete-${session._id}`}
                                 >
@@ -548,6 +566,31 @@ export default function AdminSessions() {
           </main>
         </div>
       </div>
+
+      <AlertDialog open={deleteSessionDialogOpen} onOpenChange={(open) => {
+        setDeleteSessionDialogOpen(open);
+        if (!open) setSessionToDelete(null);
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Session</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete this session? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteSessionMutation.isPending} data-testid="button-cancel-delete-session">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteSession} 
+              disabled={deleteSessionMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete-session"
+            >
+              {deleteSessionMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-create-session">

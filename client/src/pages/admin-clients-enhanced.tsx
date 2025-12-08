@@ -25,6 +25,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -80,6 +90,8 @@ export default function AdminClientsEnhanced() {
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const [viewingDocuments, setViewingDocuments] = useState<any>(null);
   const [viewingDocument, setViewingDocument] = useState<{url: string; name: string; mimeType?: string} | null>(null);
+  const [deleteClientDialogOpen, setDeleteClientDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<{id: string; name: string} | null>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -244,6 +256,8 @@ export default function AdminClientsEnhanced() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/clients/search'] });
       queryClient.invalidateQueries({ queryKey: ['/api/clients'] });
+      setDeleteClientDialogOpen(false);
+      setClientToDelete(null);
       toast({
         title: "Success",
         description: "Client deleted successfully",
@@ -257,6 +271,12 @@ export default function AdminClientsEnhanced() {
       });
     },
   });
+
+  const confirmDeleteClient = () => {
+    if (clientToDelete) {
+      deleteClientMutation.mutate(clientToDelete.id);
+    }
+  };
 
   const bulkUpdateMutation = useMutation({
     mutationFn: async ({ clientIds, updates }: { clientIds: string[]; updates: any }) => {
@@ -889,9 +909,8 @@ export default function AdminClientsEnhanced() {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => {
-                                    if (confirm(`⚠️ Are you sure you want to permanently delete ${client.name}?\n\nThis action CANNOT be undone. All their data, workouts, sessions, and progress will be permanently removed.`)) {
-                                      deleteClientMutation.mutate(client._id);
-                                    }
+                                    setClientToDelete({ id: client._id, name: client.name });
+                                    setDeleteClientDialogOpen(true);
                                   }}
                                   disabled={deleteClientMutation.isPending}
                                   data-testid={`button-delete-${client._id}`}
@@ -1687,6 +1706,32 @@ export default function AdminClientsEnhanced() {
         document={viewingDocument}
         onClose={() => setViewingDocument(null)}
       />
+
+      {/* Delete Client Confirmation Dialog */}
+      <AlertDialog open={deleteClientDialogOpen} onOpenChange={(open) => {
+        setDeleteClientDialogOpen(open);
+        if (!open) setClientToDelete(null);
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Client</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete {clientToDelete?.name}? This action cannot be undone. All their data, workouts, sessions, and progress will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteClientMutation.isPending} data-testid="button-cancel-delete-client">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteClient}
+              disabled={deleteClientMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete-client"
+            >
+              {deleteClientMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarProvider>
   );
 }

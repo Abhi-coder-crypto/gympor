@@ -7,6 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
@@ -43,6 +53,12 @@ export default function AdminDietPlans() {
   const [createWorkoutOpen, setCreateWorkoutOpen] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
   const [assignMode, setAssignMode] = useState<'assign' | 'reassign'>('assign');
+  const [deletePlanDialogOpen, setDeletePlanDialogOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<string | null>(null);
+  const [deleteMealDialogOpen, setDeleteMealDialogOpen] = useState(false);
+  const [mealToDelete, setMealToDelete] = useState<string | null>(null);
+  const [deleteWorkoutDialogOpen, setDeleteWorkoutDialogOpen] = useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null);
 
   const { data: currentUser } = useQuery<any>({
     queryKey: ['/api/auth/me'],
@@ -183,15 +199,29 @@ export default function AdminDietPlans() {
   };
 
   const handleDelete = (planId: string) => {
-    if (confirm("Are you sure you want to delete this diet plan?")) {
-      deletePlanMutation.mutate(planId);
+    setPlanToDelete(planId);
+    setDeletePlanDialogOpen(true);
+  };
+
+  const confirmDeletePlan = () => {
+    if (planToDelete) {
+      deletePlanMutation.mutate(planToDelete);
     }
+    setDeletePlanDialogOpen(false);
+    setPlanToDelete(null);
   };
 
   const handleDeleteMeal = (mealId: string) => {
-    if (confirm("Are you sure you want to delete this meal?")) {
-      deleteMealMutation.mutate(mealId);
+    setMealToDelete(mealId);
+    setDeleteMealDialogOpen(true);
+  };
+
+  const confirmDeleteMeal = () => {
+    if (mealToDelete) {
+      deleteMealMutation.mutate(mealToDelete);
     }
+    setDeleteMealDialogOpen(false);
+    setMealToDelete(null);
   };
 
   const handleEditMeal = (meal: any) => {
@@ -200,9 +230,16 @@ export default function AdminDietPlans() {
   };
 
   const handleDeleteWorkout = (workoutId: string) => {
-    if (confirm("Are you sure you want to delete this workout plan?")) {
-      deleteWorkoutMutation.mutate(workoutId);
+    setWorkoutToDelete(workoutId);
+    setDeleteWorkoutDialogOpen(true);
+  };
+
+  const confirmDeleteWorkout = () => {
+    if (workoutToDelete) {
+      deleteWorkoutMutation.mutate(workoutToDelete);
     }
+    setDeleteWorkoutDialogOpen(false);
+    setWorkoutToDelete(null);
   };
 
   const filteredTemplates = templates.filter(plan =>
@@ -750,6 +787,57 @@ export default function AdminDietPlans() {
         onOpenChange={setAssignDialogOpen}
         plan={selectedPlan}
       />
+
+      <AlertDialog open={deletePlanDialogOpen} onOpenChange={setDeletePlanDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Diet Plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this diet plan? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-plan">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeletePlan} data-testid="button-confirm-delete-plan">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteMealDialogOpen} onOpenChange={setDeleteMealDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Meal</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this meal? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-meal">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteMeal} data-testid="button-confirm-delete-meal">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteWorkoutDialogOpen} onOpenChange={setDeleteWorkoutDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Workout Plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this workout plan? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-workout">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteWorkout} data-testid="button-confirm-delete-workout">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
   </SidebarProvider>
   );
