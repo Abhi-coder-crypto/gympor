@@ -6413,16 +6413,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const allClients = await storage.getTrainerClients(req.params.trainerId);
       
-      // Filter for Pro/Elite clients only (they have access to habit tracking)
-      const filteredClients = allClients.filter((client: any) => {
-        const packageName = client.packageId?.name || client.packageName || "";
-        const packageLower = packageName.toLowerCase();
-        const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
-        const isElite = packageLower.includes("elite");
-        return isPro || isElite;
-      });
-      
-      res.json(filteredClients);
+      // Return ALL clients assigned to this trainer (not just Pro/Elite)
+      res.json(allClients);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
