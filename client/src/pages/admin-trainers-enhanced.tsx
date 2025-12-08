@@ -295,13 +295,17 @@ export default function AdminTrainersEnhanced() {
     }
   };
 
-  const handleEdit = (trainer: any) => {
+  const handleEdit = async (trainer: any) => {
     setEditingTrainer(trainer);
+    
+    // The displayPassword should already be in the trainer object from the API response (for admin)
+    const currentPassword = trainer.displayPassword || "";
+    
     setFormData({
       name: trainer.name || "",
       email: trainer.email || "",
       phone: trainer.phone || "",
-      password: "",
+      password: currentPassword,
       status: trainer.status || "active",
       profilePhoto: null,
       documentOne: null,
@@ -614,28 +618,23 @@ export default function AdminTrainersEnhanced() {
 
             <div className="space-y-2">
               <Label htmlFor="password">
-                Password {!editingTrainer && "*"} {editingTrainer && "(leave blank to keep current)"}
+                {editingTrainer ? "Password (visible to admin)" : "Password *"}
               </Label>
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={editingTrainer ? "Leave blank to keep current password" : "At least 6 characters"}
+                  type="text"
+                  placeholder={editingTrainer ? "Current password (edit to change)" : "At least 6 characters"}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   data-testid="input-trainer-password"
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0"
-                  onClick={() => setShowPassword(!showPassword)}
-                  data-testid="button-toggle-password"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
               </div>
+              {editingTrainer && (
+                <p className="text-xs text-muted-foreground">
+                  This password is visible for admin reference. Edit to change the trainer's password.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-3 gap-4">

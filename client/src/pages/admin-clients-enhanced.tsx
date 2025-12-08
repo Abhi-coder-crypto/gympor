@@ -468,8 +468,8 @@ export default function AdminClientsEnhanced() {
     formDataObj.append('email', formData.email);
     formDataObj.append('status', formData.status);
     
-    // Only send password for new clients (not for editing)
-    if (!editingClient) {
+    // Send password for both new clients and when editing
+    if (formData.password) {
       formDataObj.append('password', formData.password);
     }
     
@@ -518,7 +518,7 @@ export default function AdminClientsEnhanced() {
     }
   };
 
-  const handleEdit = (client: any) => {
+  const handleEdit = async (client: any) => {
     setEditingClient(client);
     let packageId = "";
     if (client.packageId) {
@@ -530,11 +530,29 @@ export default function AdminClientsEnhanced() {
         packageId = String(client.packageId);
       }
     }
+    
+    // Fetch the client's user account to get the displayPassword
+    let currentPassword = "";
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      const response = await fetch(`/api/admin/clients/${client._id}/user`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        currentPassword = userData.displayPassword || "";
+      }
+    } catch (error) {
+      console.log('Could not fetch user password:', error);
+    }
+    
     setFormData({
       name: client.name || "",
       phone: client.phone || "",
       email: client.email || "",
-      password: "",
+      password: currentPassword,
       packageId: packageId,
       packageDuration: client.packageDuration?.toString() || "4",
       age: client.age?.toString() || "",
@@ -1127,21 +1145,24 @@ export default function AdminClientsEnhanced() {
               />
             </div>
 
-            {!editingClient && (
-              <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                  minLength={6}
-                  placeholder="Minimum 6 characters"
-                  data-testid="input-client-password"
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="password">{editingClient ? "Password (visible to admin)" : "Password *"}</Label>
+              <Input
+                id="password"
+                type="text"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required={!editingClient}
+                minLength={6}
+                placeholder={editingClient ? "Current password (edit to change)" : "Minimum 6 characters"}
+                data-testid="input-client-password"
+              />
+              {editingClient && (
+                <p className="text-xs text-muted-foreground">
+                  This password is visible for admin reference. Edit to change the client's password.
+                </p>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
