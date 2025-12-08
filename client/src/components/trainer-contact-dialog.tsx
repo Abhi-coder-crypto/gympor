@@ -24,16 +24,17 @@ interface SystemSettings {
 interface TrainerContactDropdownProps {
   isProOrElite: boolean;
   packageName?: string;
+  hasAssignedTrainer?: boolean;
 }
 
-export function TrainerContactDropdown({ isProOrElite, packageName }: TrainerContactDropdownProps) {
+export function TrainerContactDropdown({ isProOrElite, packageName, hasAssignedTrainer }: TrainerContactDropdownProps) {
   const [open, setOpen] = useState(false);
 
   const packageLower = packageName?.toLowerCase() || "";
   const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
   const isElite = packageLower.includes("elite");
-  const isFitBasic = packageLower.includes("fit basic") || packageLower.includes("basics") || packageLower.includes("fit plus");
-  const hasTrainerAccess = isPro || isElite || isFitBasic;
+  // Show trainer contact for ANY client with an assigned trainer (not package-based)
+  const hasTrainerAccess = hasAssignedTrainer === true;
   const hasWhatsAppCommunity = isPro || isElite;
 
   const { data: trainerInfo, isLoading, refetch } = useQuery<TrainerInfo>({

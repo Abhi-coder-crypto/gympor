@@ -39,6 +39,9 @@ export function ClientHeader({ currentPage, packageName: packageNameProp }: Clie
   const isPro = packageLower.includes("pro") && !packageLower.includes("fit plus");
   const isElite = packageLower.includes("elite");
   const isProOrElite = !!(packageName && (isPro || isElite));
+  
+  // Check if client has an assigned trainer - show contact button for ALL clients with assigned trainers
+  const hasAssignedTrainer = !!(userData?.client?.trainerId);
 
 
   const [location] = useLocation();
@@ -183,7 +186,7 @@ export function ClientHeader({ currentPage, packageName: packageNameProp }: Clie
           <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">
             <SessionReminders />
             <ThemeToggle />
-            <TrainerContactDropdown isProOrElite={isProOrElite} packageName={packageName} />
+            <TrainerContactDropdown isProOrElite={isProOrElite} packageName={packageName} hasAssignedTrainer={hasAssignedTrainer} />
             <Button 
               variant="ghost" 
               size="icon" 
@@ -211,7 +214,7 @@ export function ClientHeader({ currentPage, packageName: packageNameProp }: Clie
           <div className="md:hidden flex items-center gap-0.5 flex-shrink-0">
             <ThemeToggle />
             <SessionReminders />
-            <TrainerContactDropdown isProOrElite={isProOrElite} packageName={packageName} />
+            <TrainerContactDropdown isProOrElite={isProOrElite} packageName={packageName} hasAssignedTrainer={hasAssignedTrainer} />
             <Button 
               variant="ghost" 
               size="icon" 
