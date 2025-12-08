@@ -520,6 +520,7 @@ export default function ClientDashboard() {
                 weightTarget={Math.round(Number(targetWeight) || 0)}
                 weightInitial={Math.round(Number(initialWeight) || 0)}
                 weightProgress={weightGoal?.progress}
+                totalWorkoutCount={(workoutLogs as any[]).length}
                 onUpdateGoals={() => setLocation("/client/goals")}
               />
 
@@ -529,7 +530,8 @@ export default function ClientDashboard() {
                   achievementsData?.length || 0,
                   unlockedAchievements + (assignedWorkoutCount > 0 ? Math.floor((completedWorkouts / assignedWorkoutCount) * 2) : 0)
                 )}
-                totalCount={Math.max(6, (achievementsData?.length || 0))}
+                totalCount={6}
+                workoutCount={(workoutLogs as any[]).length}
               />
             </div>
           </div>

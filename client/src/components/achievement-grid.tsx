@@ -14,6 +14,7 @@ interface AchievementGridProps {
   achievements?: Achievement[];
   unlockedCount?: number;
   totalCount?: number;
+  workoutCount?: number;
 }
 
 const ACHIEVEMENT_COLORS = [
@@ -29,54 +30,66 @@ export function AchievementGrid({
   achievements,
   unlockedCount = 3,
   totalCount = 6,
+  workoutCount = 0,
 }: AchievementGridProps) {
   const [, setLocation] = useLocation();
 
+  // Calculate achievements based on actual workout count
   const defaultAchievements: Achievement[] = [
     {
       id: "first-workout",
       title: "First Workout",
       icon: Trophy,
-      unlocked: unlockedCount >= 1,
+      unlocked: workoutCount >= 1,
     },
     {
       id: "7-day-streak",
-      title: "7 Day Streak",
+      title: "7 Workouts",
       icon: Flame,
-      unlocked: unlockedCount >= 2,
+      unlocked: workoutCount >= 7,
     },
     {
       id: "10-workouts",
       title: "10 Workouts",
       icon: Target,
-      unlocked: unlockedCount >= 3,
+      unlocked: workoutCount >= 10,
     },
     {
       id: "30-day-streak",
-      title: "30 Day Streak",
+      title: "25 Workouts",
       icon: Star,
-      unlocked: unlockedCount >= 4,
+      unlocked: workoutCount >= 25,
     },
     {
       id: "50-workouts",
       title: "50 Workouts",
       icon: Bookmark,
-      unlocked: unlockedCount >= 5,
+      unlocked: workoutCount >= 50,
     },
     {
       id: "100-workouts",
       title: "100 Workouts",
       icon: Zap,
-      unlocked: unlockedCount >= 6,
+      unlocked: workoutCount >= 100,
     },
   ];
+  
+  // Calculate unlocked count based on workouts
+  const calculatedUnlocked = defaultAchievements.filter(a => a.unlocked).length;
 
   return (
     <Card className="hover-elevate border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-      <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-gray-200 dark:border-gray-700">
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">Achievements</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 pb-6 border-b border-gray-200 dark:border-gray-700">
+        <div>
+          <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-50">Achievements</CardTitle>
+          {workoutCount > 0 && (
+            <p className="text-sm text-muted-foreground mt-1" data-testid="text-workout-count">
+              {workoutCount} workout{workoutCount !== 1 ? 's' : ''} completed
+            </p>
+          )}
+        </div>
         <span className="text-lg font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
-          {unlockedCount}/{totalCount}
+          {calculatedUnlocked}/{totalCount}
         </span>
       </CardHeader>
       <CardContent className="pt-6">

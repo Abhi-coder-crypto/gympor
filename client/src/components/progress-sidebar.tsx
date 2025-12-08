@@ -13,6 +13,7 @@ interface ProgressSidebarProps {
   weightTarget: number;
   weightInitial: number;
   weightProgress?: number;
+  totalWorkoutCount?: number;
   onUpdateGoals?: () => void;
 }
 
@@ -22,6 +23,7 @@ export function ProgressSidebar({
   weightTarget,
   weightInitial,
   weightProgress: providedWeightProgress,
+  totalWorkoutCount = 0,
   onUpdateGoals,
 }: ProgressSidebarProps) {
   const completedDays = workoutDays.filter(d => d.completed).length;
@@ -58,11 +60,11 @@ export function ProgressSidebar({
           </div>
           
           {/* Workout Days Grid - Circles from assignment date */}
-          <div className="flex justify-between gap-2">
+          <div className="flex justify-between gap-1 px-1">
             {workoutDays.map((dayData) => (
-              <div key={dayData.day} className="flex flex-col items-center">
+              <div key={dayData.day} className="flex flex-col items-center flex-1 min-w-0">
                 <button
-                  className={`w-12 h-12 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center ${
+                  className={`w-9 h-9 rounded-full text-[10px] font-bold transition-all duration-200 flex items-center justify-center shrink-0 ${
                     dayData.completed
                       ? "bg-green-500 text-white shadow-md hover:shadow-lg"
                       : "bg-red-500 text-white shadow-md hover:shadow-lg"
@@ -83,6 +85,16 @@ export function ProgressSidebar({
               data-testid="progress-workouts"
             />
           </div>
+          
+          {/* Workout Count Summary */}
+          {totalWorkoutCount > 0 && (
+            <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-200 dark:border-slate-700">
+              <span className="text-xs text-muted-foreground">Total Workouts Completed</span>
+              <span className="text-sm font-bold text-green-600 dark:text-green-400" data-testid="text-total-workouts">
+                {totalWorkoutCount}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Weight Goal - Enhanced */}
